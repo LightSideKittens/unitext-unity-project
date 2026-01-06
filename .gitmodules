@@ -1,0 +1,3 @@
+[submodule "Assets/UniText"]
+	path = Assets/UniText
+	url = https://github.com/LightSideMeowshop/unitext.git

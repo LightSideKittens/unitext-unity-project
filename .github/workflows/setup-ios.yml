@@ -1,0 +1,24 @@
+name: Setup iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile_type:
+        description: 'Profile type'
+        type: choice
+        options:
+          - adhoc
+          - appstore
+        default: 'adhoc'
+      force_renew:
+        description: 'Force renew'
+        type: boolean
+        default: false
+
+jobs:
+  setup:
+    uses: LightSideKittens/ci-workflows/.github/workflows/ios-create-profile.yml@main
+    with:
+      profile_type: ${{ inputs.profile_type }}
+      force_renew: ${{ inputs.force_renew }}
+    secrets: inherit

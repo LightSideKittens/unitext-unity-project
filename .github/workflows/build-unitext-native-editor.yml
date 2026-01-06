@@ -1,0 +1,183 @@
+name: Build UniText Native Editor
+run-name: "Build UniText Native Editor"
+
+on:
+  workflow_dispatch:
+
+env:
+  HARFBUZZ_VERSION: "12.3.2"
+  # Aggressive size optimization - we only need subset, not shaping
+  HB_FLAGS: "-DHB_MINI -DHB_LEAN -DHB_OPTIMIZE_SIZE -DHB_OPTIMIZE_SIZE_MORE -DHB_MINIMIZE_MEMORY_USAGE -DHB_NO_FALLBACK_SHAPE -DHB_NO_WIN1256 -DHB_DISABLE_DEPRECATED -DHB_NO_BUFFER_SERIALIZE -DHB_NO_BUFFER_VERIFY -DHB_NO_BUFFER_MESSAGE -DHB_NO_SETLOCALE -DHB_NO_MMAP -DHB_NO_META -DHB_NO_MT -DHB_NO_DRAW -DHB_NO_PAINT -DNDEBUG"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install meson ninja
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build HarfBuzz
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch %HARFBUZZ_VERSION% https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src
+          meson setup build --prefix=%cd%\..\deps\harfbuzz ^
+            --buildtype=minsize -Ddefault_library=static ^
+            -Dfreetype=disabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled ^
+            -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled ^
+            -Ddirectwrite=disabled -Dgdi=disabled ^
+            -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled -Dutilities=disabled ^
+            -Dcpp_args="%HB_FLAGS%"
+          ninja -C build install
+
+      - name: Build DLL
+        shell: cmd
+        run: |
+          cl /c /O1 /MD /EHsc /std:c++17 native\unitext_subset.cpp /I deps\harfbuzz\include\harfbuzz /DNDEBUG
+          cl /c /O1 /MD /EHsc /std:c++17 native\unitext_file_dialog.cpp /DNDEBUG
+          link /DLL /OUT:unitext_native_editor.dll /DEF:native\unitext_subset.def unitext_subset.obj unitext_file_dialog.obj deps\harfbuzz\lib\libharfbuzz-subset.a deps\harfbuzz\lib\libharfbuzz.a comdlg32.lib
+
+      - name: Verify
+        shell: bash
+        run: ls -lh unitext_native_editor.dll && dumpbin //EXPORTS unitext_native_editor.dll | head -30 || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-editor-win-x64
+          path: unitext_native_editor.dll
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install meson ninja
+
+      - name: Build HarfBuzz
+        run: |
+          git clone --depth 1 --branch $HARFBUZZ_VERSION https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src
+
+          # arm64 (native on Apple Silicon)
+          CFLAGS="-arch arm64" CXXFLAGS="-arch arm64 $HB_FLAGS" LDFLAGS="-arch arm64" \
+          meson setup build-arm64 --prefix=${{ github.workspace }}/deps/harfbuzz-arm64 \
+            --buildtype=minsize -Ddefault_library=static \
+            -Dfreetype=disabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
+            -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled -Dcoretext=disabled \
+            -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled -Dutilities=disabled
+          ninja -C build-arm64 install
+
+          # x86_64 (cross-compile on Apple Silicon)
+          cat > x86_64-darwin.txt << EOF
+          [binaries]
+          c = ['clang', '-arch', 'x86_64']
+          cpp = ['clang++', '-arch', 'x86_64']
+          ar = 'ar'
+          strip = 'strip'
+          [host_machine]
+          system = 'darwin'
+          cpu_family = 'x86_64'
+          cpu = 'x86_64'
+          endian = 'little'
+          EOF
+          CXXFLAGS="-arch x86_64 $HB_FLAGS" \
+          meson setup build-x64 --cross-file x86_64-darwin.txt \
+            --prefix=${{ github.workspace }}/deps/harfbuzz-x64 \
+            --buildtype=minsize -Ddefault_library=static \
+            -Dfreetype=disabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
+            -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled -Dcoretext=disabled \
+            -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled -Dutilities=disabled
+          ninja -C build-x64 install
+
+      - name: Build universal dylib
+        run: |
+          clang++ -c -Os -std=c++17 -arch arm64 -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz-arm64/include/harfbuzz -o subset_arm64.o
+          clang++ -c -Os -std=c++17 -arch x86_64 -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz-x64/include/harfbuzz -o subset_x64.o
+          clang++ -c -Os -std=c++17 -arch arm64 -DNDEBUG -x objective-c++ native/unitext_file_dialog.cpp -o dialog_arm64.o
+          clang++ -c -Os -std=c++17 -arch x86_64 -DNDEBUG -x objective-c++ native/unitext_file_dialog.cpp -o dialog_x64.o
+
+          clang++ -dynamiclib -arch arm64 -dead_strip -o libunitext_native_editor_arm64.dylib subset_arm64.o dialog_arm64.o \
+            deps/harfbuzz-arm64/lib/libharfbuzz-subset.a deps/harfbuzz-arm64/lib/libharfbuzz.a -framework AppKit -weak_framework UniformTypeIdentifiers -lc++
+          clang++ -dynamiclib -arch x86_64 -dead_strip -o libunitext_native_editor_x64.dylib subset_x64.o dialog_x64.o \
+            deps/harfbuzz-x64/lib/libharfbuzz-subset.a deps/harfbuzz-x64/lib/libharfbuzz.a -framework AppKit -weak_framework UniformTypeIdentifiers -lc++
+
+          lipo -create libunitext_native_editor_arm64.dylib libunitext_native_editor_x64.dylib -output libunitext_native_editor.dylib
+          strip -x libunitext_native_editor.dylib
+
+      - name: Verify
+        run: ls -lh libunitext_native_editor.dylib && file libunitext_native_editor.dylib
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-editor-macos
+          path: libunitext_native_editor.dylib
+
+  linux:
+    runs-on: ubuntu-latest
+    container: ubuntu:20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update
+          apt-get install -y git build-essential ninja-build pkg-config python3-pip ca-certificates
+          pip3 install meson
+
+      - name: Build HarfBuzz
+        run: |
+          git clone --depth 1 --branch $HARFBUZZ_VERSION https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src
+          meson setup build --prefix=$GITHUB_WORKSPACE/deps/harfbuzz \
+            --libdir=lib \
+            --buildtype=minsize -Ddefault_library=static \
+            -Dfreetype=disabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
+            -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled \
+            -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled -Dutilities=disabled \
+            -Dcpp_args="-fPIC $HB_FLAGS"
+          ninja -C build install
+
+      - name: Build SO
+        run: |
+          g++ -c -Os -std=c++17 -fPIC -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz/include/harfbuzz -o unitext_subset.o
+          g++ -c -Os -std=c++17 -fPIC -DNDEBUG native/unitext_file_dialog.cpp -o unitext_file_dialog.o
+          g++ -shared -Wl,--gc-sections -o libunitext_native_editor.so unitext_subset.o unitext_file_dialog.o \
+            deps/harfbuzz/lib/libharfbuzz-subset.a deps/harfbuzz/lib/libharfbuzz.a -lstdc++ -ldl
+          strip libunitext_native_editor.so
+
+      - name: Verify
+        run: ls -lh libunitext_native_editor.so && nm -gD libunitext_native_editor.so | grep -E "subset|unitext" || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-editor-linux-x64
+          path: libunitext_native_editor.so
+
+  package:
+    needs: [windows, macos, linux]
+    runs-on: unity-runner
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package
+        run: |
+          mkdir -p release/Windows/x86_64 release/macOS release/Linux/x86_64
+          cp artifacts/unitext-native-editor-win-x64/unitext_native_editor.dll release/Windows/x86_64/
+          cp artifacts/unitext-native-editor-macos/libunitext_native_editor.dylib release/macOS/
+          cp artifacts/unitext-native-editor-linux-x64/libunitext_native_editor.so release/Linux/x86_64/
+          ls -laR release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-editor-all-platforms
+          path: release

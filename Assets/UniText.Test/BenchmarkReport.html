@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniText Benchmark Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            padding: 40px;
+            min-height: 100vh;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .panel {
+            background: #252540;
+            border-radius: 16px;
+            padding: 30px;
+        }
+        .panel-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .panel-title .icon {
+            font-size: 24px;
+        }
+
+        /* Speed Comparison */
+        .test-group {
+            margin-bottom: 25px;
+        }
+        .test-group:last-child {
+            margin-bottom: 0;
+        }
+        .test-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .bar-label {
+            width: 80px;
+            font-size: 12px;
+            color: #888;
+        }
+        .bar-container {
+            flex: 1;
+            height: 12px;
+            background: #1a1a2e;
+            border-radius: 6px;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+        .bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+        .bar.unitext { background: linear-gradient(90deg, #22c55e, #4ade80); }
+        .bar.tmp { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .bar.uitoolkit { background: linear-gradient(90deg, #6366f1, #818cf8); }
+        .bar-value {
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Memory Cards */
+        .memory-section {
+            margin-bottom: 30px;
+        }
+        .memory-section:last-child {
+            margin-bottom: 0;
+        }
+        .memory-title {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .card-value.unitext { color: #4ade80; }
+        .card-value.tmp { color: #fbbf24; }
+        .card-value.uitoolkit { color: #c084fc; }
+        .card-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .card-sublabel {
+            font-size: 11px;
+            color: #ef4444;
+            margin-top: 5px;
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Speed Comparison Panel -->
+        <div class="panel">
+            <div class="panel-title">
+                <span class="icon">⚡</span>
+                Speed Comparison
+            </div>
+
+            <div class="test-group">
+                <div class="test-name">Object Creation</div>
+                <div class="bar-row">
+                    <span class="bar-label">UniText</span>
+                    <div class="bar-container">
+                        <div class="bar unitext" style="width: 30%"></div>
+                    </div>
+                    <span class="bar-value">217ms</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">TMP</span>
+                    <div class="bar-container">
+                        <div class="bar tmp" style="width: 75%"></div>
+                    </div>
+                    <span class="bar-value">542ms</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">UI Toolkit</span>
+                    <div class="bar-container">
+                        <div class="bar uitoolkit" style="width: 100%"></div>
+                    </div>
+                    <span class="bar-value">725ms</span>
+                </div>
+            </div>
+
+            <div class="test-group">
+                <div class="test-name">Full Rebuild</div>
+                <div class="bar-row">
+                    <span class="bar-label">UniText</span>
+                    <div class="bar-container">
+                        <div class="bar unitext" style="width: 22%"></div>
+                    </div>
+                    <span class="bar-value">75ms</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">TMP</span>
+                    <div class="bar-container">
+                        <div class="bar tmp" style="width: 82%"></div>
+                    </div>
+                    <span class="bar-value">275ms</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">UI Toolkit</span>
+                    <div class="bar-container">
+                        <div class="bar uitoolkit" style="width: 100%"></div>
+                    </div>
+                    <span class="bar-value">333ms</span>
+                </div>
+            </div>
+
+            <div class="test-group">
+                <div class="test-name">Layout (AutoSize)</div>
+                <div class="bar-row">
+                    <span class="bar-label">UniText</span>
+                    <div class="bar-container">
+                        <div class="bar unitext" style="width: 9%"></div>
+                    </div>
+                    <span class="bar-value">58ms</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">TMP</span>
+                    <div class="bar-container">
+                        <div class="bar tmp" style="width: 100%"></div>
+                    </div>
+                    <span class="bar-value">666ms</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">UI Toolkit</span>
+                    <div class="bar-container">
+                        <div class="bar uitoolkit" style="width: 21%"></div>
+                    </div>
+                    <span class="bar-value">142ms</span>
+                </div>
+            </div>
+
+            <div class="test-group">
+                <div class="test-name">Mesh Rebuild</div>
+                <div class="bar-row">
+                    <span class="bar-label">UniText</span>
+                    <div class="bar-container">
+                        <div class="bar unitext" style="width: 20%"></div>
+                    </div>
+                    <span class="bar-value">33ms</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">TMP</span>
+                    <div class="bar-container">
+                        <div class="bar tmp" style="width: 100%"></div>
+                    </div>
+                    <span class="bar-value">167ms</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">UI Toolkit</span>
+                    <div class="bar-container">
+                        <div class="bar uitoolkit" style="width: 30%"></div>
+                    </div>
+                    <span class="bar-value">50ms</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory & GC Panel -->
+        <div class="panel">
+            <div class="panel-title">
+                <span class="icon">💾</span>
+                Memory & GC
+            </div>
+
+            <div class="memory-section">
+                <div class="memory-title">GC Cycles (creation)</div>
+                <div class="cards">
+                    <div class="card">
+                        <div class="card-value unitext">2</div>
+                        <div class="card-label">UniText</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-value tmp">38</div>
+                        <div class="card-label">TMP</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-value uitoolkit">2</div>
+                        <div class="card-label">UI Toolkit</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="memory-section">
+                <div class="memory-title">Managed Allocation (creation)</div>
+                <div class="cards">
+                    <div class="card">
+                        <div class="card-value unitext">10</div>
+                        <div class="card-label">MB</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-value tmp">1712</div>
+                        <div class="card-label">MB</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-value uitoolkit">3</div>
+                        <div class="card-label">MB</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="memory-section">
+                <div class="memory-title">Runtime Allocations (per operation)</div>
+                <div class="cards">
+                    <div class="card">
+                        <div class="card-value unitext">~500 B</div>
+                        <div class="card-label">UniText</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-value tmp">~6 KB</div>
+                        <div class="card-label">TMP</div>
+                        <div class="card-sublabel">×12 more</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-value uitoolkit">~89 KB</div>
+                        <div class="card-label">UI Toolkit</div>
+                        <div class="card-sublabel">×178 more</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            * 100 objects, 10 iterations, 3 warmup, ~1000 characters per object (Latin + Arabic + Hebrew + Mixed). UniText.UseParallel = false.
+        </div>
+    </div>
+</body>
+</html>

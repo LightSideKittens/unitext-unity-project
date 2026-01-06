@@ -1,0 +1,125 @@
+; UniText Native - Windows DLL exports
+; Used for Windows x64 and ARM64 builds
+
+LIBRARY unitext_native
+EXPORTS
+    ; === Version ===
+    ut_version
+
+    ; === FreeType Unified API ===
+    ut_ft_init
+    ut_ft_done
+    ut_ft_new_memory_face
+    ut_ft_done_face
+    ut_ft_get_char_index
+    ut_ft_set_pixel_sizes
+    ut_ft_select_size
+    ut_ft_load_glyph
+    ut_ft_render_glyph
+    ut_ft_palette_data_get
+    ut_ft_palette_select
+    ut_ft_get_color_glyph_clipbox
+    ut_ft_get_color_glyph_layer
+
+    ; === SDF Configuration ===
+    ut_ft_set_sdf_spread
+
+    ; === FreeType Wrapper Functions ===
+    ut_ft_get_face_info
+    ut_ft_get_fixed_size
+    ut_ft_get_glyph_metrics
+    ut_ft_get_bitmap_info
+    ut_ft_get_glyph_slot
+    ut_ft_get_bitmap_top
+    ut_ft_get_bitmap_left
+    ut_ft_outline_to_blpath
+    ut_ft_get_outline_info
+
+    ; === COLRv1 API ===
+    ut_colr_get_glyph_paint
+    ut_colr_debug_glyph_paint
+    ut_colr_get_paint_format
+    ut_colr_get_paint_solid
+    ut_colr_get_paint_layers
+    ut_colr_get_next_layer
+    ut_colr_get_paint_glyph
+    ut_colr_get_paint_colr_glyph
+    ut_colr_get_paint_translate
+    ut_colr_get_paint_scale
+    ut_colr_get_paint_rotate
+    ut_colr_get_paint_skew
+    ut_colr_get_paint_transform
+    ut_colr_get_paint_composite
+    ut_colr_get_paint_linear_gradient
+    ut_colr_get_paint_radial_gradient
+    ut_colr_get_paint_sweep_gradient
+    ut_colr_get_colorstop
+    ut_colr_get_clipbox
+
+    ; === Diagnostics ===
+    ut_debug_sbix_graphic_type
+
+    ; === HarfBuzz Unified API ===
+    ut_hb_blob_create
+    ut_hb_blob_destroy
+    ut_hb_face_create
+    ut_hb_face_destroy
+    ut_hb_face_get_upem
+    ut_hb_font_create
+    ut_hb_font_destroy
+    ut_hb_ot_font_set_funcs
+    ut_hb_font_get_glyph_h_advance
+    ut_hb_font_get_glyph
+    ut_hb_font_get_face
+    ut_hb_buffer_create
+    ut_hb_buffer_destroy
+    ut_hb_buffer_clear_contents
+    ut_hb_buffer_set_direction
+    ut_hb_buffer_set_script
+    ut_hb_buffer_set_content_type
+    ut_hb_buffer_set_flags
+    ut_hb_buffer_add_codepoints
+    ut_hb_buffer_get_length
+    ut_hb_buffer_get_glyph_infos
+    ut_hb_buffer_get_glyph_positions
+    ut_hb_shape
+
+    ; === Blend2D Unified API ===
+    ut_blImageCreate
+    ut_blImageDestroy
+    ut_blImageGetData
+    ut_blContextCreate
+    ut_blContextDestroy
+    ut_blContextEnd
+    ut_blContextSetFillStyleRgba32
+    ut_blContextFillAll
+    ut_blContextFillRect
+    ut_blContextFillPath
+    ut_blContextSetFillStyleGradient
+    ut_blContextSave
+    ut_blContextRestore
+    ut_blContextTranslate
+    ut_blContextScale
+    ut_blContextRotate
+    ut_blContextTransform
+    ut_blContextResetMatrix
+    ut_blContextSetCompOp
+    ut_blContextClipToRect
+    ut_blContextRestoreClipping
+    ut_blContextBlitImage
+    ut_blPathCreate
+    ut_blPathDestroy
+    ut_blPathClear
+    ut_blPathMoveTo
+    ut_blPathLineTo
+    ut_blPathQuadTo
+    ut_blPathCubicTo
+    ut_blPathClose
+    ut_blPathTransform
+    ut_blGradientCreateLinear
+    ut_blGradientCreateRadial
+    ut_blGradientCreateConic
+    ut_blGradientDestroy
+    ut_blGradientAddStop
+    ut_blGradientResetStops
+    ut_blGradientApplyTransform

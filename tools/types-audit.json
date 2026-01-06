@@ -1,0 +1,1960 @@
+{
+  "Editor": {
+    "EscapeTextAreaDrawer.cs": [
+      {
+        "name": "EscapeTextAreaDrawer",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "FontSubsetter.cs": [
+      {
+        "name": "FontSubsetter",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": true
+      }
+    ],
+    "ListWrapperDrawers.cs": [
+      {
+        "name": "StyledListDrawer",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      },
+      {
+        "name": "TypedListDrawer",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "ModRegisterDrawer.cs": [
+      {
+        "name": "ModRegisterDrawer",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "NativeFileDialog.cs": [
+      {
+        "name": "NativeFileDialog",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": true
+      }
+    ],
+    "StyledListUtility.cs": [
+      {
+        "name": "ListCallbacks",
+        "kind": "struct",
+        "access": "internal",
+        "hasSummary": false
+      },
+      {
+        "name": "StyledListUtility",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "TypeSelectorDrawer.cs": [
+      {
+        "name": "TypeCache",
+        "kind": "class",
+        "access": "private",
+        "hasSummary": false
+      },
+      {
+        "name": "TypeEntry",
+        "kind": "struct",
+        "access": "private",
+        "hasSummary": false
+      },
+      {
+        "name": "TypeSelectorDrawer",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "UniTextBuildProcessor.cs": [
+      {
+        "name": "UniTextBuildProcessor",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "UniTextEditor.cs": [
+      {
+        "name": "UniTextEditor",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "UniTextEditorResources.cs": [
+      {
+        "name": "UniTextEditorResources",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "UniTextFontEditor.cs": [
+      {
+        "name": "UniTextFontEditor",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "UniTextFontToolsWindow.cs": [
+      {
+        "name": "BatchEntry",
+        "kind": "class",
+        "access": "private",
+        "hasSummary": false
+      },
+      {
+        "name": "CharacterSet",
+        "kind": "enum",
+        "access": "private",
+        "hasSummary": false
+      },
+      {
+        "name": "FontSource",
+        "kind": "class",
+        "access": "private",
+        "hasSummary": false
+      },
+      {
+        "name": "SubsetMode",
+        "kind": "enum",
+        "access": "private",
+        "hasSummary": false
+      },
+      {
+        "name": "Tab",
+        "kind": "enum",
+        "access": "private",
+        "hasSummary": false
+      },
+      {
+        "name": "UniTextFontToolsWindow",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "UniTextSettingsProvider.cs": [
+      {
+        "name": "UniTextSettingsProvider",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": true
+      }
+    ],
+    "UniText_BaseShaderGUI.cs": [
+      {
+        "name": "ShaderFeature",
+        "kind": "class",
+        "access": "protected",
+        "hasSummary": false
+      },
+      {
+        "name": "UniText_BaseShaderGUI",
+        "kind": "class",
+        "access": "public",
+        "hasSummary": false
+      }
+    ],
+    "UniText_BitmapShaderGUI.cs": [
+      {
+        "name": "UniText_BitmapShaderGUI",
+        "kind": "class",
+        "access": "public",
+        "hasSummary": false
+      }
+    ],
+    "UniText_EditorShaderUtilities.cs": [
+      {
+        "name": "EditorShaderUtilities",
+        "kind": "class",
+        "access": "internal",
+        "hasSummary": false
+      }
+    ],
+    "UniText_SDFShaderGUI.cs": [
+      {
+        "name": "UniText_SDFShaderGUI",
+        "kind": "class",
+        "access": "public",
+        "hasSummary": false
+      }
+    ]
+  },
+  "Runtime": {
+    "Attributes": {
+      "TypeGroupAttribute.cs": [
+        {
+          "name": "TypeGroupAttribute",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": false
+        }
+      ],
+      "TypeSelectorAttribute.cs": [
+        {
+          "name": "TypeSelectorAttribute",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": false
+        }
+      ]
+    },
+    "Core": {
+      "Cat.cs": [
+        {
+          "name": "Cat",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "Component": {
+        "DraggableRect.cs": [
+          {
+            "name": "DraggableRect",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": false
+          }
+        ],
+        "EventSystemBootstrap.cs": [
+          {
+            "name": "EventSystemBootstrap",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "UniText.cs": [
+          {
+            "name": "DirtyFlags",
+            "kind": "enum",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "SubMeshRenderer",
+            "kind": "struct",
+            "access": "private",
+            "hasSummary": true
+          },
+          {
+            "name": "UniText",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "UniText_Parallel.cs": [
+          {
+            "name": "CachedTransformData",
+            "kind": "struct",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "FontBatchEntry",
+            "kind": "struct",
+            "access": "private",
+            "hasSummary": false
+          },
+          {
+            "name": "FontReferenceComparer",
+            "kind": "class",
+            "access": "private",
+            "hasSummary": false
+          },
+          {
+            "name": "TestSegmentFontInfo",
+            "kind": "struct",
+            "access": "public",
+            "hasSummary": false
+          }
+        ]
+      },
+      "FastIntDictionary.cs": [
+        {
+          "name": "Entry",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "Enumerator",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FastIntDictionary\u003CT\u003E",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "Highlight": {
+        "DefaultTextHighlighter.cs": [
+          {
+            "name": "DefaultTextHighlighter",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "RangeHighlightGraphic.cs": [
+          {
+            "name": "RangeHighlightGraphic",
+            "kind": "class",
+            "access": "internal",
+            "hasSummary": true
+          }
+        ],
+        "TextHighlighter.cs": [
+          {
+            "name": "TextHighlighter",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ]
+      },
+      "Shaper.cs": [
+        {
+          "name": "FontCacheEntry",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": false
+        },
+        {
+          "name": "Shaper",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "SharedPipelineComponents.cs": [
+        {
+          "name": "SharedPipelineComponents",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "TextHitResult.cs": [
+        {
+          "name": "TextHitResult",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "TextLayout.cs": [
+        {
+          "name": "LayoutSettings",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "TextLayout",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "TextProcessor.cs": [
+        {
+          "name": "TextProcessor",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "TextProcessSettings",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "TextStructures.cs": [
+        {
+          "name": "CachedGlyphData",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "HorizontalAlignment",
+          "kind": "enum",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "LineBreakType",
+          "kind": "enum",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "PositionedGlyph",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "ShapedGlyph",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "ShapedRun",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "ShapingResult",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "TextDirection",
+          "kind": "enum",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "TextLine",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "TextRange",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "TextRun",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "VerticalAlignment",
+          "kind": "enum",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UnicodeData.cs": [
+        {
+          "name": "UnicodeData",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UniTextArrayPool.cs": [
+        {
+          "name": "PooledBuffer\u003CT\u003E",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "PooledList\u003CT\u003E",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextArrayPool\u003CT\u003E",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextPoolStats",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "UniTextBuffers.cs": [
+        {
+          "name": "FontCacheEntry",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "IAttributeData",
+          "kind": "interface",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "PooledArrayAttribute\u003CT\u003E",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "SharedFontCache",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "SharedMeshes",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextBuffers",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UniTextDebug.cs": [
+        {
+          "name": "UniTextDebug",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "UniTextGradients.cs": [
+        {
+          "name": "NamedGradient",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextGradients",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UniTextMeshGenerator.cs": [
+        {
+          "name": "GeneratedMeshSegment",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextMeshGenerator",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextRenderData",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UniTextSettings.cs": [
+        {
+          "name": "UniTextSettings",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UniTextWorkerPool.cs": [
+        {
+          "name": "UniTextWorkerPool",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ]
+    },
+    "EmojiCore": {
+      "COLRv1Renderer.cs": [
+        {
+          "name": "COLRv1Renderer",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "COLRv1RendererPool.cs": [
+        {
+          "name": "COLRv1RendererPool",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "RenderedGlyph",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "EmojiFont.cs": [
+        {
+          "name": "EmojiFont",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "PackedGlyph",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "RenderedGlyphData",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": true
+        }
+      ],
+      "SystemEmojiFont.cs": [
+        {
+          "name": "SystemEmojiFont",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ]
+    },
+    "FontCore": {
+      "FontTypes.cs": [
+        {
+          "name": "FaceInfo",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "Glyph",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "GlyphMetrics",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "GlyphRect",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextFontError",
+          "kind": "enum",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextRenderMode",
+          "kind": "enum",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "FreeType.cs": [
+        {
+          "name": "FaceInfo",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FreeType",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "RenderedGlyph",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "FreeTypeParallel.cs": [
+        {
+          "name": "FreeTypeFacePool",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": false
+        },
+        {
+          "name": "SdfGlyphRenderer",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "SdfRenderedGlyph",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "UniTextAppearance.cs": [
+        {
+          "name": "FontMaterialPair",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextAppearance",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UniTextFont.cs": [
+        {
+          "name": "PreparedBatch",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextCharacter",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UniTextFont",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UniTextFontProvider.cs": [
+        {
+          "name": "UniTextFontProvider",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "UniTextFontStack.cs": [
+        {
+          "name": "UniTextFontStack",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ]
+    },
+    "ModCore": {
+      "AttributeKeys.cs": [
+        {
+          "name": "AttributeKeys",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": false
+        }
+      ],
+      "AttributeParser.cs": [
+        {
+          "name": "AttributeParser",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "InsertionComparerImpl",
+          "kind": "class",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "RemovalComparerImpl",
+          "kind": "class",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "RulePriorityComparerImpl",
+          "kind": "class",
+          "access": "private",
+          "hasSummary": false
+        }
+      ],
+      "AttributeSpan.cs": [
+        {
+          "name": "AttributeSpan",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": false
+        }
+      ],
+      "BaseModifier.cs": [
+        {
+          "name": "BaseModifier",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "EscapeTextAreaAttribute.cs": [
+        {
+          "name": "EscapeTextAreaAttribute",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": false
+        }
+      ],
+      "GlyphModifier.cs": [
+        {
+          "name": "GlyphModifier\u003CT\u003E",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "ModifierBufferExtensions",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "Interactive": {
+        "IInteractiveRangeHandler.cs": [
+          {
+            "name": "IInteractiveRangeHandler",
+            "kind": "interface",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "IInteractiveRangeProvider.cs": [
+          {
+            "name": "IInteractiveRangeProvider",
+            "kind": "interface",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "InteractiveModifier.cs": [
+          {
+            "name": "InteractiveModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "InteractiveRange.cs": [
+          {
+            "name": "InteractiveRange",
+            "kind": "struct",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "InteractiveRangeHit.cs": [
+          {
+            "name": "InteractiveRangeHit",
+            "kind": "struct",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "InteractiveRangeRegistry.cs": [
+          {
+            "name": "InteractiveRangeRegistry",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ]
+      },
+      "IParseRule.cs": [
+        {
+          "name": "IParseRule",
+          "kind": "interface",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "Modifiers": {
+        "BaseLineModifier.cs": [
+          {
+            "name": "BaseLineModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "LineSegment",
+            "kind": "struct",
+            "access": "protected",
+            "hasSummary": false
+          }
+        ],
+        "BoldModifier.cs": [
+          {
+            "name": "BoldModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "ColorModifier.cs": [
+          {
+            "name": "ColorModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "EllipsisModifier.cs": [
+          {
+            "name": "EllipsisModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "LineTruncation",
+            "kind": "struct",
+            "access": "private",
+            "hasSummary": false
+          },
+          {
+            "name": "Range",
+            "kind": "struct",
+            "access": "public",
+            "hasSummary": false
+          }
+        ],
+        "EmptyModifier.cs": [
+          {
+            "name": "EmptyModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "GlyphRenderHelper.cs": [
+          {
+            "name": "GlyphRenderHelper",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": false
+          }
+        ],
+        "GradientModifier.cs": [
+          {
+            "name": "GradientDef",
+            "kind": "struct",
+            "access": "private",
+            "hasSummary": false
+          },
+          {
+            "name": "GradientMode",
+            "kind": "enum",
+            "access": "private",
+            "hasSummary": false
+          },
+          {
+            "name": "GradientModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "ItalicModifier.cs": [
+          {
+            "name": "ItalicModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "LetterSpacingModifier.cs": [
+          {
+            "name": "LetterSpacingModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "LineHeightModifier.cs": [
+          {
+            "name": "LineHeightModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "Range",
+            "kind": "struct",
+            "access": "private",
+            "hasSummary": false
+          }
+        ],
+        "LineRenderHelper.cs": [
+          {
+            "name": "LineRenderHelper",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": false
+          }
+        ],
+        "LinkModifier.cs": [
+          {
+            "name": "LinkModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "ListModifier.cs": [
+          {
+            "name": "ListItemInfo",
+            "kind": "struct",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "ListModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "OrderedMarkerStyle",
+            "kind": "enum",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "ObjModifier.cs": [
+          {
+            "name": "InlineObject",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "ObjModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          },
+          {
+            "name": "RectTransformWrapper",
+            "kind": "class",
+            "access": "internal",
+            "hasSummary": true
+          }
+        ],
+        "SizeModifier.cs": [
+          {
+            "name": "SizeModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "StrikethroughModifier.cs": [
+          {
+            "name": "StrikethroughModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "UnderlineModifier.cs": [
+          {
+            "name": "UnderlineModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "UppercaseModifier.cs": [
+          {
+            "name": "UppercaseModifier",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ]
+      },
+      "ModRegister.cs": [
+        {
+          "name": "ModRegister",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "ModRegisterConfig.cs": [
+        {
+          "name": "ModRegisterConfig",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": false
+        }
+      ],
+      "ParsedRange.cs": [
+        {
+          "name": "ParsedRange",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "Rules": {
+        "BoldParseRule.cs": [
+          {
+            "name": "BoldParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "ColorParseRule.cs": [
+          {
+            "name": "ColorParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "CompositeParseRule.cs": [
+          {
+            "name": "CompositeParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "CSpaceParseRule.cs": [
+          {
+            "name": "CSpaceParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "EllipsisTagRule.cs": [
+          {
+            "name": "EllipsisTagRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "GradientParseRule.cs": [
+          {
+            "name": "GradientParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "ItalicParseRule.cs": [
+          {
+            "name": "ItalicParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "LineHeightParseRule.cs": [
+          {
+            "name": "LineHeightParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "LineSpacingParseRule.cs": [
+          {
+            "name": "LineSpacingParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "Link": {
+          "LinkTagParseRule.cs": [
+            {
+              "name": "LinkTagParseRule",
+              "kind": "class",
+              "access": "public",
+              "hasSummary": true
+            }
+          ],
+          "MarkdownLinkParseRule.cs": [
+            {
+              "name": "MarkdownLinkParseRule",
+              "kind": "class",
+              "access": "public",
+              "hasSummary": true
+            }
+          ],
+          "RawUrlParseRule.cs": [
+            {
+              "name": "RawUrlParseRule",
+              "kind": "class",
+              "access": "public",
+              "hasSummary": true
+            }
+          ]
+        },
+        "MarkdownListParseRule.cs": [
+          {
+            "name": "MarkdownListParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "ObjParseRule.cs": [
+          {
+            "name": "ObjParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "RangeRule.cs": [
+          {
+            "name": "Data",
+            "kind": "struct",
+            "access": "public",
+            "hasSummary": false
+          },
+          {
+            "name": "RangeRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": false
+          }
+        ],
+        "SizeParseRule.cs": [
+          {
+            "name": "SizeParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "StrikethroughParseRule.cs": [
+          {
+            "name": "StrikethroughParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "StringParseRule.cs": [
+          {
+            "name": "StringParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "UnderlineParseRule.cs": [
+          {
+            "name": "UnderlineParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ],
+        "UppercaseParseRule.cs": [
+          {
+            "name": "UppercaseParseRule",
+            "kind": "class",
+            "access": "public",
+            "hasSummary": true
+          }
+        ]
+      },
+      "TagParseRule.cs": [
+        {
+          "name": "OpenTag",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "TagParseRule",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ]
+    },
+    "Native": {
+      "BL.cs": [
+        {
+          "name": "BL",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "FT.cs": [
+        {
+          "name": "BitmapData",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "ExtendedFaceInfo",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FaceInfo",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_Affine23",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_BBox",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_Bitmap",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_Bitmap_Size",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_ClipBox",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_Color",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_ColorLine",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_ColorStop",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_ColorStopIterator",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_FaceRec",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_Glyph_Metrics",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_GlyphSlotRec",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_LayerIterator",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_OpaquePaint",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_PaintColrGlyph",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintColrLayers",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintComposite",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintGlyph",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintLinearGradient",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintRadialGradient",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintRotate",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintScale",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintSkew",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintSolid",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintSweepGradient",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintTransform",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_PaintTranslate",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_Palette_Data",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        },
+        {
+          "name": "FT_Size_Metrics",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_SizeRec",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "FT_Vector",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "GlyphMetrics",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "SdfGlyphResult",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "HB.cs": [
+        {
+          "name": "GlyphInfo",
+          "kind": "struct",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "HB",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": false
+        },
+        {
+          "name": "hb_glyph_info_t",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "hb_glyph_position_t",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "Script",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": false
+        }
+      ]
+    },
+    "Unicode": {
+      "Analysis": {
+        "Itemizer.cs": [
+          {
+            "name": "Itemizer",
+            "kind": "class",
+            "access": "internal",
+            "hasSummary": false
+          }
+        ],
+        "ScriptAnalyzer.cs": [
+          {
+            "name": "ScriptAnalyzer",
+            "kind": "class",
+            "access": "internal",
+            "hasSummary": true
+          }
+        ]
+      },
+      "BidiEngine.cs": [
+        {
+          "name": "BidiEngine",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "BidiParagraph",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "BidiParagraphDirection",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "BidiResult",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "BracketPair",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "BracketPairComparer",
+          "kind": "class",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "EmbeddingState",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "IsolatingRunSequence",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        },
+        {
+          "name": "LevelRun",
+          "kind": "struct",
+          "access": "private",
+          "hasSummary": false
+        }
+      ],
+      "Emoji": {
+        "EmojiSequenceClassifier.cs": [
+          {
+            "name": "EmojiSequenceClassifier",
+            "kind": "class",
+            "access": "internal",
+            "hasSummary": false
+          }
+        ]
+      },
+      "Grapheme": {
+        "GraphemeBreaker.cs": [
+          {
+            "name": "GraphemeBreaker",
+            "kind": "class",
+            "access": "internal",
+            "hasSummary": true
+          }
+        ]
+      },
+      "Layout": {
+        "LineBreakAlgorithm.cs": [
+          {
+            "name": "LineBreakAlgorithm",
+            "kind": "class",
+            "access": "internal",
+            "hasSummary": true
+          }
+        ],
+        "LineBreaker.cs": [
+          {
+            "name": "LineBreaker",
+            "kind": "class",
+            "access": "internal",
+            "hasSummary": true
+          }
+        ]
+      },
+      "UnicodeDataBuilder.cs": [
+        {
+          "name": "ScriptExtensionEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UnicodeBinaryWriter",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UnicodeDataBuilder",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UnicodeProps",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "UnicodeDataProvider.cs": [
+        {
+          "name": "BracketEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "DefaultIgnorableRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "EastAsianWidthRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "EmojiModifierBaseRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "EmojiPresentationRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "ExtendedPictographicRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "GeneralCategoryRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "GraphemeBreakRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "IndicConjunctBreakRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "IPointEntry",
+          "kind": "interface",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "IRangeEntry",
+          "kind": "interface",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "LineBreakRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "MirrorEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "RangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "ScriptExtensionRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "ScriptRangeEntry",
+          "kind": "struct",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UnicodeDataProvider",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": true
+        }
+      ],
+      "UnicodeDataTypes.cs": [
+        {
+          "name": "BidiClass",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "BidiDirection",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "BidiPairedBracketType",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "EastAsianWidth",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "GeneralCategory",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "GraphemeClusterBreak",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "IndicConjunctBreak",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "JoiningGroup",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "JoiningType",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "LineBreakClass",
+          "kind": "enum",
+          "access": "internal",
+          "hasSummary": true
+        },
+        {
+          "name": "UnicodeScript",
+          "kind": "enum",
+          "access": "public",
+          "hasSummary": true
+        }
+      ]
+    },
+    "Utils": {
+      "IndexEx.cs": [
+        {
+          "name": "IndexEx",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "ObjectUtils.cs": [
+        {
+          "name": "ObjectUtils",
+          "kind": "class",
+          "access": "internal",
+          "hasSummary": false
+        }
+      ],
+      "RangeEx.cs": [
+        {
+          "name": "RangeEx",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ],
+      "SerializableListWrappers.cs": [
+        {
+          "name": "StyledList\u003CT\u003E",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": false
+        },
+        {
+          "name": "TypedList\u003CT\u003E",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": false
+        }
+      ]
+    }
+  },
+  "Samples~": {
+    "BasicUsage": {
+      "BasicUsageExample.cs": [
+        {
+          "name": "BasicUsageExample",
+          "kind": "class",
+          "access": "public",
+          "hasSummary": true
+        }
+      ]
+    }
+  }
+}

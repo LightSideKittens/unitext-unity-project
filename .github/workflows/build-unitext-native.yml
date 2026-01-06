@@ -1,0 +1,1760 @@
+name: Build UniText Native
+run-name: "🔨 UniText Native • ${{ (inputs.windows && inputs.linux && inputs.macos && inputs.android && inputs.ios && inputs.tvos && inputs.webgl) && '🌍 All platforms' || format('{0}{1}{2}{3}{4}{5}{6}', inputs.windows && '🪟 Win ' || '', inputs.linux && '🐧 Linux ' || '', inputs.macos && '🍎 macOS ' || '', inputs.android && '🤖 Android ' || '', inputs.ios && '📱 iOS ' || '', inputs.tvos && '📺 tvOS ' || '', inputs.webgl && '🌐 WebGL ' || '') }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      # Desktop
+      windows:
+        description: '🪟 Windows (x64 + ARM64)'
+        type: boolean
+        default: true
+      linux:
+        description: '🐧 Linux (x64 + ARM64)'
+        type: boolean
+        default: true
+      macos:
+        description: '🍎 macOS (Universal)'
+        type: boolean
+        default: true
+
+      # Mobile
+      android:
+        description: '🤖 Android (all ABIs)'
+        type: boolean
+        default: true
+      ios:
+        description: '📱 iOS (xcframework)'
+        type: boolean
+        default: true
+      tvos:
+        description: '📺 tvOS'
+        type: boolean
+        default: true
+
+      # Web
+      webgl:
+        description: '🌐 WebGL (Emscripten)'
+        type: boolean
+        default: true
+
+env:
+  # Library versions - single source of truth
+  ZLIB_VERSION: "1.3.1"
+  ZLIB_NG_VERSION: "2.3.2"  # For WebGL/iOS/tvOS - has --sprefix option for symbol prefixing
+  LIBPNG_VERSION: "1.6.54"
+  FREETYPE_VERSION: "VER-2-14-1"
+  HARFBUZZ_VERSION: "12.3.2"
+  BLEND2D_VERSION: "master"
+  EMSCRIPTEN_VERSION: "3.1.38"
+
+  # HarfBuzz flags: HB_TINY without HB_NO_MT (keeps thread-safety for UniText.UseParallel)
+  HB_FLAGS: "-DHB_MINI -DHB_LEAN -DHB_OPTIMIZE_SIZE -DHB_OPTIMIZE_SIZE_MORE -DHB_MINIMIZE_MEMORY_USAGE -DHB_NO_UCD_UNASSIGNED -DNDEBUG"
+
+  # HarfBuzz flags for WebGL (more aggressive, no threading needed in WASM)
+  HB_WEBGL_FLAGS: "-DHB_NO_FALLBACK_SHAPE -DHB_NO_WIN1256 -DHB_DISABLE_DEPRECATED -DHB_NO_BUFFER_SERIALIZE -DHB_NO_BUFFER_VERIFY -DHB_NO_BUFFER_MESSAGE -DHB_NO_SETLOCALE -DHB_NO_MMAP -DHB_NO_META -DHB_NO_MT -DHB_NO_DRAW -DHB_NO_PAINT -fno-exceptions -fno-rtti"
+
+  # Build settings
+  # BLEND2D_NO_JIT=ON for all platforms (consistent behavior, smaller size)
+
+  # Cache version suffix
+  CACHE_VERSION: "v9"
+
+jobs:
+  # ============================================================================
+  # Windows (x64 + ARM64) - Matrix build
+  # ============================================================================
+  windows:
+    if: inputs.windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm64]
+        include:
+          - arch: x64
+            cmake_arch: x64
+            vcpkg_triplet: x64-windows-static
+            msvc_arch: x64
+          - arch: arm64
+            cmake_arch: ARM64
+            vcpkg_triplet: arm64-windows-static
+            msvc_arch: amd64_arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Meson and Ninja
+        run: pip install meson ninja
+
+      - name: Install pkg-config
+        run: choco install pkgconfiglite -y
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc_arch }}
+
+      # --- zlib ---
+      - name: Cache zlib
+        id: cache-zlib
+        uses: actions/cache@v4
+        with:
+          path: deps/zlib
+          key: win-${{ matrix.arch }}-zlib-${{ env.ZLIB_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build zlib
+        if: steps.cache-zlib.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch v%ZLIB_VERSION% https://github.com/madler/zlib.git zlib-src
+          cd zlib-src && mkdir build && cd build
+          cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\zlib ^
+            -DBUILD_SHARED_LIBS=OFF
+          cmake --build . --config Release
+          cmake --install . --config Release
+
+      # --- libpng ---
+      - name: Cache libpng
+        id: cache-libpng
+        uses: actions/cache@v4
+        with:
+          path: deps/libpng
+          key: win-${{ matrix.arch }}-libpng-${{ env.LIBPNG_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build libpng
+        if: steps.cache-libpng.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch v%LIBPNG_VERSION% https://github.com/pnggroup/libpng.git libpng-src
+          cd libpng-src && mkdir build && cd build
+          cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\libpng ^
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF ^
+            -DZLIB_INCLUDE_DIR=%cd%\..\..\deps\zlib\include ^
+            -DZLIB_LIBRARY=%cd%\..\..\deps\zlib\lib\zlibstatic.lib
+          cmake --build . --config Release
+          cmake --install . --config Release
+
+      # --- FreeType ---
+      - name: Cache FreeType
+        id: cache-freetype
+        uses: actions/cache@v4
+        with:
+          path: deps/freetype
+          key: win-${{ matrix.arch }}-freetype-${{ env.FREETYPE_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build FreeType
+        if: steps.cache-freetype.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch %FREETYPE_VERSION% https://github.com/freetype/freetype.git freetype-src
+          bash .github/scripts/patch-freetype.sh freetype-src
+          cd freetype-src && mkdir build && cd build
+          cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\freetype ^
+            -DBUILD_SHARED_LIBS=OFF ^
+            -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON ^
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON ^
+            -DZLIB_INCLUDE_DIR=%cd%\..\..\deps\zlib\include ^
+            -DZLIB_LIBRARY=%cd%\..\..\deps\zlib\lib\zlibstatic.lib ^
+            -DPNG_PNG_INCLUDE_DIR=%cd%\..\..\deps\libpng\include ^
+            -DPNG_LIBRARY=%cd%\..\..\deps\libpng\lib\libpng16_static.lib
+          cmake --build . --config Release
+          cmake --install . --config Release
+
+      - name: Create FreeType pkg-config
+        if: steps.cache-freetype.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir -p deps/freetype/lib/pkgconfig
+          printf '%s\n' \
+            'prefix=${pcfiledir}/../..' \
+            'exec_prefix=${prefix}' \
+            'libdir=${prefix}/lib' \
+            'includedir=${prefix}/include' \
+            '' \
+            'Name: FreeType 2' \
+            'Description: A free, high-quality, and portable font engine' \
+            'Version: 26.1.20' \
+            'Libs: -L${libdir} -lfreetype' \
+            'Cflags: -I${includedir}/freetype2' \
+            > deps/freetype/lib/pkgconfig/freetype2.pc
+
+      # --- HarfBuzz ---
+      - name: Cache HarfBuzz
+        id: cache-harfbuzz
+        uses: actions/cache@v4
+        with:
+          path: deps/harfbuzz
+          key: win-${{ matrix.arch }}-harfbuzz-${{ env.HARFBUZZ_VERSION }}-${{ env.CACHE_VERSION }}
+
+      # x64: use meson (native compilation)
+      - name: Build HarfBuzz (x64 - meson)
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true' && matrix.arch == 'x64'
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch %HARFBUZZ_VERSION% https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src
+          meson setup build --prefix=%cd%\..\deps\harfbuzz ^
+            --pkg-config-path=%cd%\..\deps\freetype\lib\pkgconfig ^
+            --buildtype=release ^
+            -Ddefault_library=static ^
+            -Dfreetype=enabled ^
+            -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled ^
+            -Dgraphite=disabled -Dgraphite2=disabled ^
+            -Ddirectwrite=disabled -Dgdi=disabled ^
+            -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled ^
+            -Dcpp_args="${{ env.HB_FLAGS }}"
+          ninja -C build install
+
+      # ARM64: use CMake (cross-compilation, meson can't run ARM64 sanity check on x64)
+      - name: Build HarfBuzz (ARM64 - cmake)
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true' && matrix.arch == 'arm64'
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch %HARFBUZZ_VERSION% https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src && mkdir build && cd build
+          cmake .. -G "Visual Studio 17 2022" -A ARM64 ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\harfbuzz ^
+            -DBUILD_SHARED_LIBS=OFF ^
+            -DHB_HAVE_FREETYPE=OFF ^
+            -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_CAIRO=OFF -DHB_HAVE_ICU=OFF ^
+            -DHB_HAVE_GRAPHITE2=OFF -DHB_HAVE_DIRECTWRITE=OFF -DHB_HAVE_GDI=OFF ^
+            -DHB_BUILD_TESTS=OFF ^
+            -DCMAKE_CXX_FLAGS="${{ env.HB_FLAGS }}"
+          cmake --build . --config Release
+          cmake --install . --config Release
+
+      # --- Blend2D ---
+      - name: Cache Blend2D
+        id: cache-blend2d
+        uses: actions/cache@v4
+        with:
+          path: deps/blend2d
+          key: win-${{ matrix.arch }}-blend2d-${{ env.BLEND2D_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Blend2D
+        if: steps.cache-blend2d.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          cd blend2d-src && mkdir build && cd build
+          cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\blend2d ^
+            -DBLEND2D_STATIC=ON ^
+            -DBLEND2D_NO_JIT=ON
+          cmake --build . --config Release
+          cmake --install . --config Release
+
+      # --- Link unified DLL ---
+      # x64: HarfBuzz from meson creates libharfbuzz.a
+      - name: Link unified DLL (x64)
+        if: matrix.arch == 'x64'
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MD /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\libharfbuzz.a deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib gdi32.lib user32.lib ole32.lib advapi32.lib
+
+      # ARM64: HarfBuzz from cmake creates harfbuzz.lib
+      - name: Link unified DLL (ARM64)
+        if: matrix.arch == 'arm64'
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MD /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\harfbuzz.lib deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib gdi32.lib user32.lib ole32.lib advapi32.lib
+
+      - name: Verify DLL
+        shell: bash
+        run: |
+          echo "=== DLL Info ==="
+          ls -lh unitext_native.dll
+          echo ""
+          echo "=== Exports (first 50) ==="
+          dumpbin //EXPORTS unitext_native.dll | head -70 || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-win-${{ matrix.arch }}
+          path: unitext_native.dll
+
+  # ============================================================================
+  # Linux x64
+  # ============================================================================
+  linux-x64:
+    if: inputs.linux
+    runs-on: ubuntu-latest
+    container: ubuntu:20.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update
+          apt-get install -y git build-essential ninja-build pkg-config python3-pip ca-certificates
+          pip3 install cmake meson
+
+      # --- zlib ---
+      - name: Cache zlib
+        id: cache-zlib
+        uses: actions/cache@v4
+        with:
+          path: deps/zlib
+          key: linux-x64-zlib-${{ env.ZLIB_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build zlib
+        if: steps.cache-zlib.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.ZLIB_VERSION }} https://github.com/madler/zlib.git zlib-src
+          cd zlib-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/zlib
+          make -j$(nproc) && make install
+
+      # --- libpng ---
+      - name: Cache libpng
+        id: cache-libpng
+        uses: actions/cache@v4
+        with:
+          path: deps/libpng
+          key: linux-x64-libpng-${{ env.LIBPNG_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build libpng
+        if: steps.cache-libpng.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.LIBPNG_VERSION }} https://github.com/pnggroup/libpng.git libpng-src
+          cd libpng-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/libpng \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF \
+            -DZLIB_INCLUDE_DIR=$GITHUB_WORKSPACE/deps/zlib/include \
+            -DZLIB_LIBRARY=$GITHUB_WORKSPACE/deps/zlib/lib/libz.a
+          make -j$(nproc) && make install
+
+      # --- FreeType ---
+      - name: Cache FreeType
+        id: cache-freetype
+        uses: actions/cache@v4
+        with:
+          path: deps/freetype
+          key: linux-x64-freetype-${{ env.FREETYPE_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build FreeType
+        if: steps.cache-freetype.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://github.com/freetype/freetype.git freetype-src
+          bash .github/scripts/patch-freetype.sh freetype-src
+          cd freetype-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/freetype \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON \
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON \
+            -DZLIB_INCLUDE_DIR=$GITHUB_WORKSPACE/deps/zlib/include \
+            -DZLIB_LIBRARY=$GITHUB_WORKSPACE/deps/zlib/lib/libz.a \
+            -DPNG_PNG_INCLUDE_DIR=$GITHUB_WORKSPACE/deps/libpng/include \
+            -DPNG_LIBRARY=$GITHUB_WORKSPACE/deps/libpng/lib/libpng.a
+          make -j$(nproc) && make install
+
+      - name: Create FreeType pkg-config
+        if: steps.cache-freetype.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p deps/freetype/lib/pkgconfig
+          printf '%s\n' \
+            'prefix=${pcfiledir}/../..' \
+            'exec_prefix=${prefix}' \
+            'libdir=${prefix}/lib' \
+            'includedir=${prefix}/include' \
+            '' \
+            'Name: FreeType 2' \
+            'Description: A free, high-quality, and portable font engine' \
+            'Version: 26.1.20' \
+            'Libs: -L${libdir} -lfreetype' \
+            'Cflags: -I${includedir}/freetype2' \
+            > deps/freetype/lib/pkgconfig/freetype2.pc
+
+      # --- HarfBuzz ---
+      - name: Cache HarfBuzz
+        id: cache-harfbuzz
+        uses: actions/cache@v4
+        with:
+          path: deps/harfbuzz
+          key: linux-x64-harfbuzz-${{ env.HARFBUZZ_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build HarfBuzz
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src
+          meson setup build --prefix=$GITHUB_WORKSPACE/deps/harfbuzz \
+            --libdir=lib \
+            --pkg-config-path=$GITHUB_WORKSPACE/deps/freetype/lib/pkgconfig \
+            --buildtype=release \
+            -Ddefault_library=static \
+            -Dfreetype=enabled \
+            -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled \
+            -Dgraphite=disabled -Dgraphite2=disabled \
+            -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled \
+            -Dcpp_args="${{ env.HB_FLAGS }} -fPIC"
+          ninja -C build install
+
+      # --- Blend2D ---
+      - name: Cache Blend2D
+        id: cache-blend2d
+        uses: actions/cache@v4
+        with:
+          path: deps/blend2d
+          key: linux-x64-blend2d-${{ env.BLEND2D_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Blend2D
+        if: steps.cache-blend2d.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          cd blend2d-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/blend2d \
+            -DBLEND2D_STATIC=ON \
+            -DBLEND2D_NO_JIT=ON
+          make -j$(nproc) && make install
+
+      # --- Link unified SO ---
+      - name: Link unified SO
+        run: |
+          g++ -shared -fPIC -std=c++17 -o libunitext_native.so \
+            -DBLEND2D_STATIC \
+            -I deps/freetype/include/freetype2 \
+            -I deps/harfbuzz/include/harfbuzz \
+            -I deps/blend2d/include \
+            native/unitext_native.cpp \
+            -Wl,--whole-archive \
+            deps/blend2d/lib/libblend2d.a \
+            deps/harfbuzz/lib/libharfbuzz.a \
+            deps/freetype/lib/libfreetype.a \
+            deps/libpng/lib/libpng.a \
+            deps/zlib/lib/libz.a \
+            -Wl,--no-whole-archive \
+            -lpthread -lm -lrt
+
+          strip libunitext_native.so
+
+      - name: Verify SO
+        run: |
+          echo "=== SO Info ==="
+          ls -lh libunitext_native.so
+          echo ""
+          echo "=== Exported symbols (first 50) ==="
+          nm -D libunitext_native.so | grep " T " | head -50
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-linux-x64
+          path: libunitext_native.so
+
+  # ============================================================================
+  # Linux ARM64 (cross-compile)
+  # ============================================================================
+  linux-arm64:
+    if: inputs.linux
+    runs-on: ubuntu-latest
+    container: ubuntu:20.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update
+          apt-get install -y git build-essential ninja-build pkg-config python3-pip ca-certificates \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          pip3 install cmake
+
+      # --- zlib ---
+      - name: Cache zlib
+        id: cache-zlib
+        uses: actions/cache@v4
+        with:
+          path: deps/zlib
+          key: linux-arm64-zlib-${{ env.ZLIB_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build zlib
+        if: steps.cache-zlib.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.ZLIB_VERSION }} https://github.com/madler/zlib.git zlib-src
+          cd zlib-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/zlib
+          make -j$(nproc) && make install
+
+      # --- libpng ---
+      - name: Cache libpng
+        id: cache-libpng
+        uses: actions/cache@v4
+        with:
+          path: deps/libpng
+          key: linux-arm64-libpng-${{ env.LIBPNG_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build libpng
+        if: steps.cache-libpng.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.LIBPNG_VERSION }} https://github.com/pnggroup/libpng.git libpng-src
+          cd libpng-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/libpng \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF \
+            -DZLIB_INCLUDE_DIR=$GITHUB_WORKSPACE/deps/zlib/include \
+            -DZLIB_LIBRARY=$GITHUB_WORKSPACE/deps/zlib/lib/libz.a
+          make -j$(nproc) && make install
+
+      # --- FreeType ---
+      - name: Cache FreeType
+        id: cache-freetype
+        uses: actions/cache@v4
+        with:
+          path: deps/freetype
+          key: linux-arm64-freetype-${{ env.FREETYPE_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build FreeType
+        if: steps.cache-freetype.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://github.com/freetype/freetype.git freetype-src
+          bash .github/scripts/patch-freetype.sh freetype-src
+          cd freetype-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/freetype \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON \
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON \
+            -DZLIB_INCLUDE_DIR=$GITHUB_WORKSPACE/deps/zlib/include \
+            -DZLIB_LIBRARY=$GITHUB_WORKSPACE/deps/zlib/lib/libz.a \
+            -DPNG_PNG_INCLUDE_DIR=$GITHUB_WORKSPACE/deps/libpng/include \
+            -DPNG_LIBRARY=$GITHUB_WORKSPACE/deps/libpng/lib/libpng.a
+          make -j$(nproc) && make install
+
+      # --- HarfBuzz (CMake for cross-compile) ---
+      - name: Cache HarfBuzz
+        id: cache-harfbuzz
+        uses: actions/cache@v4
+        with:
+          path: deps/harfbuzz
+          key: linux-arm64-harfbuzz-${{ env.HARFBUZZ_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build HarfBuzz
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/harfbuzz \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DHB_HAVE_FREETYPE=OFF \
+            -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_CAIRO=OFF -DHB_HAVE_ICU=OFF \
+            -DHB_HAVE_GRAPHITE2=OFF \
+            -DHB_BUILD_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="${{ env.HB_FLAGS }}"
+          make -j$(nproc) && make install
+
+      # --- Blend2D ---
+      - name: Cache Blend2D
+        id: cache-blend2d
+        uses: actions/cache@v4
+        with:
+          path: deps/blend2d
+          key: linux-arm64-blend2d-${{ env.BLEND2D_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Blend2D
+        if: steps.cache-blend2d.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          cd blend2d-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/blend2d \
+            -DBLEND2D_STATIC=ON \
+            -DBLEND2D_NO_JIT=ON
+          make -j$(nproc) && make install
+
+      # --- Link unified SO ---
+      - name: Link unified SO
+        run: |
+          aarch64-linux-gnu-g++ -shared -fPIC -std=c++17 -o libunitext_native.so \
+            -DBLEND2D_STATIC \
+            -I deps/freetype/include/freetype2 \
+            -I deps/harfbuzz/include/harfbuzz \
+            -I deps/blend2d/include \
+            native/unitext_native.cpp \
+            -Wl,--whole-archive \
+            deps/blend2d/lib/libblend2d.a \
+            deps/harfbuzz/lib/libharfbuzz.a \
+            deps/freetype/lib/libfreetype.a \
+            deps/libpng/lib/libpng.a \
+            deps/zlib/lib/libz.a \
+            -Wl,--no-whole-archive \
+            -lpthread -lm
+
+          aarch64-linux-gnu-strip libunitext_native.so
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-linux-arm64
+          path: libunitext_native.so
+
+  # ============================================================================
+  # macOS Universal (arm64 + x86_64)
+  # ============================================================================
+  macos:
+    if: inputs.macos
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install meson ninja pkg-config
+
+      # --- zlib ---
+      - name: Cache zlib
+        id: cache-zlib
+        uses: actions/cache@v4
+        with:
+          path: deps/zlib
+          key: macos-universal-zlib-${{ env.ZLIB_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build zlib
+        if: steps.cache-zlib.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.ZLIB_VERSION }} https://github.com/madler/zlib.git zlib-src
+          cd zlib-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/zlib
+          make -j$(sysctl -n hw.ncpu) && make install
+
+      # --- libpng ---
+      - name: Cache libpng
+        id: cache-libpng
+        uses: actions/cache@v4
+        with:
+          path: deps/libpng
+          key: macos-universal-libpng-${{ env.LIBPNG_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build libpng
+        if: steps.cache-libpng.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.LIBPNG_VERSION }} https://github.com/pnggroup/libpng.git libpng-src
+          cd libpng-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/libpng \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF -DPNG_ARM_NEON=off \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps/zlib/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps/zlib/lib/libz.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+      # --- FreeType ---
+      - name: Cache FreeType
+        id: cache-freetype
+        uses: actions/cache@v4
+        with:
+          path: deps/freetype
+          key: macos-universal-freetype-${{ env.FREETYPE_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build FreeType
+        if: steps.cache-freetype.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://github.com/freetype/freetype.git freetype-src
+          bash .github/scripts/patch-freetype.sh freetype-src
+          cd freetype-src && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/freetype \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON \
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps/zlib/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps/zlib/lib/libz.a \
+            -DPNG_PNG_INCLUDE_DIR=${{ github.workspace }}/deps/libpng/include \
+            -DPNG_LIBRARY=${{ github.workspace }}/deps/libpng/lib/libpng.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+      - name: Create FreeType pkg-config
+        if: steps.cache-freetype.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p deps/freetype/lib/pkgconfig
+          printf '%s\n' \
+            'prefix=${pcfiledir}/../..' \
+            'exec_prefix=${prefix}' \
+            'libdir=${prefix}/lib' \
+            'includedir=${prefix}/include' \
+            '' \
+            'Name: FreeType 2' \
+            'Description: A free, high-quality, and portable font engine' \
+            'Version: 26.1.20' \
+            'Libs: -L${libdir} -lfreetype' \
+            'Cflags: -I${includedir}/freetype2' \
+            > deps/freetype/lib/pkgconfig/freetype2.pc
+
+      # --- HarfBuzz ---
+      - name: Cache HarfBuzz
+        id: cache-harfbuzz
+        uses: actions/cache@v4
+        with:
+          path: deps/harfbuzz
+          key: macos-universal-harfbuzz-${{ env.HARFBUZZ_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build HarfBuzz
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src
+          # Build for arm64
+          CFLAGS="-arch arm64" CXXFLAGS="-arch arm64" LDFLAGS="-arch arm64" \
+          meson setup build-arm64 --prefix=${{ github.workspace }}/deps/harfbuzz-arm64 \
+            --pkg-config-path=${{ github.workspace }}/deps/freetype/lib/pkgconfig \
+            --buildtype=release -Ddefault_library=static \
+            -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
+            -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled \
+            -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled \
+            -Dcpp_args="${{ env.HB_FLAGS }}"
+          ninja -C build-arm64 install
+          # Build for x86_64 (need cross-file on Apple Silicon)
+          printf '%s\n' \
+            '[binaries]' \
+            "c = ['clang', '-arch', 'x86_64']" \
+            "cpp = ['clang++', '-arch', 'x86_64']" \
+            "ar = 'ar'" \
+            "strip = 'strip'" \
+            "pkg-config = 'pkg-config'" \
+            '[host_machine]' \
+            "system = 'darwin'" \
+            "cpu_family = 'x86_64'" \
+            "cpu = 'x86_64'" \
+            "endian = 'little'" \
+            > x86_64-darwin.txt
+          meson setup build-x64 --cross-file x86_64-darwin.txt \
+            --prefix=${{ github.workspace }}/deps/harfbuzz-x64 \
+            --pkg-config-path=${{ github.workspace }}/deps/freetype/lib/pkgconfig \
+            --buildtype=release -Ddefault_library=static \
+            -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
+            -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled \
+            -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled \
+            -Dcpp_args="${{ env.HB_FLAGS }}"
+          ninja -C build-x64 install
+          # Create universal binary
+          mkdir -p ${{ github.workspace }}/deps/harfbuzz/lib
+          cp -r ${{ github.workspace }}/deps/harfbuzz-arm64/include ${{ github.workspace }}/deps/harfbuzz/
+          lipo -create \
+            ${{ github.workspace }}/deps/harfbuzz-arm64/lib/libharfbuzz.a \
+            ${{ github.workspace }}/deps/harfbuzz-x64/lib/libharfbuzz.a \
+            -output ${{ github.workspace }}/deps/harfbuzz/lib/libharfbuzz.a
+
+      # --- Blend2D ---
+      - name: Cache Blend2D
+        id: cache-blend2d
+        uses: actions/cache@v4
+        with:
+          path: deps/blend2d
+          key: macos-universal-blend2d-${{ env.BLEND2D_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Blend2D
+        if: steps.cache-blend2d.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          cd blend2d-src
+          # Build for arm64
+          mkdir build-arm64 && cd build-arm64
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/blend2d-arm64 \
+            -DBLEND2D_STATIC=ON \
+            -DBLEND2D_NO_JIT=ON
+          make -j$(sysctl -n hw.ncpu) && make install
+          cd ..
+          # Build for x86_64
+          mkdir build-x64 && cd build-x64
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/blend2d-x64 \
+            -DBLEND2D_STATIC=ON \
+            -DBLEND2D_NO_JIT=ON
+          make -j$(sysctl -n hw.ncpu) && make install
+          cd ../..
+          # Create universal binary
+          mkdir -p ${{ github.workspace }}/deps/blend2d/lib
+          cp -r ${{ github.workspace }}/deps/blend2d-arm64/include ${{ github.workspace }}/deps/blend2d/
+          lipo -create \
+            ${{ github.workspace }}/deps/blend2d-arm64/lib/libblend2d.a \
+            ${{ github.workspace }}/deps/blend2d-x64/lib/libblend2d.a \
+            -output ${{ github.workspace }}/deps/blend2d/lib/libblend2d.a
+
+      # --- Link unified dylib ---
+      - name: Link unified dylib
+        run: |
+          clang++ -std=c++17 -dynamiclib -arch arm64 -arch x86_64 \
+            -mmacosx-version-min=11.0 \
+            -DBLEND2D_STATIC \
+            -I deps/freetype/include/freetype2 \
+            -I deps/harfbuzz/include/harfbuzz \
+            -I deps/blend2d/include \
+            -o libunitext_native.dylib \
+            native/unitext_native.cpp \
+            -Wl,-all_load \
+            deps/blend2d/lib/libblend2d.a \
+            deps/harfbuzz/lib/libharfbuzz.a \
+            deps/freetype/lib/libfreetype.a \
+            deps/libpng/lib/libpng.a \
+            deps/zlib/lib/libz.a \
+            -framework CoreFoundation -framework CoreGraphics -framework CoreText \
+            -lpthread
+
+          strip -x libunitext_native.dylib
+
+      - name: Verify dylib
+        run: |
+          echo "=== dylib Info ==="
+          ls -lh libunitext_native.dylib
+          echo ""
+          echo "=== Architectures ==="
+          lipo -info libunitext_native.dylib
+          echo ""
+          echo "=== Exports (first 50) ==="
+          nm -g libunitext_native.dylib | grep " T " | head -50
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-macos-universal
+          path: libunitext_native.dylib
+
+  # ============================================================================
+  # Android (all ABIs)
+  # ============================================================================
+  android:
+    if: inputs.android
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - abi: arm64-v8a
+            neon: "on"
+          - abi: armeabi-v7a
+            neon: "on"
+          - abi: x86_64
+            neon: "off"
+          - abi: x86
+            neon: "off"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r26b
+
+      # --- zlib ---
+      - name: Cache zlib
+        id: cache-zlib
+        uses: actions/cache@v4
+        with:
+          path: deps/zlib
+          key: android-${{ matrix.abi }}-zlib-${{ env.ZLIB_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build zlib
+        if: steps.cache-zlib.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.ZLIB_VERSION }} https://github.com/madler/zlib.git zlib-src
+          cd zlib-src && mkdir build && cd build
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-24 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/zlib
+          make -j$(nproc) && make install
+
+      # --- libpng ---
+      - name: Cache libpng
+        id: cache-libpng
+        uses: actions/cache@v4
+        with:
+          path: deps/libpng
+          key: android-${{ matrix.abi }}-libpng-${{ env.LIBPNG_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build libpng
+        if: steps.cache-libpng.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.LIBPNG_VERSION }} https://github.com/pnggroup/libpng.git libpng-src
+          cd libpng-src && mkdir build && cd build
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-24 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/libpng \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF -DPNG_ARM_NEON=${{ matrix.neon }} \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps/zlib/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps/zlib/lib/libz.a
+          make -j$(nproc) && make install
+
+      # --- FreeType ---
+      - name: Cache FreeType
+        id: cache-freetype
+        uses: actions/cache@v4
+        with:
+          path: deps/freetype
+          key: android-${{ matrix.abi }}-freetype-${{ env.FREETYPE_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build FreeType
+        if: steps.cache-freetype.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://github.com/freetype/freetype.git freetype-src
+          bash .github/scripts/patch-freetype.sh freetype-src
+          cd freetype-src && mkdir build && cd build
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-24 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/freetype \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON \
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps/zlib/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps/zlib/lib/libz.a \
+            -DPNG_PNG_INCLUDE_DIR=${{ github.workspace }}/deps/libpng/include \
+            -DPNG_LIBRARY=${{ github.workspace }}/deps/libpng/lib/libpng.a
+          make -j$(nproc) && make install
+
+      # --- HarfBuzz ---
+      - name: Cache HarfBuzz
+        id: cache-harfbuzz
+        uses: actions/cache@v4
+        with:
+          path: deps/harfbuzz
+          key: android-${{ matrix.abi }}-harfbuzz-${{ env.HARFBUZZ_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build HarfBuzz
+        if: steps.cache-harfbuzz.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          cd harfbuzz-src && mkdir build && cd build
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-24 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/harfbuzz \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DHB_HAVE_FREETYPE=OFF \
+            -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_CAIRO=OFF -DHB_HAVE_ICU=OFF \
+            -DHB_HAVE_GRAPHITE2=OFF -DHB_BUILD_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="${{ env.HB_FLAGS }}"
+          make -j$(nproc) && make install
+
+      # --- Blend2D ---
+      - name: Cache Blend2D
+        id: cache-blend2d
+        uses: actions/cache@v4
+        with:
+          path: deps/blend2d
+          key: android-${{ matrix.abi }}-blend2d-${{ env.BLEND2D_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Blend2D
+        if: steps.cache-blend2d.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          cd blend2d-src && mkdir build && cd build
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-24 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/blend2d \
+            -DBLEND2D_STATIC=ON \
+            -DBLEND2D_NO_JIT=ON
+          make -j$(nproc) && make install
+
+      # --- Link unified SO ---
+      - name: Link unified SO
+        run: |
+          TOOLCHAIN=${{ steps.ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64
+
+          case "${{ matrix.abi }}" in
+            arm64-v8a)   TARGET=aarch64-linux-android24 ;;
+            armeabi-v7a) TARGET=armv7a-linux-androideabi24 ;;
+            x86_64)      TARGET=x86_64-linux-android24 ;;
+            x86)         TARGET=i686-linux-android24 ;;
+          esac
+
+          $TOOLCHAIN/bin/clang++ -shared \
+            -target $TARGET \
+            -DBLEND2D_STATIC \
+            -static-libstdc++ \
+            -I deps/freetype/include/freetype2 \
+            -I deps/harfbuzz/include/harfbuzz \
+            -I deps/blend2d/include \
+            -o libunitext_native.so \
+            native/unitext_native.cpp \
+            -Wl,--whole-archive \
+            deps/blend2d/lib/libblend2d.a \
+            deps/harfbuzz/lib/libharfbuzz.a \
+            deps/freetype/lib/libfreetype.a \
+            deps/libpng/lib/libpng.a \
+            deps/zlib/lib/libz.a \
+            -Wl,--no-whole-archive \
+            -llog -lm \
+            -Wl,-z,max-page-size=16384
+
+          $TOOLCHAIN/bin/llvm-strip libunitext_native.so
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-android-${{ matrix.abi }}
+          path: libunitext_native.so
+
+  # ============================================================================
+  # iOS (xcframework) - with symbol prefixing to avoid Unity FreeType conflicts
+  # ============================================================================
+  ios:
+    if: inputs.ios
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Clone dependencies
+        run: |
+          # Use zlib-ng for symbol prefixing support
+          git clone --depth 1 --branch ${{ env.ZLIB_NG_VERSION }} https://github.com/zlib-ng/zlib-ng.git zlib-src
+          git clone --depth 1 --branch v${{ env.LIBPNG_VERSION }} https://github.com/pnggroup/libpng.git libpng-src
+          git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://github.com/freetype/freetype.git freetype-src
+          git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          bash .github/scripts/patch-freetype.sh freetype-src
+
+      - name: Generate prefix header
+        run: |
+          python3 .github/scripts/generate_prefix_header.py \
+            --prefix __ut_ --wrapper-only -o ut_wrapper_prefix.h
+          echo "=== Generated ut_wrapper_prefix.h ==="
+          cat ut_wrapper_prefix.h
+
+      - name: Build iOS device (arm64)
+        run: |
+          # zlib-ng with symbol prefixing (built-in option)
+          cd zlib-src && mkdir build-device && cd build-device
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-device \
+            -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF -DWITH_GTEST=OFF \
+            -DZLIBNG_ENABLE_TESTS=OFF -DWITH_OPTIM=ON -DWITH_NEW_STRATEGIES=OFF \
+            -DZLIB_SYMBOL_PREFIX=ut_
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # libpng with symbol prefixing (built-in option)
+          cd ${{ github.workspace }}/libpng-src && mkdir build-device && cd build-device
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-device \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF -DPNG_ARM_NEON=on \
+            -DPNG_PREFIX=ut_ \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps-device/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps-device/lib/libz.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # FreeType (NO prefix at compile time - will use objcopy post-processing)
+          cd ${{ github.workspace }}/freetype-src && mkdir build-device && cd build-device
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-device \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON \
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps-device/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps-device/lib/libz.a \
+            -DPNG_PNG_INCLUDE_DIR=${{ github.workspace }}/deps-device/include \
+            -DPNG_LIBRARY=${{ github.workspace }}/deps-device/lib/libpng.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # HarfBuzz (NO prefix at compile time - will use objcopy post-processing)
+          cd ${{ github.workspace }}/harfbuzz-src && mkdir build-device && cd build-device
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-device \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DHB_HAVE_FREETYPE=OFF \
+            -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_CAIRO=OFF -DHB_HAVE_ICU=OFF \
+            -DHB_HAVE_GRAPHITE2=OFF -DHB_HAVE_CORETEXT=OFF -DHB_BUILD_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="${{ env.HB_FLAGS }}"
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # Blend2D (no prefixing needed - no conflicts with Unity)
+          cd ${{ github.workspace }}/blend2d-src && mkdir build-device && cd build-device
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-device \
+            -DBLEND2D_STATIC=ON -DBLEND2D_NO_JIT=ON
+          make -j$(sysctl -n hw.ncpu) && make install
+
+      - name: Install llvm (for objcopy)
+        run: |
+          brew install llvm
+          echo "LLVM_OBJCOPY=$(brew --prefix llvm)/bin/llvm-objcopy" >> $GITHUB_ENV
+
+      - name: Rename symbols (post-processing)
+        run: |
+          # Use macho_symbol_renamer.py for consistent symbol renaming
+          # This handles C++ mangled names (starting with _Z) that grep misses
+          python3 .github/scripts/macho_symbol_renamer.py __ut_ \
+            ${{ github.workspace }}/deps-device/lib/libfreetype.a \
+            ${{ github.workspace }}/deps-device/lib/libharfbuzz.a
+
+      - name: Build iOS device wrapper
+        run: |
+          cd ${{ github.workspace }}
+
+          # Compile wrapper with the prefix header (generated earlier)
+          clang++ -c -std=c++17 -arch arm64 -mios-version-min=12.0 \
+            -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
+            -include ut_wrapper_prefix.h \
+            -DBLEND2D_STATIC \
+            -DUNITEXT_SYMBOL_PREFIXING \
+            -I deps-device/include/freetype2 \
+            -I deps-device/include/harfbuzz \
+            -I deps-device/include \
+            -o unitext_native_device.o \
+            native/unitext_native.cpp
+
+          # Create static library
+          libtool -static -o libunitext_native_device.a \
+            unitext_native_device.o \
+            deps-device/lib/libblend2d.a \
+            deps-device/lib/libharfbuzz.a \
+            deps-device/lib/libfreetype.a \
+            deps-device/lib/libpng.a \
+            deps-device/lib/libz.a
+
+      - name: Build iOS simulator (arm64 + x86_64)
+        run: |
+          # === Simulator arm64 ===
+          cd ${{ github.workspace }}/zlib-src && mkdir build-sim-arm64 && cd build-sim-arm64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-arm64 \
+            -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF -DWITH_GTEST=OFF \
+            -DZLIBNG_ENABLE_TESTS=OFF -DWITH_OPTIM=ON -DWITH_NEW_STRATEGIES=OFF \
+            -DZLIB_SYMBOL_PREFIX=ut_
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          cd ${{ github.workspace }}/libpng-src && mkdir build-sim-arm64 && cd build-sim-arm64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-arm64 \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF -DPNG_ARM_NEON=on \
+            -DPNG_PREFIX=ut_ \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps-sim-arm64/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps-sim-arm64/lib/libz.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          cd ${{ github.workspace }}/freetype-src && mkdir build-sim-arm64 && cd build-sim-arm64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-arm64 \
+            -DBUILD_SHARED_LIBS=OFF -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON \
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps-sim-arm64/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps-sim-arm64/lib/libz.a \
+            -DPNG_PNG_INCLUDE_DIR=${{ github.workspace }}/deps-sim-arm64/include \
+            -DPNG_LIBRARY=${{ github.workspace }}/deps-sim-arm64/lib/libpng.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          cd ${{ github.workspace }}/harfbuzz-src && mkdir build-sim-arm64 && cd build-sim-arm64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-arm64 \
+            -DBUILD_SHARED_LIBS=OFF -DHB_HAVE_FREETYPE=OFF \
+            -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_CAIRO=OFF -DHB_HAVE_ICU=OFF \
+            -DHB_HAVE_GRAPHITE2=OFF -DHB_HAVE_CORETEXT=OFF -DHB_BUILD_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="${{ env.HB_FLAGS }}"
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          cd ${{ github.workspace }}/blend2d-src && mkdir build-sim-arm64 && cd build-sim-arm64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-arm64 \
+            -DBLEND2D_STATIC=ON -DBLEND2D_NO_JIT=ON
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # === Simulator x86_64 ===
+          cd ${{ github.workspace }}/zlib-src && mkdir build-sim-x64 && cd build-sim-x64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-x64 \
+            -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF -DWITH_GTEST=OFF \
+            -DZLIBNG_ENABLE_TESTS=OFF -DWITH_OPTIM=ON -DWITH_NEW_STRATEGIES=OFF \
+            -DZLIB_SYMBOL_PREFIX=ut_
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          cd ${{ github.workspace }}/libpng-src && mkdir build-sim-x64 && cd build-sim-x64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-x64 \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF -DPNG_ARM_NEON=off \
+            -DPNG_PREFIX=ut_ \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps-sim-x64/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps-sim-x64/lib/libz.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          cd ${{ github.workspace }}/freetype-src && mkdir build-sim-x64 && cd build-sim-x64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-x64 \
+            -DBUILD_SHARED_LIBS=OFF -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON \
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps-sim-x64/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps-sim-x64/lib/libz.a \
+            -DPNG_PNG_INCLUDE_DIR=${{ github.workspace }}/deps-sim-x64/include \
+            -DPNG_LIBRARY=${{ github.workspace }}/deps-sim-x64/lib/libpng.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          cd ${{ github.workspace }}/harfbuzz-src && mkdir build-sim-x64 && cd build-sim-x64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-x64 \
+            -DBUILD_SHARED_LIBS=OFF -DHB_HAVE_FREETYPE=OFF \
+            -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_CAIRO=OFF -DHB_HAVE_ICU=OFF \
+            -DHB_HAVE_GRAPHITE2=OFF -DHB_HAVE_CORETEXT=OFF -DHB_BUILD_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="${{ env.HB_FLAGS }}"
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          cd ${{ github.workspace }}/blend2d-src && mkdir build-sim-x64 && cd build-sim-x64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-x64 \
+            -DBLEND2D_STATIC=ON -DBLEND2D_NO_JIT=ON
+          make -j$(sysctl -n hw.ncpu) && make install
+
+      - name: Rename simulator symbols (post-processing)
+        run: |
+          # Rename symbols for both arm64 and x86_64 simulator builds
+          for ARCH_DIR in deps-sim-arm64 deps-sim-x64; do
+            python3 ${{ github.workspace }}/.github/scripts/macho_symbol_renamer.py __ut_ \
+              ${{ github.workspace }}/${ARCH_DIR}/lib/libfreetype.a \
+              ${{ github.workspace }}/${ARCH_DIR}/lib/libharfbuzz.a
+          done
+
+      - name: Build iOS simulator wrappers
+        run: |
+          cd ${{ github.workspace }}
+
+          # Compile arm64 wrapper
+          clang++ -c -std=c++17 -arch arm64 -mios-simulator-version-min=12.0 -isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) \
+            -include ut_wrapper_prefix.h \
+            -DBLEND2D_STATIC \
+            -DUNITEXT_SYMBOL_PREFIXING \
+            -I deps-sim-arm64/include/freetype2 \
+            -I deps-sim-arm64/include/harfbuzz \
+            -I deps-sim-arm64/include \
+            -o unitext_native_sim_arm64.o \
+            native/unitext_native.cpp
+
+          libtool -static -o libunitext_native_sim_arm64.a \
+            unitext_native_sim_arm64.o \
+            deps-sim-arm64/lib/libblend2d.a \
+            deps-sim-arm64/lib/libharfbuzz.a \
+            deps-sim-arm64/lib/libfreetype.a \
+            deps-sim-arm64/lib/libpng.a \
+            deps-sim-arm64/lib/libz.a
+
+          # Compile x86_64 wrapper
+          clang++ -c -std=c++17 -arch x86_64 -mios-simulator-version-min=12.0 -isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) \
+            -include ut_wrapper_prefix.h \
+            -DBLEND2D_STATIC \
+            -DUNITEXT_SYMBOL_PREFIXING \
+            -I deps-sim-x64/include/freetype2 \
+            -I deps-sim-x64/include/harfbuzz \
+            -I deps-sim-x64/include \
+            -o unitext_native_sim_x64.o \
+            native/unitext_native.cpp
+
+          libtool -static -o libunitext_native_sim_x64.a \
+            unitext_native_sim_x64.o \
+            deps-sim-x64/lib/libblend2d.a \
+            deps-sim-x64/lib/libharfbuzz.a \
+            deps-sim-x64/lib/libfreetype.a \
+            deps-sim-x64/lib/libpng.a \
+            deps-sim-x64/lib/libz.a
+
+      - name: Verify symbol prefixing
+        run: |
+          echo "=== Checking FreeType symbols in device library ==="
+          nm -g libunitext_native_device.a 2>/dev/null | grep -E ' T .*FT_' | head -10 || echo "No unprefixed FT_ symbols found (good!)"
+          nm -g libunitext_native_device.a 2>/dev/null | grep -E ' T .*ut_FT_' | head -10 || echo "No prefixed ut_FT_ symbols found"
+
+          echo ""
+          echo "=== Checking HarfBuzz symbols ==="
+          nm -g libunitext_native_device.a 2>/dev/null | grep -E ' T .*hb_' | head -10 || echo "No unprefixed hb_ symbols found (good!)"
+          nm -g libunitext_native_device.a 2>/dev/null | grep -E ' T .*ut_hb_' | head -10 || echo "No prefixed ut_hb_ symbols found"
+
+      - name: Create xcframework
+        run: |
+          # Create fat simulator library
+          lipo -create \
+            libunitext_native_sim_arm64.a \
+            libunitext_native_sim_x64.a \
+            -output libunitext_native_sim.a
+
+          # Create xcframework
+          xcodebuild -create-xcframework \
+            -library libunitext_native_device.a \
+            -library libunitext_native_sim.a \
+            -output libunitext_native.xcframework
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-ios-xcframework
+          path: libunitext_native.xcframework/
+
+  # ============================================================================
+  # tvOS - with symbol prefixing to avoid Unity FreeType conflicts
+  # ============================================================================
+  tvos:
+    if: inputs.tvos
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Clone dependencies
+        run: |
+          # Use zlib-ng for symbol prefixing support
+          git clone --depth 1 --branch ${{ env.ZLIB_NG_VERSION }} https://github.com/zlib-ng/zlib-ng.git zlib-src
+          git clone --depth 1 --branch v${{ env.LIBPNG_VERSION }} https://github.com/pnggroup/libpng.git libpng-src
+          git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://github.com/freetype/freetype.git freetype-src
+          git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          bash .github/scripts/patch-freetype.sh freetype-src
+
+      - name: Generate prefix header
+        run: |
+          python3 .github/scripts/generate_prefix_header.py \
+            --prefix __ut_ --wrapper-only -o ut_wrapper_prefix.h
+
+      - name: Build tvOS
+        run: |
+          # zlib-ng with symbol prefixing (built-in option)
+          cd zlib-src && mkdir build && cd build
+          cmake .. -DCMAKE_SYSTEM_NAME=tvOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps \
+            -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF -DWITH_GTEST=OFF \
+            -DZLIBNG_ENABLE_TESTS=OFF -DWITH_OPTIM=ON -DWITH_NEW_STRATEGIES=OFF \
+            -DZLIB_SYMBOL_PREFIX=ut_
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # libpng with symbol prefixing (built-in option)
+          cd ${{ github.workspace }}/libpng-src && mkdir build && cd build
+          cmake .. -DCMAKE_SYSTEM_NAME=tvOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF -DPNG_ARM_NEON=on \
+            -DPNG_PREFIX=ut_ \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps/lib/libz.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # FreeType (NO prefix at compile time - will use objcopy post-processing)
+          cd ${{ github.workspace }}/freetype-src && mkdir build && cd build
+          cmake .. -DCMAKE_SYSTEM_NAME=tvOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON \
+            -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_HARFBUZZ=ON \
+            -DZLIB_INCLUDE_DIR=${{ github.workspace }}/deps/include \
+            -DZLIB_LIBRARY=${{ github.workspace }}/deps/lib/libz.a \
+            -DPNG_PNG_INCLUDE_DIR=${{ github.workspace }}/deps/include \
+            -DPNG_LIBRARY=${{ github.workspace }}/deps/lib/libpng.a
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # HarfBuzz (NO prefix at compile time - will use objcopy post-processing)
+          cd ${{ github.workspace }}/harfbuzz-src && mkdir build && cd build
+          cmake .. -DCMAKE_SYSTEM_NAME=tvOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DHB_HAVE_FREETYPE=OFF \
+            -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_CAIRO=OFF -DHB_HAVE_ICU=OFF \
+            -DHB_HAVE_GRAPHITE2=OFF -DHB_HAVE_CORETEXT=OFF -DHB_BUILD_TESTS=OFF \
+            -DCMAKE_CXX_FLAGS="${{ env.HB_FLAGS }}"
+          make -j$(sysctl -n hw.ncpu) && make install
+
+          # Blend2D (no prefixing needed)
+          cd ${{ github.workspace }}/blend2d-src && mkdir build && cd build
+          cmake .. -DCMAKE_SYSTEM_NAME=tvOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps \
+            -DBLEND2D_STATIC=ON -DBLEND2D_NO_JIT=ON
+          make -j$(sysctl -n hw.ncpu) && make install
+
+      - name: Install llvm (for objcopy)
+        run: |
+          brew install llvm
+          echo "LLVM_OBJCOPY=$(brew --prefix llvm)/bin/llvm-objcopy" >> $GITHUB_ENV
+
+      - name: Rename symbols (post-processing)
+        run: |
+          python3 ${{ github.workspace }}/.github/scripts/macho_symbol_renamer.py __ut_ \
+            ${{ github.workspace }}/deps/lib/libfreetype.a \
+            ${{ github.workspace }}/deps/lib/libharfbuzz.a
+
+      - name: Build tvOS wrapper
+        run: |
+          cd ${{ github.workspace }}
+
+          # Compile wrapper with the prefix header (generated earlier)
+          clang++ -c -std=c++17 -arch arm64 -mtvos-version-min=12.0 -isysroot $(xcrun --sdk appletvos --show-sdk-path) \
+            -include ut_wrapper_prefix.h \
+            -DBLEND2D_STATIC \
+            -DUNITEXT_SYMBOL_PREFIXING \
+            -I deps/include/freetype2 \
+            -I deps/include/harfbuzz \
+            -I deps/include \
+            -o unitext_native.o \
+            native/unitext_native.cpp
+
+          libtool -static -o libunitext_native.a \
+            unitext_native.o \
+            deps/lib/libblend2d.a \
+            deps/lib/libharfbuzz.a \
+            deps/lib/libfreetype.a \
+            deps/lib/libpng.a \
+            deps/lib/libz.a
+
+      - name: Verify symbol prefixing
+        run: |
+          echo "=== Checking for unprefixed FreeType symbols ==="
+          nm -g libunitext_native.a 2>/dev/null | grep -E ' T .*FT_' | head -5 || echo "No unprefixed FT_ symbols (good!)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-tvos-arm64
+          path: libunitext_native.a
+
+  # ============================================================================
+  # WebGL (Emscripten) - with symbol prefixing
+  # ============================================================================
+  webgl:
+    if: inputs.webgl
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache Emscripten
+        id: cache-emsdk
+        uses: actions/cache@v4
+        with:
+          path: ~/emsdk
+          key: emsdk-${{ env.EMSCRIPTEN_VERSION }}-v1
+
+      - name: Install Emscripten
+        if: steps.cache-emsdk.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
+          cd ~/emsdk && ./emsdk install ${{ env.EMSCRIPTEN_VERSION }} && ./emsdk activate ${{ env.EMSCRIPTEN_VERSION }}
+
+      - name: Setup Emscripten
+        run: |
+          cd ~/emsdk && ./emsdk activate ${{ env.EMSCRIPTEN_VERSION }} && source emsdk_env.sh
+          echo "EMSDK=$HOME/emsdk" >> $GITHUB_ENV
+          echo "$HOME/emsdk" >> $GITHUB_PATH
+          echo "$HOME/emsdk/upstream/emscripten" >> $GITHUB_PATH
+
+      - name: Clone dependencies
+        run: |
+          # Use zlib-ng instead of madler/zlib - has --sprefix option for symbol prefixing
+          git clone --depth 1 --branch ${{ env.ZLIB_NG_VERSION }} https://github.com/zlib-ng/zlib-ng.git zlib-src
+          git clone --depth 1 --branch v${{ env.LIBPNG_VERSION }} https://github.com/pnggroup/libpng.git libpng-src
+          git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://gitlab.freedesktop.org/freetype/freetype.git freetype-src
+          git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          bash .github/scripts/patch-freetype.sh freetype-src
+
+      - name: Generate prefix header
+        run: |
+          python3 .github/scripts/generate_prefix_header.py \
+            --prefix __ut_ --wrapper-only -o ut_wrapper_prefix.h
+
+      - name: Build zlib-ng
+        run: |
+          cd zlib-src && mkdir -p build && cd build
+          # zlib-ng with --sprefix=ut_ for symbol prefixing (built-in option)
+          # --zlib-compat makes it API-compatible with zlib
+          emcmake cmake .. \
+            -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DZLIB_COMPAT=ON \
+            -DZLIB_ENABLE_TESTS=OFF \
+            -DWITH_GTEST=OFF \
+            -DZLIBNG_ENABLE_TESTS=OFF \
+            -DWITH_OPTIM=OFF \
+            -DWITH_NEW_STRATEGIES=OFF \
+            -DZLIB_SYMBOL_PREFIX=ut_
+          # zlib-ng creates libz.a with ZLIB_COMPAT=ON
+          cmake --build . --config MinSizeRel -- -j$(nproc)
+          # Copy generated headers for libpng/freetype
+          # zlib_name_mangling.h is generated by zlib-ng for symbol prefixing
+          cp zlib.h zconf.h zlib_name_mangling.h ../
+
+      - name: Build libpng
+        run: |
+          cd libpng-src && mkdir -p build && cd build
+          # libpng with -DPNG_PREFIX=ut_ for symbol prefixing (built-in option)
+          emcmake cmake .. \
+            -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DPNG_TESTS=OFF -DPNG_TOOLS=OFF \
+            -DPNG_SHARED=OFF -DPNG_STATIC=ON \
+            -DPNG_PREFIX=ut_ \
+            -DZLIB_INCLUDE_DIR="${{ github.workspace }}/zlib-src" \
+            -DZLIB_LIBRARY="${{ github.workspace }}/zlib-src/build/libz.a"
+          emmake make -j$(nproc)
+          cp pnglibconf.h ../
+
+      - name: Build FreeType
+        run: |
+          cd freetype-src && mkdir -p build && cd build
+          # FreeType (NO prefix at compile time - will use objcopy post-processing)
+          emcmake cmake .. \
+            -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DFT_DISABLE_ZLIB=OFF \
+            -DFT_DISABLE_BZIP2=ON \
+            -DFT_DISABLE_PNG=OFF \
+            -DFT_DISABLE_HARFBUZZ=ON \
+            -DFT_DISABLE_BROTLI=ON \
+            -DZLIB_INCLUDE_DIR="${{ github.workspace }}/zlib-src" \
+            -DZLIB_LIBRARY="${{ github.workspace }}/zlib-src/build/libz.a" \
+            -DPNG_PNG_INCLUDE_DIR="${{ github.workspace }}/libpng-src;${{ github.workspace }}/libpng-src/build" \
+            -DPNG_LIBRARY="${{ github.workspace }}/libpng-src/build/libpng.a"
+          emmake make -j$(nproc)
+
+      - name: Build HarfBuzz
+        run: |
+          cd harfbuzz-src && mkdir -p build && cd build
+          # HarfBuzz (NO prefix at compile time - will use objcopy post-processing)
+          emcmake cmake .. \
+            -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_C_FLAGS="${{ env.HB_WEBGL_FLAGS }}" \
+            -DCMAKE_CXX_FLAGS="${{ env.HB_WEBGL_FLAGS }}" \
+            -DHB_HAVE_FREETYPE=OFF \
+            -DHB_BUILD_SUBSET=OFF \
+            -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_ICU=OFF -DHB_HAVE_GRAPHITE2=OFF
+          emmake make -j$(nproc)
+
+      - name: Rename symbols (post-processing)
+        run: |
+          LLVM_NM="$EMSDK/upstream/bin/llvm-nm"
+
+          echo "=== Library sizes before renaming ==="
+          ls -lh freetype-src/build/libfreetype.a harfbuzz-src/build/libharfbuzz.a
+
+          # Use wasm_symbol_renamer.py to rename symbols in WASM archives
+          # This script works at the WASM binary level, modifying the linking section
+          # Unlike llvm-objcopy which doesn't support --redefine-syms for WASM
+          # Using __ut_ prefix (double underscore) for INTERNAL symbols
+          python3 .github/scripts/wasm_symbol_renamer.py __ut_ \
+            freetype-src/build/libfreetype.a \
+            harfbuzz-src/build/libharfbuzz.a
+
+          echo ""
+          echo "=== Verification ==="
+          echo "FreeType __ut_ symbols:"
+          $LLVM_NM --defined-only freetype-src/build/libfreetype.a 2>/dev/null | grep ' [TtDd] __ut_' | head -5 || echo "(checking...)"
+          echo "HarfBuzz __ut_ symbols:"
+          $LLVM_NM --defined-only harfbuzz-src/build/libharfbuzz.a 2>/dev/null | grep ' [TtDd] __ut_' | head -5 || echo "(checking...)"
+
+      - name: Build WebGL wrapper
+        run: |
+          LLVM_NM="$EMSDK/upstream/bin/llvm-nm"
+
+          # Compile wrapper with the prefix header (generated earlier)
+          emcc native/webgl_wrapper.c \
+            -include ut_wrapper_prefix.h \
+            -I"freetype-src/include" \
+            -I"harfbuzz-src/src" \
+            -Oz -c -o wrapper.o
+
+          # Link everything into single relocatable object, then archive
+          # Symbol prefixing:
+          # - zlib-ng: ut_* via -DZLIB_SYMBOL_PREFIX=ut_ (compile-time, built-in option)
+          # - libpng: ut_* via -DPNG_PREFIX=ut_ (compile-time, built-in option)
+          # - FreeType: ut_* via llvm-objcopy post-processing
+          # - HarfBuzz: ut_* via llvm-objcopy post-processing
+          emcc -r -o unitext_combined.o wrapper.o \
+            freetype-src/build/libfreetype.a \
+            harfbuzz-src/build/libharfbuzz.a \
+            libpng-src/build/libpng.a \
+            zlib-src/build/libz.a
+
+          emar rcs libunitext_native.a unitext_combined.o
+
+          echo "=== Built WebGL library ==="
+          ls -lh libunitext_native.a
+
+          echo ""
+          echo "=== Verify symbol prefixing ==="
+          echo "FreeType symbols (should be ut_FT_*):"
+          $LLVM_NM --defined-only libunitext_native.a 2>/dev/null | grep -E ' T .*ut_FT_' | head -5
+          echo ""
+          echo "HarfBuzz symbols (should be ut_hb_*):"
+          $LLVM_NM --defined-only libunitext_native.a 2>/dev/null | grep -E ' T .*ut_hb_' | head -5
+          echo ""
+          echo "zlib symbols (should be ut_*):"
+          $LLVM_NM --defined-only libunitext_native.a 2>/dev/null | grep -E ' T .*ut_deflate|ut_inflate|ut_compress' | head -5
+          echo ""
+          echo "libpng symbols (should be ut_png_*):"
+          $LLVM_NM --defined-only libunitext_native.a 2>/dev/null | grep -E ' T .*ut_png_' | head -5
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unitext-native-webgl
+          path: libunitext_native.a
+
+  # ============================================================================
+  # Package - Combine all artifacts into Unity-ready structure
+  # ============================================================================
+  package:
+    if: always()
+    needs: [windows, linux-x64, linux-arm64, macos, android, ios, tvos, webgl]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Unity package structure
+        run: |
+          mkdir -p pkg/Plugins/Windows/x86_64
+          mkdir -p pkg/Plugins/Windows/ARM64
+          mkdir -p pkg/Plugins/Linux/x86_64
+          mkdir -p pkg/Plugins/Linux/ARM64
+          mkdir -p pkg/Plugins/macOS
+          mkdir -p pkg/Plugins/Android/arm64-v8a
+          mkdir -p pkg/Plugins/Android/armeabi-v7a
+          mkdir -p pkg/Plugins/Android/x86_64
+          mkdir -p pkg/Plugins/Android/x86
+          mkdir -p pkg/Plugins/iOS
+          mkdir -p pkg/Plugins/tvOS
+          mkdir -p pkg/Plugins/WebGL
+
+          # Windows
+          cp artifacts/unitext-native-win-x64/unitext_native.dll pkg/Plugins/Windows/x86_64/ 2>/dev/null || true
+          cp artifacts/unitext-native-win-arm64/unitext_native.dll pkg/Plugins/Windows/ARM64/ 2>/dev/null || true
+
+          # Linux
+          cp artifacts/unitext-native-linux-x64/libunitext_native.so pkg/Plugins/Linux/x86_64/ 2>/dev/null || true
+          cp artifacts/unitext-native-linux-arm64/libunitext_native.so pkg/Plugins/Linux/ARM64/ 2>/dev/null || true
+
+          # macOS
+          cp artifacts/unitext-native-macos-universal/libunitext_native.dylib pkg/Plugins/macOS/ 2>/dev/null || true
+
+          # Android
+          cp artifacts/unitext-native-android-arm64-v8a/libunitext_native.so pkg/Plugins/Android/arm64-v8a/ 2>/dev/null || true
+          cp artifacts/unitext-native-android-armeabi-v7a/libunitext_native.so pkg/Plugins/Android/armeabi-v7a/ 2>/dev/null || true
+          cp artifacts/unitext-native-android-x86_64/libunitext_native.so pkg/Plugins/Android/x86_64/ 2>/dev/null || true
+          cp artifacts/unitext-native-android-x86/libunitext_native.so pkg/Plugins/Android/x86/ 2>/dev/null || true
+
+          # iOS (copy as xcframework folder, not contents)
+          cp -r artifacts/unitext-native-ios-xcframework pkg/Plugins/iOS/libunitext_native.xcframework 2>/dev/null || true
+
+          # tvOS
+          cp artifacts/unitext-native-tvos-arm64/libunitext_native.a pkg/Plugins/tvOS/ 2>/dev/null || true
+
+          # WebGL
+          cp artifacts/unitext-native-webgl/libunitext_native.a pkg/Plugins/WebGL/ 2>/dev/null || true
+
+          echo "=== Package structure ==="
+          find pkg -type f | sort
+
+          echo ""
+          echo "=== File sizes ==="
+          find pkg -type f -exec ls -lh {} \;
+
+      - name: Upload combined package
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniText-Native-Plugins
+          path: pkg/Plugins/

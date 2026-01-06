@@ -1,0 +1,647 @@
+name: 'Run Tests'
+description: 'Run UniText golden file tests for a specific platform'
+
+inputs:
+  platform:
+    description: 'Target platform'
+    required: true
+  unity_version:
+    description: 'Unity version (used to separate Firebase results)'
+    required: false
+    default: 'unknown'
+  build_path:
+    description: 'Path to build directory'
+    required: false
+    default: 'build'
+  test_timeout:
+    description: 'Test timeout in seconds'
+    required: false
+    default: '300'
+
+runs:
+  using: 'composite'
+  steps:
+    # ----------------------------------------
+    # Windows
+    # ----------------------------------------
+    - name: Run Tests (Windows)
+      if: inputs.platform == 'StandaloneWindows64'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+
+        $exe = Get-ChildItem -Path ${{ inputs.build_path }} -Filter *.exe -Recurse | Select-Object -First 1
+        if ($null -eq $exe) {
+          Write-Host "ERROR: No .exe found in ${{ inputs.build_path }}"
+          exit 1
+        }
+
+        Write-Host "Running: $($exe.FullName)"
+
+        # Run with 2 minute timeout
+        $process = Start-Process -FilePath $exe.FullName -ArgumentList "-batchmode", "-logFile", "test.log" -PassThru -NoNewWindow
+        $timeout = 120
+        if (-not $process.WaitForExit($timeout * 1000)) {
+          Write-Host "ERROR: Process timed out after $timeout seconds"
+          $process.Kill()
+          $exitCode = 124
+        } else {
+          $exitCode = $process.ExitCode
+        }
+
+        Write-Host "=== test.log ==="
+        if (Test-Path test.log) {
+          Get-Content test.log
+        } else {
+          Write-Host "test.log not found"
+        }
+
+        Start-Sleep -Seconds 5
+
+        $searchPath = "$env:LOCALAPPDATA\..\LocalLow"
+        Write-Host "Searching for testResults.xml in: $searchPath"
+
+        # Try multiple times in case of filesystem delays
+        $resultsFile = $null
+        for ($i = 0; $i -lt 3; $i++) {
+          $resultsFile = Get-ChildItem -Path $searchPath -Filter "testResults.xml" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($resultsFile) { break }
+          Write-Host "Attempt $($i+1): testResults.xml not found, waiting..."
+          Start-Sleep -Seconds 2
+        }
+        if ($resultsFile) {
+          Copy-Item $resultsFile.FullName -Destination ./testResults.xml
+          Write-Host "Copied results from: $($resultsFile.FullName)"
+
+          # Check for test failures in XML
+          $content = Get-Content ./testResults.xml -Raw
+          $failureCount = ([regex]::Matches($content, '<failure')).Count
+          if ($failureCount -gt 0) {
+            Write-Host "ERROR: $failureCount test failure(s) found in testResults.xml"
+            exit 1
+          }
+        } else {
+          Write-Host "WARNING: testResults.xml not found"
+        }
+
+        # Copy screenshots
+        $screenshotsDir = Get-ChildItem -Path $searchPath -Directory -Filter "Screenshots" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($screenshotsDir) {
+          New-Item -ItemType Directory -Force -Path ./screenshots | Out-Null
+          Copy-Item "$($screenshotsDir.FullName)\*.png" -Destination ./screenshots/ -ErrorAction SilentlyContinue
+          Write-Host "Copied screenshots from: $($screenshotsDir.FullName)"
+        }
+
+        exit $exitCode
+
+    # ----------------------------------------
+    # Linux
+    # ----------------------------------------
+    - name: Run Tests (Linux)
+      if: inputs.platform == 'StandaloneLinux64'
+      shell: bash
+      run: |
+        set -uo pipefail
+
+        BUILD_DIR="${{ inputs.build_path }}/StandaloneLinux64"
+
+        if [ ! -d "$BUILD_DIR" ]; then
+          echo "ERROR: Build directory not found: $BUILD_DIR"
+          exit 1
+        fi
+
+        chmod +x "$BUILD_DIR"/* 2>/dev/null || true
+        EXE=$(find "$BUILD_DIR" -maxdepth 1 -type f -executable ! -name "*.so" | head -1)
+
+        if [ -z "$EXE" ]; then
+          echo "ERROR: No executable found in $BUILD_DIR"
+          ls -la "$BUILD_DIR"
+          exit 1
+        fi
+
+        echo "Running: $EXE"
+
+        # Check for missing dependencies
+        echo "=== Checking native library dependencies ==="
+        DATA_DIR="${EXE}_Data"
+        echo "=== All .so files with missing deps ==="
+        find "$DATA_DIR" -name "*.so" -o -name "*.so.*" 2>/dev/null | while read lib; do
+          MISSING=$(ldd "$lib" 2>&1 | grep "not found" || true)
+          if [ -n "$MISSING" ]; then
+            echo "--- $lib ---"
+            echo "$MISSING"
+          fi
+        done
+        echo "=== Unity Player info ==="
+        file "$EXE" || true
+        ldd "$EXE" 2>&1 | grep -E "not found" || echo "No missing deps in main executable"
+
+        # Use Xdummy (Xorg with dummy driver) instead of Xvfb
+        # Xdummy supports RANDR which allows setting proper refresh rate
+        # This fixes Unity 2021 hang with 0 Hz detection
+
+        # Install xserver-xorg-video-dummy if not present
+        sudo apt-get update -qq && sudo apt-get install -y -qq xserver-xorg-video-dummy x11-xserver-utils
+
+        # Create dummy xorg config with 60Hz modeline
+        echo 'Section "Device"' > /tmp/xorg-dummy.conf
+        echo '    Identifier "DummyDevice"' >> /tmp/xorg-dummy.conf
+        echo '    Driver "dummy"' >> /tmp/xorg-dummy.conf
+        echo '    VideoRam 256000' >> /tmp/xorg-dummy.conf
+        echo 'EndSection' >> /tmp/xorg-dummy.conf
+        echo 'Section "Screen"' >> /tmp/xorg-dummy.conf
+        echo '    Identifier "DummyScreen"' >> /tmp/xorg-dummy.conf
+        echo '    Device "DummyDevice"' >> /tmp/xorg-dummy.conf
+        echo '    Monitor "DummyMonitor"' >> /tmp/xorg-dummy.conf
+        echo '    DefaultDepth 24' >> /tmp/xorg-dummy.conf
+        echo '    SubSection "Display"' >> /tmp/xorg-dummy.conf
+        echo '        Depth 24' >> /tmp/xorg-dummy.conf
+        echo '        Modes "1920x1080"' >> /tmp/xorg-dummy.conf
+        echo '    EndSubSection' >> /tmp/xorg-dummy.conf
+        echo 'EndSection' >> /tmp/xorg-dummy.conf
+        echo 'Section "Monitor"' >> /tmp/xorg-dummy.conf
+        echo '    Identifier "DummyMonitor"' >> /tmp/xorg-dummy.conf
+        echo '    HorizSync 30-80' >> /tmp/xorg-dummy.conf
+        echo '    VertRefresh 50-75' >> /tmp/xorg-dummy.conf
+        echo '    Modeline "1920x1080" 148.50 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync' >> /tmp/xorg-dummy.conf
+        echo 'EndSection' >> /tmp/xorg-dummy.conf
+
+        # Start Xorg with dummy driver
+        sudo Xorg :99 -config /tmp/xorg-dummy.conf -noreset +extension GLX +extension RANDR &
+        XORG_PID=$!
+        sleep 3
+        export DISPLAY=:99
+
+        # Verify display is working and show info
+        echo "=== Display info ==="
+        xdpyinfo | head -20 || true
+        xrandr || true
+
+        # 5 minute timeout for Unity 2021 which initializes slower
+        vblank_mode=0 timeout 300 "$EXE" -batchmode -logFile test.log || EXIT_CODE=$?
+
+        # Cleanup Xorg
+        sudo kill $XORG_PID 2>/dev/null || true
+
+        # If crashed, show diagnostics
+        if [ "${EXIT_CODE:-0}" -eq 139 ]; then
+          echo "=== Segfault detected (exit 139) ==="
+
+          echo "=== Unity crash logs ==="
+          for f in $(find ~/.config/unity3d -name "*.log" -o -name "*.dmp" -o -name "crash*" 2>/dev/null); do
+            echo "--- $f ---"
+            head -100 "$f" 2>/dev/null || true
+          done
+
+          echo "=== Player.log ==="
+          for f in $(find ~/.config/unity3d -name "Player.log" 2>/dev/null); do
+            echo "--- $f ---"
+            tail -100 "$f" 2>/dev/null || true
+          done
+        fi
+
+        echo "=== test.log ==="
+        cat test.log 2>/dev/null || echo "test.log not found or empty"
+
+        cp ~/.config/unity3d/*/*/testResults.xml ./testResults.xml 2>/dev/null || echo "WARNING: testResults.xml not found"
+
+        # Check for test failures in XML
+        if [ -f testResults.xml ]; then
+          FAILURE_COUNT=$(grep -c '<failure' testResults.xml 2>/dev/null || echo "0")
+          if [ "$FAILURE_COUNT" -gt 0 ]; then
+            echo "ERROR: $FAILURE_COUNT test failure(s) found in testResults.xml"
+            exit 1
+          fi
+        fi
+
+        # Copy screenshots
+        SCREENSHOTS_DIR=$(find ~/.config/unity3d -name "Screenshots" -type d 2>/dev/null | head -1)
+        if [ -n "$SCREENSHOTS_DIR" ] && [ -d "$SCREENSHOTS_DIR" ]; then
+          mkdir -p ./screenshots
+          cp "$SCREENSHOTS_DIR"/*.png ./screenshots/ 2>/dev/null || true
+          echo "Copied screenshots from: $SCREENSHOTS_DIR"
+        fi
+
+        exit ${EXIT_CODE:-0}
+
+    # ----------------------------------------
+    # macOS
+    # ----------------------------------------
+    - name: Run Tests (macOS)
+      if: inputs.platform == 'StandaloneOSX'
+      shell: bash
+      run: |
+        set -uo pipefail
+
+        # Install GNU coreutils for gtimeout
+        brew install coreutils 2>/dev/null || true
+
+        APP=$(find ${{ inputs.build_path }} -name "*.app" -type d | head -1)
+
+        if [ -z "$APP" ]; then
+          echo "ERROR: No .app found in ${{ inputs.build_path }}"
+          ls -la "${{ inputs.build_path }}/"
+          exit 1
+        fi
+        echo "Found app: $APP"
+
+        EXE=$(find "$APP/Contents/MacOS" -type f ! -name "*.dylib" | head -1)
+
+        if [ -z "$EXE" ]; then
+          echo "ERROR: No executable found in $APP/Contents/MacOS"
+          ls -la "$APP/Contents/MacOS/"
+          exit 1
+        fi
+
+        echo "Running: $EXE"
+
+        chmod +x "$EXE"
+        # 2 minute timeout to catch hangs early
+        gtimeout 120 "$EXE" -batchmode -logFile test.log || EXIT_CODE=$?
+
+        echo "=== test.log ==="
+        cat test.log 2>/dev/null || echo "test.log not found or empty"
+
+        RESULTS_FILE=$(find ~/Library -name "testResults.xml" 2>/dev/null | head -1)
+        if [ -n "$RESULTS_FILE" ]; then
+          cp "$RESULTS_FILE" ./testResults.xml
+          echo "Copied results from: $RESULTS_FILE"
+
+          # Check for test failures in XML
+          FAILURE_COUNT=$(grep -c '<failure' ./testResults.xml 2>/dev/null || echo "0")
+          if [ "$FAILURE_COUNT" -gt 0 ]; then
+            echo "ERROR: $FAILURE_COUNT test failure(s) found in testResults.xml"
+            exit 1
+          fi
+        else
+          echo "WARNING: testResults.xml not found"
+        fi
+
+        # Copy screenshots
+        SCREENSHOTS_DIR=$(find ~/Library -name "Screenshots" -type d 2>/dev/null | head -1)
+        if [ -n "$SCREENSHOTS_DIR" ] && [ -d "$SCREENSHOTS_DIR" ]; then
+          mkdir -p ./screenshots
+          cp "$SCREENSHOTS_DIR"/*.png ./screenshots/ 2>/dev/null || true
+          echo "Copied screenshots from: $SCREENSHOTS_DIR"
+        fi
+
+        exit ${EXIT_CODE:-0}
+
+    # ----------------------------------------
+    # WebGL
+    # ----------------------------------------
+    - name: Setup Node.js (WebGL)
+      if: inputs.platform == 'WebGL'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run Tests (WebGL)
+      if: inputs.platform == 'WebGL'
+      shell: bash
+      env:
+        TEST_TIMEOUT: ${{ inputs.test_timeout }}
+      run: |
+        set -uo pipefail
+
+        INDEX_HTML=$(find ${{ inputs.build_path }} -name "index.html" | head -1)
+        if [ -z "$INDEX_HTML" ]; then
+          echo "ERROR: No index.html found in ${{ inputs.build_path }}"
+          find ${{ inputs.build_path }} -type f | head -20
+          exit 1
+        fi
+
+        WEBGL_DIR=$(dirname "$INDEX_HTML")
+        echo "WebGL directory: $WEBGL_DIR"
+
+        # Install dependencies
+        npm init -y > /dev/null
+        npm install playwright @playwright/test --silent || { echo "ERROR: npm install failed"; exit 1; }
+        npx playwright install chromium || { echo "ERROR: Playwright install failed"; exit 1; }
+
+        # Generate self-signed certificate
+        openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
+          -keyout localhost-key.pem -out localhost.pem \
+          -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" 2>/dev/null
+
+        cp localhost*.pem "$WEBGL_DIR/"
+        cp Assets/server.js "$WEBGL_DIR/"
+
+        # Start server
+        (cd "$WEBGL_DIR" && node server.js) & SERVER_PID=$!
+
+        # Wait for server to be ready
+        echo "Waiting for server to start..."
+        for i in {1..30}; do
+          if curl -s -k https://localhost:8080/ -o /dev/null; then
+            echo "Server ready"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "ERROR: Server failed to start"
+            kill $SERVER_PID 2>/dev/null || true
+            exit 1
+          fi
+          sleep 1
+        done
+
+        # Copy config and test files from action directory
+        cp "${{ github.action_path }}/playwright.config.js" ./playwright.config.js
+        cp "${{ github.action_path }}/webgl-test.spec.js" ./webgl-test.spec.js
+
+        npx playwright test webgl-test.spec.js --reporter=list || EXIT_CODE=$?
+
+        kill $SERVER_PID 2>/dev/null || true
+        exit ${EXIT_CODE:-0}
+
+    # ----------------------------------------
+    # iOS (Firebase Test Lab with Fastlane)
+    # ----------------------------------------
+    - name: Checkout ci-workflows (iOS)
+      if: inputs.platform == 'iOS'
+      uses: actions/checkout@v4
+      with:
+        repository: LightSideKittens/ci-workflows
+        token: ${{ env.GH_PAT }}
+        sparse-checkout: fastlane
+        path: ci-workflows
+
+    - name: Setup Ruby (iOS)
+      if: inputs.platform == 'iOS'
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+        working-directory: ci-workflows/fastlane
+
+    - name: Configure Git Credentials (iOS)
+      if: inputs.platform == 'iOS'
+      shell: bash
+      run: |
+        git config --global credential.helper store
+        echo "https://x-access-token:${{ env.GH_PAT }}@github.com" > ~/.git-credentials
+
+    - name: Build Signed IPA with Fastlane (iOS)
+      if: inputs.platform == 'iOS'
+      shell: bash
+      env:
+        MATCH_PASSWORD: ${{ env.MATCH_PASSWORD }}
+        MATCH_GIT_URL: ${{ env.MATCH_GIT_URL }}
+        APP_IDENTIFIER: ${{ env.APP_IDENTIFIER }}
+        TEAM_ID: ${{ env.TEAM_ID }}
+        APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ env.APP_STORE_CONNECT_KEY_ID }}
+        APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ env.APP_STORE_CONNECT_ISSUER_ID }}
+        APP_STORE_CONNECT_API_KEY_KEY: ${{ env.APP_STORE_CONNECT_API_KEY }}
+      run: |
+        set -euo pipefail
+
+        echo "=== Xcode version ==="
+        xcodebuild -version
+
+        XCODEPROJ=$(find ${{ inputs.build_path }} -name "*.xcodeproj" | head -1)
+
+        if [ -z "$XCODEPROJ" ]; then
+          echo "ERROR: No .xcodeproj found in ${{ inputs.build_path }}"
+          find ${{ inputs.build_path }} -maxdepth 3 | head -30
+          exit 1
+        fi
+        echo "Found Xcode project: $XCODEPROJ"
+
+        # Fix permissions for Unity-generated scripts
+        PROJECT_DIR=$(dirname "$XCODEPROJ")
+        find "$PROJECT_DIR" -name "*.sh" -exec chmod +x {} \;
+        find "$PROJECT_DIR" -name "usymtool*" -exec chmod +x {} \;
+
+        # Check Info.plist BEFORE Fastlane
+        echo "=== Checking Info.plist before Fastlane ==="
+        PLIST_PATH="$PROJECT_DIR/Info.plist"
+        if [ -f "$PLIST_PATH" ]; then
+          if /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$PLIST_PATH" 2>/dev/null | grep -q "firebase-game-loop"; then
+            echo "✓ firebase-game-loop URL scheme found in Xcode project"
+          else
+            echo "✗ WARNING: firebase-game-loop URL scheme NOT in Xcode project!"
+            echo "iOSPostProcessBuild.cs may not have run during Unity build."
+            /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$PLIST_PATH" 2>/dev/null || echo "CFBundleURLTypes not found"
+          fi
+        else
+          echo "Info.plist not found at $PLIST_PATH"
+        fi
+
+        echo "=== Building signed IPA with Fastlane ==="
+        cd ci-workflows/fastlane
+        bundle install --quiet
+        bundle exec fastlane build_ipa \
+          xcode_project:"$GITHUB_WORKSPACE/$XCODEPROJ" \
+          output_name:"UniText.ipa" \
+          output_dir:"$GITHUB_WORKSPACE"
+
+        echo "=== IPA created ==="
+        ls -lh "$GITHUB_WORKSPACE/UniText.ipa"
+
+    - name: Run Tests (iOS - Firebase Test Lab)
+      if: inputs.platform == 'iOS'
+      shell: bash
+      env:
+        TEST_TIMEOUT: ${{ inputs.test_timeout }}
+      run: |
+        set -uo pipefail
+
+        IPA="$GITHUB_WORKSPACE/UniText.ipa"
+
+        if [ ! -f "$IPA" ]; then
+          echo "ERROR: IPA not found: $IPA"
+          exit 1
+        fi
+        echo "IPA: $IPA ($(du -h "$IPA" | cut -f1))"
+
+        # Verify IPA is signed and has required URL scheme
+        echo "=== Verifying IPA ==="
+        unzip -q "$IPA" -d /tmp/ipa_check
+
+        APP_PATH=$(find /tmp/ipa_check/Payload -name "*.app" -type d | head -1)
+
+        codesign --verify --deep --verbose "$APP_PATH" 2>&1 || {
+          echo "WARNING: IPA signature verification failed"
+        }
+
+        # Check for firebase-game-loop URL scheme
+        echo "=== Checking Info.plist for firebase-game-loop URL scheme ==="
+        PLIST_PATH="$APP_PATH/Info.plist"
+        if [ -f "$PLIST_PATH" ]; then
+          if /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$PLIST_PATH" 2>/dev/null | grep -q "firebase-game-loop"; then
+            echo "✓ firebase-game-loop URL scheme found"
+          else
+            echo "✗ ERROR: firebase-game-loop URL scheme NOT FOUND!"
+            echo "=== CFBundleURLTypes content ==="
+            /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$PLIST_PATH" 2>/dev/null || echo "CFBundleURLTypes not found"
+            echo ""
+            echo "Firebase Test Lab game-loop requires this URL scheme to launch the app."
+            echo "Check that iOSPostProcessBuild.cs is running during Unity build."
+          fi
+        else
+          echo "ERROR: Info.plist not found at $PLIST_PATH"
+        fi
+
+        rm -rf /tmp/ipa_check
+
+        TIMEOUT_MINUTES=$((TEST_TIMEOUT / 60))
+        [ $TIMEOUT_MINUTES -lt 1 ] && TIMEOUT_MINUTES=5
+
+        echo "=== Available iOS devices in Firebase Test Lab ==="
+        gcloud firebase test ios models list --filter="supportedVersionIds:*" 2>/dev/null | head -20 || echo "Could not list devices"
+
+        # Run on Firebase Test Lab with game-loop test
+        # Available devices: iphone14pro/16.6, iphone8/16.6, iphone16pro/18.3, iphonese3/18.4
+        # Using iphone16pro instead of iphone11pro due to Unity 6 memory requirements (4GB not enough)
+        echo "=== Running tests on Firebase Test Lab ==="
+        FIREBASE_EXIT=0
+        gcloud beta firebase test ios run \
+          --type game-loop \
+          --app "$IPA" \
+          --device model=iphone14pro,version=16.6 \
+          --device model=iphone16pro,version=18.3 \
+          --scenario-numbers=1 \
+          --timeout "${TIMEOUT_MINUTES}m" \
+          --results-bucket="$FIREBASE_RESULTS_BUCKET" \
+          --results-dir=ios-${{ inputs.unity_version }}-${{ github.run_id }} 2>&1 | tee firebase_output.log || FIREBASE_EXIT=$?
+
+        echo "Firebase exit code: ${FIREBASE_EXIT:-0}"
+
+        echo "=== Downloading all Firebase results ==="
+        mkdir -p firebase-results
+        # Use rsync to preserve directory structure (device subdirectories with testResults.xml)
+        gsutil -m rsync -r "gs://$FIREBASE_RESULTS_BUCKET/ios-${{ inputs.unity_version }}-${{ github.run_id }}/" ./firebase-results/ 2>/dev/null || true
+
+        echo "=== Firebase results structure ==="
+        find ./firebase-results -type f 2>/dev/null | head -50
+
+        # Find testResults.xml files (unique per run_id, no deduplication needed)
+        UNITY_RESULTS=$(find ./firebase-results -name "testResults.xml" -type f 2>/dev/null || true)
+
+        if [ -n "$UNITY_RESULTS" ]; then
+          echo "=== Found testResults.xml files ==="
+          echo "$UNITY_RESULTS"
+
+          # Merge testResults.xml from all devices
+          # shellcheck disable=SC2086
+          python3 "$GITHUB_WORKSPACE/.github/scripts/merge-test-results.py" \
+            testResults.xml $UNITY_RESULTS
+
+          if [ "${FIREBASE_EXIT:-0}" -ne 0 ]; then
+            echo "WARNING: Firebase exited with code $FIREBASE_EXIT"
+          fi
+        else
+          echo "ERROR: No testResults.xml found in Firebase results"
+          echo "Check that tests completed and wrote results to CustomResults folder"
+          exit 1
+        fi
+
+    # ----------------------------------------
+    # Android (Firebase Test Lab)
+    # ----------------------------------------
+    - name: Run Tests (Android - Firebase Test Lab)
+      if: inputs.platform == 'Android'
+      shell: bash
+      env:
+        TEST_TIMEOUT: ${{ inputs.test_timeout }}
+      run: |
+        set -uo pipefail
+
+        APK=$(find ${{ inputs.build_path }} -name "*.apk" | head -1)
+
+        if [ -z "$APK" ]; then
+          echo "ERROR: No .apk found in ${{ inputs.build_path }}"
+          find ${{ inputs.build_path }} -type f | head -20
+          exit 1
+        fi
+        echo "APK: $APK"
+
+        TIMEOUT_MINUTES=$((TEST_TIMEOUT / 60))
+        [ $TIMEOUT_MINUTES -lt 1 ] && TIMEOUT_MINUTES=1
+
+        # Run on diverse devices:
+        # - oriole (Pixel 6, API 33) - Google baseline
+        # - shiba (Pixel 8, API 34) - Latest Pixel
+        # - a54x (Galaxy A54 5G, API 34) - Samsung mid-range (popular)
+        # - dm3q (Galaxy S23 Ultra, API 34) - Samsung flagship
+        # - austin (moto g 5G 2022, API 33) - Budget Motorola
+        FIREBASE_EXIT=0
+        gcloud firebase test android run \
+          --type game-loop \
+          --app "$APK" \
+          --device model=oriole,version=33 \
+          --device model=shiba,version=34 \
+          --device model=a54x,version=34 \
+          --device model=dm3q,version=34 \
+          --device model=austin,version=33 \
+          --scenario-numbers=1 \
+          --timeout "${TIMEOUT_MINUTES}m" \
+          --results-bucket="$FIREBASE_RESULTS_BUCKET" \
+          --results-dir=android-${{ inputs.unity_version }}-${{ github.run_id }} || FIREBASE_EXIT=$?
+
+        echo "=== Downloading all Firebase results ==="
+        mkdir -p firebase-results
+        # Use rsync to preserve directory structure (device subdirectories with testResults.xml)
+        gsutil -m rsync -r "gs://$FIREBASE_RESULTS_BUCKET/android-${{ inputs.unity_version }}-${{ github.run_id }}/" ./firebase-results/ 2>/dev/null || true
+
+        echo "=== Firebase results structure ==="
+        find ./firebase-results -type f 2>/dev/null | head -100
+
+        # Firebase game-loop stores custom output as results_scenario_N.json
+        # (the extension is .json but content is JUnit XML from our Unity app)
+        UNITY_RESULTS=$(find ./firebase-results -name "results_scenario_*.json" -type f 2>/dev/null || true)
+
+        if [ -n "$UNITY_RESULTS" ]; then
+          echo "=== Found Firebase game-loop result files ==="
+          echo "$UNITY_RESULTS"
+
+          # Show content of first result file for debugging
+          FIRST_RESULT=$(echo "$UNITY_RESULTS" | head -1)
+          echo "=== Content of $FIRST_RESULT ==="
+          head -50 "$FIRST_RESULT" || true
+
+          # Merge results from all devices using Python script
+          # The files contain JUnit XML despite .json extension
+          # shellcheck disable=SC2086
+          python3 "$GITHUB_WORKSPACE/.github/scripts/merge-test-results.py" \
+            testResults.xml $UNITY_RESULTS
+
+          # Check Firebase exit code
+          if [ "${FIREBASE_EXIT:-0}" -ne 0 ]; then
+            echo "WARNING: Firebase exited with code $FIREBASE_EXIT"
+          fi
+        else
+          echo "ERROR: No results_scenario_*.json found in Firebase results"
+          echo ""
+          echo "Firebase results structure:"
+          find ./firebase-results -type f 2>/dev/null || true
+          echo ""
+          echo "Check that FirebaseTestLabAndroid.Initialize() is called and"
+          echo "results are written via intent.getData() file descriptor."
+          exit 1
+        fi
+
+    # ----------------------------------------
+    # Test Summary
+    # ----------------------------------------
+    - name: Test Summary
+      if: always()
+      shell: bash
+      run: |
+        echo "### Test Results: ${{ inputs.platform }}" >> $GITHUB_STEP_SUMMARY
+
+        if [ ! -f testResults.xml ]; then
+          echo "❌ No test results found" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+        TOTAL=$(grep -c '<testcase' testResults.xml 2>/dev/null | tr -d '\n' || echo "0")
+        FAILED=$(grep -c '<failure' testResults.xml 2>/dev/null | tr -d '\n' || echo "0")
+        TOTAL=${TOTAL:-0}
+        FAILED=${FAILED:-0}
+        PASSED=$((TOTAL - FAILED))
+
+        echo "Passed: $PASSED / $TOTAL" >> $GITHUB_STEP_SUMMARY
+        if [ "${FAILED:-0}" -gt 0 ]; then
+          echo "Failed: $FAILED" >> $GITHUB_STEP_SUMMARY
+        fi

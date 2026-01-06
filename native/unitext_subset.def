@@ -1,0 +1,10 @@
+LIBRARY unitext_native_editor
+EXPORTS
+    subset_font
+    subset_font_remove_codepoints
+    get_glyph_count
+    subset_font_remove_glyphs
+    shape_text
+    get_font_codepoints
+    unitext_open_files_dialog
+    unitext_free_dialog_result

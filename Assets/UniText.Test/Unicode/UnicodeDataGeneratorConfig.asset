@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72a2bf58ad904f0d8349d677e9d1d08f, type: 3}
+  m_Name: UnicodeDataGeneratorConfig
+  m_EditorClassIdentifier: 
+  derivedBidiClassAsset: {fileID: 4900000, guid: 88fdd986c13d7614bbc968a43ef5b7e8, type: 3}
+  derivedJoiningTypeAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871075b29, type: 3}
+  arabicShapingAsset: {fileID: 4900000, guid: b03248a3f2e23d64a806a3dd13a05883, type: 3}
+  bidiBracketsAsset: {fileID: 4900000, guid: 489331ce13fce5f42afab3c40764b578, type: 3}
+  bidiMirroringAsset: {fileID: 4900000, guid: 86416bbf43b01594f913178d3a650e65, type: 3}
+  scriptsAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871075b27, type: 3}
+  lineBreakAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871075b28, type: 3}
+  emojiDataAsset: {fileID: 4900000, guid: 1a1afe8518d1e7143a899f3871075b28, type: 3}
+  generalCategoryAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871065b27, type: 3}
+  eastAsianWidthAsset: {fileID: 4900000, guid: 1a2afe8518d1e7142a899f3871065b27, type: 3}
+  graphemeBreakPropertyAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871074b28, type: 3}
+  derivedCorePropertiesAsset: {fileID: 4900000, guid: 1a2afe8518d1e7243a899f3871075b27, type: 3}
+  scriptExtensionsAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871175b27, type: 3}
+  outputFolder: {fileID: 102900000, guid: f560a9e02c2c3cd4f9d0597375b90f75, type: 3}
+  outputFileName: UnicodeData.bytes
+  testing:
+    maxFailuresToLog: 6000
+    unicodeDataAsset: {fileID: 4900000, guid: 86e6445c93d99a7478cd8b8d74dc2ad5, type: 3}
+    bidiCharacterTestAsset: {fileID: 4900000, guid: a7b2d66d7c7134944aeb566a46e8a2f7, type: 3}
+    bidiTestAsset: {fileID: 4900000, guid: 3d19f33e3c43fc94f84f99b52955ca6f, type: 3}
+    lineBreakTestAsset: {fileID: 4900000, guid: a5021311bc7fc4040b98329f954a61d7, type: 3}
+    scriptsAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871075b27, type: 3}
+    scriptAnalyzerTestAsset: {fileID: 4900000, guid: 87be868fa981ac04a847b08b0315439a, type: 3}
+    graphemeBreakTestAsset: {fileID: 4900000, guid: deb94d352db20d54db58a1a415e29fad, type: 3}

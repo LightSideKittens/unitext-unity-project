@@ -1,0 +1,11 @@
+{
+  "name": "unitext-tools",
+  "version": "1.0.0",
+  "description": "Documentation tools for UniText",
+  "scripts": {
+    "convert": "node xml-to-json.js"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.3.2"
+  }
+}

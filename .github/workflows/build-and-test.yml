@@ -1,0 +1,162 @@
+name: Build and Test (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      unity_version:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+      debug:
+        required: false
+        type: boolean
+        default: true
+      benchmark:
+        required: false
+        type: boolean
+        default: false
+      run_tests:
+        required: false
+        type: boolean
+        default: false
+      test_timeout:
+        required: false
+        type: number
+        default: 300
+
+# Platform to runner mapping (single source of truth)
+env:
+  MACOS_RUNNER: 'macos-14'
+  WINDOWS_RUNNER: 'windows-latest'
+  LINUX_RUNNER: 'ubuntu-latest'
+
+jobs:
+  build:
+    runs-on: unity-runner
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          lfs: true
+          submodules: recursive
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ inputs.platform }}-${{ inputs.unity_version }}-
+            Library-${{ inputs.platform }}-
+
+      - name: Cache IL2CPP
+        if: contains(inputs.platform, 'Android') || contains(inputs.platform, 'iOS')
+        uses: actions/cache@v4
+        with:
+          path: |
+            Library/Il2cppBuildCache
+            Library/Bee
+          key: IL2CPP-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ hashFiles('Assets/**/*.cs') }}
+          restore-keys: |
+            IL2CPP-${{ inputs.platform }}-${{ inputs.unity_version }}-
+            IL2CPP-${{ inputs.platform }}-
+
+      - name: Build
+        timeout-minutes: 60
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          IL2CPP_ADDITIONAL_ARGS: --compiler-flags=-j8
+        with:
+          unityVersion: ${{ inputs.unity_version }}
+          targetPlatform: ${{ inputs.platform }}
+          allowDirtyBuild: true
+          customParameters: -ciDebug ${{ inputs.debug }} -ciBenchmark ${{ inputs.benchmark }} -ciTests ${{ inputs.run_tests }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-${{ inputs.unity_version }}-${{ inputs.platform }}
+          path: build
+          retention-days: 7
+
+  test:
+    # Skip tests for Unity 2021 + Linux: game loop hangs on yield return null due to llvmpipe bug
+    if: inputs.run_tests && !(inputs.platform == 'StandaloneLinux64' && startsWith(inputs.unity_version, '2021'))
+    needs: build
+    timeout-minutes: 30
+    runs-on: ${{
+      inputs.platform == 'StandaloneWindows64' && 'windows-latest' ||
+      inputs.platform == 'StandaloneOSX' && 'macos-14' ||
+      inputs.platform == 'iOS' && 'macos-14' ||
+      'ubuntu-latest'
+      }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          sparse-checkout: |
+            .github/actions
+            .github/scripts
+            Assets/server.js
+            Assets/UniText.Test
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Build-${{ inputs.unity_version }}-${{ inputs.platform }}
+          path: build
+
+      - name: Authenticate to Google Cloud (Android/iOS)
+        if: inputs.platform == 'Android' || inputs.platform == 'iOS'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Setup Google Cloud SDK (Android/iOS)
+        if: inputs.platform == 'Android' || inputs.platform == 'iOS'
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.FIREBASE_PROJECT_ID }}
+
+      - name: Install gcloud beta (iOS)
+        if: inputs.platform == 'iOS'
+        run: gcloud components install beta --quiet
+
+      - name: Run Tests
+        uses: ./.github/actions/run-tests
+        env:
+          FIREBASE_RESULTS_BUCKET: ${{ secrets.FIREBASE_RESULTS_BUCKET }}
+          # iOS secrets
+          GH_PAT: ${{ secrets.GH_PAT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        with:
+          platform: ${{ inputs.platform }}
+          unity_version: ${{ inputs.unity_version }}
+          test_timeout: ${{ inputs.test_timeout }}
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults-${{ inputs.unity_version }}-${{ inputs.platform }}
+          path: |
+            testResults.xml
+            test.log
+            xcodebuild.log
+            screenshots/
+          retention-days: 7
