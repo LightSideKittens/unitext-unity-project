@@ -176,7 +176,10 @@ typedef struct {
 
 // --- Outline segment extraction helpers ---
 
-struct SdfSeg { float ax, ay, bx, by; };
+struct SdfSeg {
+    float ax, ay, bx, by;
+    float min_x, min_y, max_x, max_y; // precomputed AABB
+};
 
 struct SdfOutline {
     SdfSeg* segs;
@@ -198,7 +201,10 @@ static void sdf_ol_add(SdfOutline* o, float ax, float ay, float bx, float by) {
         o->cap *= 2;
         o->segs = (SdfSeg*)realloc(o->segs, o->cap * sizeof(SdfSeg));
     }
-    SdfSeg s = { ax, ay, bx, by };
+    SdfSeg s;
+    s.ax = ax; s.ay = ay; s.bx = bx; s.by = by;
+    s.min_x = ax < bx ? ax : bx; s.min_y = ay < by ? ay : by;
+    s.max_x = ax > bx ? ax : bx; s.max_y = ay > by ? ay : by;
     o->segs[o->count++] = s;
 }
 
@@ -346,25 +352,82 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
     float bearing_x = (float)out_result->metric_bearing_x;
     float bearing_y = (float)out_result->metric_bearing_y;
     float inv_spread = spread > 0 ? 128.0f / (float)spread : 128.0f;
+    float spread_f = (float)spread;
+    float spread_sq = spread_f * spread_f;
     int seg_count = outline.count;
     const SdfSeg* segs = outline.segs;
 
+    // --- Precompute scanline crossing lists for winding number ---
+    // For each row, collect segments that cross the scanline (far cheaper than per-pixel).
+    // Crossing = segment whose Y-range spans the scanline's py value.
+    // We store crossing x-positions + direction, sorted by x, then walk left→right.
+
+    struct Crossing { float x; int dir; }; // dir: +1 upward, -1 downward
+
+    // Allocate workspace: worst case every row has every segment crossing
+    Crossing* cross_buf = (Crossing*)malloc(seg_count * sizeof(Crossing));
+    int* row_winding = (int*)malloc(pw * sizeof(int));
+
     for (int gy = 0; gy < ph; gy++) {
-        int dst_row = (ph - 1 - gy) * pw;  // Y-flip (FreeType Y-up → Unity Y-down)
-        float py = bearing_y + (float)spread - (float)gy - 0.5f;
+        int dst_row = (ph - 1 - gy) * pw;  // Y-flip
+        float py = bearing_y + spread_f - (float)gy - 0.5f;
 
+        // --- Scanline winding: collect crossings for this row ---
+        int ncross = 0;
+        for (int s = 0; s < seg_count; s++) {
+            float ay = segs[s].ay, by = segs[s].by;
+            int dir;
+            if (ay <= py && by > py) dir = 1;        // upward
+            else if (ay > py && by <= py) dir = -1;   // downward
+            else continue;
+
+            // X of crossing: linear interpolation along segment
+            float t = (py - ay) / (by - ay);
+            float cx = segs[s].ax + t * (segs[s].bx - segs[s].ax);
+            cross_buf[ncross].x = cx;
+            cross_buf[ncross].dir = dir;
+            ncross++;
+        }
+
+        // Sort crossings by x (insertion sort — usually <20 crossings)
+        for (int i = 1; i < ncross; i++) {
+            Crossing tmp = cross_buf[i];
+            int j = i - 1;
+            while (j >= 0 && cross_buf[j].x > tmp.x) {
+                cross_buf[j + 1] = cross_buf[j];
+                j--;
+            }
+            cross_buf[j + 1] = tmp;
+        }
+
+        // Walk left→right, fill winding for each pixel
+        int ci = 0, w = 0;
         for (int gx = 0; gx < pw; gx++) {
-            float px = bearing_x - (float)spread + (float)gx + 0.5f;
+            float px = bearing_x - spread_f + (float)gx + 0.5f;
+            while (ci < ncross && cross_buf[ci].x <= px) {
+                w += cross_buf[ci].dir;
+                ci++;
+            }
+            row_winding[gx] = w;
+        }
 
-            // Combined: find min distance + winding number in single pass
-            float min_d2 = 1e20f;
-            int winding = 0;
+        // --- Distance computation with AABB early-out ---
+        for (int gx = 0; gx < pw; gx++) {
+            float px = bearing_x - spread_f + (float)gx + 0.5f;
+            float min_d2 = spread_sq; // clamp: beyond spread → SDF is 0 or 255
 
             for (int s = 0; s < seg_count; s++) {
+                // AABB early-out: skip if segment box is farther than current best
+                float dnx = 0.0f, dny = 0.0f;
+                if (px < segs[s].min_x) dnx = segs[s].min_x - px;
+                else if (px > segs[s].max_x) dnx = px - segs[s].max_x;
+                if (py < segs[s].min_y) dny = segs[s].min_y - py;
+                else if (py > segs[s].max_y) dny = py - segs[s].max_y;
+                if (dnx * dnx + dny * dny >= min_d2) continue;
+
+                // Full point-to-segment squared distance
                 float ax = segs[s].ax, ay = segs[s].ay;
                 float bx = segs[s].bx, by = segs[s].by;
-
-                // --- Point-to-segment squared distance ---
                 float edx = bx - ax, edy = by - ay;
                 float len2 = edx * edx + edy * edy;
                 float d2;
@@ -380,28 +443,18 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
                     d2 = cx * cx + cy * cy;
                 }
                 if (d2 < min_d2) min_d2 = d2;
-
-                // --- Winding number contribution (non-zero fill rule) ---
-                if (ay <= py) {
-                    if (by > py) { // upward crossing
-                        float cross = edx * (py - ay) - (px - ax) * edy;
-                        if (cross > 0.0f) winding++;
-                    }
-                } else {
-                    if (by <= py) { // downward crossing
-                        float cross = edx * (py - ay) - (px - ax) * edy;
-                        if (cross < 0.0f) winding--;
-                    }
-                }
             }
 
             float dist = sqrtf(min_d2);
-            if (winding != 0) dist = -dist; // inside glyph = negative distance
+            if (row_winding[gx] != 0) dist = -dist; // inside glyph
             float val = 128.0f - dist * inv_spread;
             int ival = (int)(val + 0.5f);
             sdf[dst_row + gx] = (unsigned char)(ival < 0 ? 0 : (ival > 255 ? 255 : ival));
         }
     }
+
+    free(row_winding);
+    free(cross_buf);
 
     sdf_ol_free(&outline);
 
