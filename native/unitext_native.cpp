@@ -178,11 +178,15 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
     memset(out_result, 0, sizeof(ut_sdf_glyph_result));
     if (!face) { out_result->success = -1; return -1; }
 
-    // Step 1: Load glyph outline
+    // Supersampling: render bitmap at SS× resolution for smoother SDF contours.
+    // EDT is O(n) so 4× more pixels has negligible cost; the extra FT render is ~0.1ms.
+    const int SS = 2;
+
+    // Step 1: Load glyph at original size for metrics
     FT_Error err = FT_Load_Glyph(face, glyph_index, load_flags);
     if (err) { out_result->success = (int)err; return (int)err; }
 
-    // Step 2: Read outline metrics (before render, unaffected by spread)
+    // Step 2: Read outline metrics (at original size, unaffected by supersampling)
     FT_Glyph_Metrics* m = &face->glyph->metrics;
     out_result->metric_width     = (int)(m->width >> 6);
     out_result->metric_height    = (int)(m->height >> 6);
@@ -190,53 +194,76 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
     out_result->metric_bearing_y = (int)(m->horiBearingY >> 6);
     out_result->metric_advance_x = (int)m->horiAdvance; // raw 26.6
 
-    // Step 3: Render as normal anti-aliased grayscale (fast — ~0.1ms)
+    // Step 3: Scale up face and re-render at high resolution
+    FT_UInt orig_ppem = face->size->metrics.y_ppem;
+    FT_Set_Pixel_Sizes(face, 0, orig_ppem * SS);
+
+    err = FT_Load_Glyph(face, glyph_index, load_flags);
+    if (err) {
+        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
+        out_result->success = (int)err;
+        return (int)err;
+    }
     err = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-    if (err) { out_result->success = (int)err; return (int)err; }
+    if (err) {
+        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
+        out_result->success = (int)err;
+        return (int)err;
+    }
 
     FT_Bitmap* b = &face->glyph->bitmap;
-    int bw = (int)b->width;
-    int bh = (int)b->rows;
+    int bw_hi = (int)b->width;
+    int bh_hi = (int)b->rows;
 
     // Zero-size glyph (space, control chars)
-    if (bw <= 0 || bh <= 0) {
-        out_result->bitmap_left = face->glyph->bitmap_left;
-        out_result->bitmap_top  = face->glyph->bitmap_top;
+    if (bw_hi <= 0 || bh_hi <= 0) {
+        out_result->bitmap_left = face->glyph->bitmap_left / SS;
+        out_result->bitmap_top  = face->glyph->bitmap_top / SS;
         out_result->success = 0;
+        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
         return 0;
     }
 
-    // Step 4: Allocate workspace — one malloc for grids + EDT scratch
-    int pw = bw + 2 * spread;
-    int ph = bh + 2 * spread;
-    int pcount = pw * ph;
-    int maxdim = pw > ph ? pw : ph;
+    // Save high-res positioning before we restore face size
+    int hi_bitmap_left = face->glyph->bitmap_left;
+    int hi_bitmap_top  = face->glyph->bitmap_top;
 
-    size_t ws_size = (size_t)pcount * sizeof(float) * 2    // outside + inside
-                   + (size_t)maxdim * sizeof(float) * 2    // edt_f + edt_d
-                   + (size_t)(maxdim + 1) * sizeof(float)  // edt_z
-                   + (size_t)maxdim * sizeof(int);          // edt_v
+    // Step 4: Allocate workspace — one malloc for high-res grids + EDT scratch
+    int ss_spread = spread * SS;
+    int pw_hi = bw_hi + 2 * ss_spread;
+    int ph_hi = bh_hi + 2 * ss_spread;
+    int pcount_hi = pw_hi * ph_hi;
+    int maxdim_hi = pw_hi > ph_hi ? pw_hi : ph_hi;
+
+    size_t ws_size = (size_t)pcount_hi * sizeof(float) * 2    // outside + inside
+                   + (size_t)maxdim_hi * sizeof(float) * 2    // edt_f + edt_d
+                   + (size_t)(maxdim_hi + 1) * sizeof(float)  // edt_z
+                   + (size_t)maxdim_hi * sizeof(int);          // edt_v
     char* ws = (char*)malloc(ws_size);
-    if (!ws) { out_result->success = -1; return -1; }
+    if (!ws) {
+        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
+        out_result->success = -1;
+        return -1;
+    }
 
     float* outside = (float*)ws;
-    float* inside  = outside + pcount;
-    float* edt_f   = inside + pcount;
-    float* edt_d   = edt_f + maxdim;
-    float* edt_z   = edt_d + maxdim;
-    int*   edt_v   = (int*)(edt_z + maxdim + 1);
+    float* inside  = outside + pcount_hi;
+    float* edt_f   = inside + pcount_hi;
+    float* edt_d   = edt_f + maxdim_hi;
+    float* edt_z   = edt_d + maxdim_hi;
+    int*   edt_v   = (int*)(edt_z + maxdim_hi + 1);
 
     // Initialize: outside = far, inside = 0
-    for (int i = 0; i < pcount; i++) {
+    for (int i = 0; i < pcount_hi; i++) {
         outside[i] = EDT_INF;
         inside[i]  = 0.0f;
     }
 
-    // Fill glyph region using alpha for sub-pixel accuracy (mapbox/tiny-sdf approach).
-    for (int y = 0; y < bh; y++) {
+    // Fill from high-res bitmap using alpha for sub-pixel accuracy (mapbox/tiny-sdf approach).
+    for (int y = 0; y < bh_hi; y++) {
         const unsigned char* row = b->buffer + y * b->pitch;
-        for (int x = 0; x < bw; x++) {
-            int pi = (y + spread) * pw + (x + spread);
+        for (int x = 0; x < bw_hi; x++) {
+            int pi = (y + ss_spread) * pw_hi + (x + ss_spread);
             unsigned char a = row[x];
             if (a == 0) {
                 outside[pi] = EDT_INF;
@@ -252,21 +279,39 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
         }
     }
 
-    // Step 5: Compute 2D EDT for both fields
-    edt_2d(outside, pw, ph, edt_f, edt_d, edt_z, edt_v);
-    edt_2d(inside, pw, ph, edt_f, edt_d, edt_z, edt_v);
+    // Step 5: Compute 2D EDT for both fields (at high resolution)
+    edt_2d(outside, pw_hi, ph_hi, edt_f, edt_d, edt_z, edt_v);
+    edt_2d(inside, pw_hi, ph_hi, edt_f, edt_d, edt_z, edt_v);
 
-    // Step 6: Combine into Alpha8 SDF with Y-flip (FreeType top-down → Unity bottom-up).
+    // Step 6: Downsample to output resolution with Y-flip.
+    // Average SS×SS blocks; distances are in high-res pixels, divide by SS for original scale.
+    int pw = pw_hi / SS;
+    int ph = ph_hi / SS;
+    int pcount = pw * ph;
+
     unsigned char* sdf = (unsigned char*)malloc(pcount);
-    if (!sdf) { free(ws); out_result->success = -1; return -1; }
+    if (!sdf) {
+        free(ws);
+        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
+        out_result->success = -1;
+        return -1;
+    }
 
     float inv_spread = spread > 0 ? 128.0f / (float)spread : 128.0f;
+    float ss_scale = 1.0f / (float)(SS * SS);
 
     for (int y = 0; y < ph; y++) {
-        int src_row = y * pw;
         int dst_row = (ph - 1 - y) * pw;  // Y-flip
         for (int x = 0; x < pw; x++) {
-            float dist = sqrtf(outside[src_row + x]) - sqrtf(inside[src_row + x]);
+            float sum = 0.0f;
+            for (int sy = 0; sy < SS; sy++) {
+                int hi_row = (y * SS + sy) * pw_hi;
+                for (int sx = 0; sx < SS; sx++) {
+                    int hi_idx = hi_row + x * SS + sx;
+                    sum += sqrtf(outside[hi_idx]) - sqrtf(inside[hi_idx]);
+                }
+            }
+            float dist = sum * ss_scale / (float)SS; // average, then to original-res units
             float val = 128.0f - dist * inv_spread;
             int ival = (int)(val + 0.5f);
             sdf[dst_row + x] = (unsigned char)(ival < 0 ? 0 : (ival > 255 ? 255 : ival));
@@ -275,12 +320,14 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
 
     free(ws);
 
-    // Step 7: Fill result
+    // Step 7: Restore face size and fill result
+    FT_Set_Pixel_Sizes(face, 0, orig_ppem);
+
     out_result->bmp_width   = pw;
     out_result->bmp_height  = ph;
     out_result->bmp_pitch   = pw;
-    out_result->bitmap_left = face->glyph->bitmap_left - spread;
-    out_result->bitmap_top  = face->glyph->bitmap_top + spread;
+    out_result->bitmap_left = hi_bitmap_left / SS - spread;
+    out_result->bitmap_top  = hi_bitmap_top / SS + spread;
     out_result->bmp_buffer  = sdf;
     out_result->success = 0;
     return 0;
