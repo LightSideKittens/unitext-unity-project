@@ -13,6 +13,7 @@
 #include FT_COLOR_H
 #include FT_TRUETYPE_TABLES_H
 #include FT_MODULE_H
+#include FT_OUTLINE_H
 
 #include <hb.h>
 #include <hb-ot.h>
@@ -148,9 +149,11 @@ static void edt_2d(float* grid, int w, int h, float* f, float* d, float* z, int*
     }
 }
 
-// === Combined SDF Glyph Render (FT_RENDER_MODE_NORMAL + EDT) =================
+// === Outline-based SDF Glyph Render ==========================================
 //
-// Renders glyph as anti-aliased bitmap, then computes SDF via Felzenszwalb EDT.
+// Extracts glyph outline via FT_Outline_Decompose, subdivides Bezier curves
+// into line segments, computes exact signed distance from each SDF pixel to
+// the nearest segment. Sign via winding number (non-zero fill rule).
 // Output is Alpha8 SDF with spread-pixel padding. bmp_buffer is malloc'd —
 // caller MUST free via ut_ft_free_sdf_buffer().
 
@@ -171,6 +174,113 @@ typedef struct {
     void* bmp_buffer;     // malloc'd Alpha8 SDF — caller must free
 } ut_sdf_glyph_result;
 
+// --- Outline segment extraction helpers ---
+
+struct SdfSeg { float ax, ay, bx, by; };
+
+struct SdfOutline {
+    SdfSeg* segs;
+    int count, cap;
+    float cx, cy;  // current pen position (pixel coords)
+};
+
+static void sdf_ol_init(SdfOutline* o) {
+    o->segs = (SdfSeg*)malloc(128 * sizeof(SdfSeg));
+    o->count = 0;
+    o->cap = 128;
+    o->cx = o->cy = 0.0f;
+}
+
+static void sdf_ol_add(SdfOutline* o, float ax, float ay, float bx, float by) {
+    float dx = bx - ax, dy = by - ay;
+    if (dx * dx + dy * dy < 1e-10f) return; // skip degenerate
+    if (o->count >= o->cap) {
+        o->cap *= 2;
+        o->segs = (SdfSeg*)realloc(o->segs, o->cap * sizeof(SdfSeg));
+    }
+    SdfSeg s = { ax, ay, bx, by };
+    o->segs[o->count++] = s;
+}
+
+static void sdf_ol_free(SdfOutline* o) { free(o->segs); }
+
+// Adaptive quadratic Bezier subdivision (De Casteljau, flatness < 0.25px)
+static void sdf_subdiv_conic(SdfOutline* o,
+    float p0x, float p0y, float p1x, float p1y, float p2x, float p2y, int depth)
+{
+    if (depth >= 6) { sdf_ol_add(o, p0x, p0y, p2x, p2y); return; }
+    float mx = (p0x + p2x) * 0.5f, my = (p0y + p2y) * 0.5f;
+    float dx = p1x - mx, dy = p1y - my;
+    if (dx * dx + dy * dy < 0.0625f) { // 0.25² — quarter-pixel tolerance
+        sdf_ol_add(o, p0x, p0y, p2x, p2y);
+        return;
+    }
+    float q0x = (p0x + p1x) * 0.5f, q0y = (p0y + p1y) * 0.5f;
+    float q1x = (p1x + p2x) * 0.5f, q1y = (p1y + p2y) * 0.5f;
+    float rx  = (q0x + q1x) * 0.5f, ry  = (q0y + q1y) * 0.5f;
+    sdf_subdiv_conic(o, p0x, p0y, q0x, q0y, rx, ry, depth + 1);
+    sdf_subdiv_conic(o, rx, ry, q1x, q1y, p2x, p2y, depth + 1);
+}
+
+// Adaptive cubic Bezier subdivision
+static void sdf_subdiv_cubic(SdfOutline* o,
+    float p0x, float p0y, float p1x, float p1y,
+    float p2x, float p2y, float p3x, float p3y, int depth)
+{
+    if (depth >= 6) { sdf_ol_add(o, p0x, p0y, p3x, p3y); return; }
+    float dx = p3x - p0x, dy = p3y - p0y;
+    float len2 = dx * dx + dy * dy;
+    if (len2 < 1e-10f) { sdf_ol_add(o, p0x, p0y, p3x, p3y); return; }
+    float inv = 1.0f / sqrtf(len2);
+    float nx = -dy * inv, ny = dx * inv;
+    float d1 = fabsf(nx * (p1x - p0x) + ny * (p1y - p0y));
+    float d2 = fabsf(nx * (p2x - p0x) + ny * (p2y - p0y));
+    if (d1 < 0.25f && d2 < 0.25f) { sdf_ol_add(o, p0x, p0y, p3x, p3y); return; }
+    float abx = (p0x+p1x)*0.5f, aby = (p0y+p1y)*0.5f;
+    float bcx = (p1x+p2x)*0.5f, bcy = (p1y+p2y)*0.5f;
+    float cdx = (p2x+p3x)*0.5f, cdy = (p2y+p3y)*0.5f;
+    float ex  = (abx+bcx)*0.5f, ey  = (aby+bcy)*0.5f;
+    float fx  = (bcx+cdx)*0.5f, fy  = (bcy+cdy)*0.5f;
+    float mx  = (ex+fx)*0.5f,   my  = (ey+fy)*0.5f;
+    sdf_subdiv_cubic(o, p0x,p0y, abx,aby, ex,ey, mx,my, depth+1);
+    sdf_subdiv_cubic(o, mx,my, fx,fy, cdx,cdy, p3x,p3y, depth+1);
+}
+
+// FT_Outline_Decompose callbacks — coordinates are 26.6 fixed-point
+static int sdf_move_to(const FT_Vector* to, void* user) {
+    SdfOutline* o = (SdfOutline*)user;
+    o->cx = to->x / 64.0f;
+    o->cy = to->y / 64.0f;
+    return 0;
+}
+
+static int sdf_line_to(const FT_Vector* to, void* user) {
+    SdfOutline* o = (SdfOutline*)user;
+    float x = to->x / 64.0f, y = to->y / 64.0f;
+    sdf_ol_add(o, o->cx, o->cy, x, y);
+    o->cx = x; o->cy = y;
+    return 0;
+}
+
+static int sdf_conic_to(const FT_Vector* ctrl, const FT_Vector* to, void* user) {
+    SdfOutline* o = (SdfOutline*)user;
+    float c1x = ctrl->x / 64.0f, c1y = ctrl->y / 64.0f;
+    float ex  = to->x / 64.0f,   ey  = to->y / 64.0f;
+    sdf_subdiv_conic(o, o->cx, o->cy, c1x, c1y, ex, ey, 0);
+    o->cx = ex; o->cy = ey;
+    return 0;
+}
+
+static int sdf_cubic_to(const FT_Vector* c1, const FT_Vector* c2, const FT_Vector* to, void* user) {
+    SdfOutline* o = (SdfOutline*)user;
+    float c1x = c1->x / 64.0f, c1y = c1->y / 64.0f;
+    float c2x = c2->x / 64.0f, c2y = c2->y / 64.0f;
+    float ex  = to->x / 64.0f,  ey  = to->y / 64.0f;
+    sdf_subdiv_cubic(o, o->cx, o->cy, c1x, c1y, c2x, c2y, ex, ey, 0);
+    o->cx = ex; o->cy = ey;
+    return 0;
+}
+
 UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index,
                                            int load_flags, int spread,
                                            ut_sdf_glyph_result* out_result) {
@@ -178,15 +288,11 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
     memset(out_result, 0, sizeof(ut_sdf_glyph_result));
     if (!face) { out_result->success = -1; return -1; }
 
-    // Supersampling: render bitmap at SS× resolution for smoother SDF contours.
-    // EDT is O(n) so 4× more pixels has negligible cost; the extra FT render is ~0.1ms.
-    const int SS = 2;
-
-    // Step 1: Load glyph at original size for metrics
+    // Step 1: Load glyph outline (do NOT render — we need the vector outline)
     FT_Error err = FT_Load_Glyph(face, glyph_index, load_flags);
     if (err) { out_result->success = (int)err; return (int)err; }
 
-    // Step 2: Read outline metrics (at original size, unaffected by supersampling)
+    // Step 2: Read outline metrics
     FT_Glyph_Metrics* m = &face->glyph->metrics;
     out_result->metric_width     = (int)(m->width >> 6);
     out_result->metric_height    = (int)(m->height >> 6);
@@ -194,140 +300,117 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
     out_result->metric_bearing_y = (int)(m->horiBearingY >> 6);
     out_result->metric_advance_x = (int)m->horiAdvance; // raw 26.6
 
-    // Step 3: Scale up face and re-render at high resolution
-    FT_UInt orig_ppem = face->size->metrics.y_ppem;
-    FT_Set_Pixel_Sizes(face, 0, orig_ppem * SS);
-
-    err = FT_Load_Glyph(face, glyph_index, load_flags);
-    if (err) {
-        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
-        out_result->success = (int)err;
-        return (int)err;
-    }
-    err = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-    if (err) {
-        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
-        out_result->success = (int)err;
-        return (int)err;
-    }
-
-    FT_Bitmap* b = &face->glyph->bitmap;
-    int bw_hi = (int)b->width;
-    int bh_hi = (int)b->rows;
+    int bw = out_result->metric_width;
+    int bh = out_result->metric_height;
 
     // Zero-size glyph (space, control chars)
-    if (bw_hi <= 0 || bh_hi <= 0) {
-        out_result->bitmap_left = face->glyph->bitmap_left / SS;
-        out_result->bitmap_top  = face->glyph->bitmap_top / SS;
+    if (bw <= 0 || bh <= 0) {
+        out_result->bitmap_left = out_result->metric_bearing_x;
+        out_result->bitmap_top  = out_result->metric_bearing_y;
         out_result->success = 0;
-        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
         return 0;
     }
 
-    // Save high-res positioning before we restore face size
-    int hi_bitmap_left = face->glyph->bitmap_left;
-    int hi_bitmap_top  = face->glyph->bitmap_top;
-
-    // Step 4: Allocate workspace — one malloc for high-res grids + EDT scratch
-    int ss_spread = spread * SS;
-    int pw_hi = bw_hi + 2 * ss_spread;
-    int ph_hi = bh_hi + 2 * ss_spread;
-    int pcount_hi = pw_hi * ph_hi;
-    int maxdim_hi = pw_hi > ph_hi ? pw_hi : ph_hi;
-
-    size_t ws_size = (size_t)pcount_hi * sizeof(float) * 2    // outside + inside
-                   + (size_t)maxdim_hi * sizeof(float) * 2    // edt_f + edt_d
-                   + (size_t)(maxdim_hi + 1) * sizeof(float)  // edt_z
-                   + (size_t)maxdim_hi * sizeof(int);          // edt_v
-    char* ws = (char*)malloc(ws_size);
-    if (!ws) {
-        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
+    // Step 3: Extract outline segments via FT_Outline_Decompose
+    if (face->glyph->format != FT_GLYPH_FORMAT_OUTLINE) {
         out_result->success = -1;
         return -1;
     }
 
-    float* outside = (float*)ws;
-    float* inside  = outside + pcount_hi;
-    float* edt_f   = inside + pcount_hi;
-    float* edt_d   = edt_f + maxdim_hi;
-    float* edt_z   = edt_d + maxdim_hi;
-    int*   edt_v   = (int*)(edt_z + maxdim_hi + 1);
+    SdfOutline outline;
+    sdf_ol_init(&outline);
 
-    // Initialize: outside = far, inside = 0
-    for (int i = 0; i < pcount_hi; i++) {
-        outside[i] = EDT_INF;
-        inside[i]  = 0.0f;
+    FT_Outline_Funcs funcs = {};
+    funcs.move_to  = sdf_move_to;
+    funcs.line_to  = sdf_line_to;
+    funcs.conic_to = sdf_conic_to;
+    funcs.cubic_to = sdf_cubic_to;
+
+    err = FT_Outline_Decompose(&face->glyph->outline, &funcs, &outline);
+    if (err || outline.count == 0) {
+        sdf_ol_free(&outline);
+        out_result->bitmap_left = out_result->metric_bearing_x;
+        out_result->bitmap_top  = out_result->metric_bearing_y;
+        out_result->success = err ? (int)err : 0;
+        return err ? (int)err : 0;
     }
 
-    // Fill from high-res bitmap using alpha for sub-pixel accuracy (mapbox/tiny-sdf approach).
-    for (int y = 0; y < bh_hi; y++) {
-        const unsigned char* row = b->buffer + y * b->pitch;
-        for (int x = 0; x < bw_hi; x++) {
-            int pi = (y + ss_spread) * pw_hi + (x + ss_spread);
-            unsigned char a = row[x];
-            if (a == 0) {
-                outside[pi] = EDT_INF;
-                inside[pi]  = 0.0f;
-            } else if (a == 255) {
-                outside[pi] = 0.0f;
-                inside[pi]  = EDT_INF;
-            } else {
-                float d = 0.5f - (float)a / 255.0f;
-                outside[pi] = d > 0.0f ? d * d : 0.0f;
-                inside[pi]  = d < 0.0f ? d * d : 0.0f;
-            }
-        }
-    }
-
-    // Step 5: Compute 2D EDT for both fields (at high resolution)
-    edt_2d(outside, pw_hi, ph_hi, edt_f, edt_d, edt_z, edt_v);
-    edt_2d(inside, pw_hi, ph_hi, edt_f, edt_d, edt_z, edt_v);
-
-    // Step 6: Downsample to output resolution with Y-flip.
-    // Average SS×SS blocks; distances are in high-res pixels, divide by SS for original scale.
-    int pw = pw_hi / SS;
-    int ph = ph_hi / SS;
+    // Step 4: Generate SDF — exact distance to outline segments + winding number sign
+    int pw = bw + 2 * spread;
+    int ph = bh + 2 * spread;
     int pcount = pw * ph;
 
     unsigned char* sdf = (unsigned char*)malloc(pcount);
-    if (!sdf) {
-        free(ws);
-        FT_Set_Pixel_Sizes(face, 0, orig_ppem);
-        out_result->success = -1;
-        return -1;
-    }
+    if (!sdf) { sdf_ol_free(&outline); out_result->success = -1; return -1; }
 
+    float bearing_x = (float)out_result->metric_bearing_x;
+    float bearing_y = (float)out_result->metric_bearing_y;
     float inv_spread = spread > 0 ? 128.0f / (float)spread : 128.0f;
-    float ss_scale = 1.0f / (float)(SS * SS);
+    int seg_count = outline.count;
+    const SdfSeg* segs = outline.segs;
 
-    for (int y = 0; y < ph; y++) {
-        int dst_row = (ph - 1 - y) * pw;  // Y-flip
-        for (int x = 0; x < pw; x++) {
-            float sum = 0.0f;
-            for (int sy = 0; sy < SS; sy++) {
-                int hi_row = (y * SS + sy) * pw_hi;
-                for (int sx = 0; sx < SS; sx++) {
-                    int hi_idx = hi_row + x * SS + sx;
-                    sum += sqrtf(outside[hi_idx]) - sqrtf(inside[hi_idx]);
+    for (int gy = 0; gy < ph; gy++) {
+        int dst_row = (ph - 1 - gy) * pw;  // Y-flip (FreeType Y-up → Unity Y-down)
+        float py = bearing_y + (float)spread - (float)gy - 0.5f;
+
+        for (int gx = 0; gx < pw; gx++) {
+            float px = bearing_x - (float)spread + (float)gx + 0.5f;
+
+            // Combined: find min distance + winding number in single pass
+            float min_d2 = 1e20f;
+            int winding = 0;
+
+            for (int s = 0; s < seg_count; s++) {
+                float ax = segs[s].ax, ay = segs[s].ay;
+                float bx = segs[s].bx, by = segs[s].by;
+
+                // --- Point-to-segment squared distance ---
+                float edx = bx - ax, edy = by - ay;
+                float len2 = edx * edx + edy * edy;
+                float d2;
+                if (len2 < 1e-10f) {
+                    float ex = px - ax, ey = py - ay;
+                    d2 = ex * ex + ey * ey;
+                } else {
+                    float t = ((px - ax) * edx + (py - ay) * edy) / len2;
+                    if (t < 0.0f) t = 0.0f;
+                    else if (t > 1.0f) t = 1.0f;
+                    float cx = ax + t * edx - px;
+                    float cy = ay + t * edy - py;
+                    d2 = cx * cx + cy * cy;
+                }
+                if (d2 < min_d2) min_d2 = d2;
+
+                // --- Winding number contribution (non-zero fill rule) ---
+                if (ay <= py) {
+                    if (by > py) { // upward crossing
+                        float cross = edx * (py - ay) - (px - ax) * edy;
+                        if (cross > 0.0f) winding++;
+                    }
+                } else {
+                    if (by <= py) { // downward crossing
+                        float cross = edx * (py - ay) - (px - ax) * edy;
+                        if (cross < 0.0f) winding--;
+                    }
                 }
             }
-            float dist = sum * ss_scale / (float)SS; // average, then to original-res units
+
+            float dist = sqrtf(min_d2);
+            if (winding != 0) dist = -dist; // inside glyph = negative distance
             float val = 128.0f - dist * inv_spread;
             int ival = (int)(val + 0.5f);
-            sdf[dst_row + x] = (unsigned char)(ival < 0 ? 0 : (ival > 255 ? 255 : ival));
+            sdf[dst_row + gx] = (unsigned char)(ival < 0 ? 0 : (ival > 255 ? 255 : ival));
         }
     }
 
-    free(ws);
+    sdf_ol_free(&outline);
 
-    // Step 7: Restore face size and fill result
-    FT_Set_Pixel_Sizes(face, 0, orig_ppem);
-
+    // Step 5: Fill result
     out_result->bmp_width   = pw;
     out_result->bmp_height  = ph;
     out_result->bmp_pitch   = pw;
-    out_result->bitmap_left = hi_bitmap_left / SS - spread;
-    out_result->bitmap_top  = hi_bitmap_top / SS + spread;
+    out_result->bitmap_left = out_result->metric_bearing_x - spread;
+    out_result->bitmap_top  = out_result->metric_bearing_y + spread;
     out_result->bmp_buffer  = sdf;
     out_result->success = 0;
     return 0;
