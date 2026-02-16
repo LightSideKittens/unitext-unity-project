@@ -178,6 +178,7 @@ typedef struct {
 
 struct SdfSeg {
     float ax, ay, bx, by;
+    float edx, edy, inv_len2;       // precomputed edge vector + reciprocal squared length
     float min_x, min_y, max_x, max_y; // precomputed AABB
 };
 
@@ -196,13 +197,16 @@ static void sdf_ol_init(SdfOutline* o) {
 
 static void sdf_ol_add(SdfOutline* o, float ax, float ay, float bx, float by) {
     float dx = bx - ax, dy = by - ay;
-    if (dx * dx + dy * dy < 1e-10f) return; // skip degenerate
+    float len2 = dx * dx + dy * dy;
+    if (len2 < 1e-10f) return; // skip degenerate
     if (o->count >= o->cap) {
         o->cap *= 2;
         o->segs = (SdfSeg*)realloc(o->segs, o->cap * sizeof(SdfSeg));
     }
     SdfSeg s;
     s.ax = ax; s.ay = ay; s.bx = bx; s.by = by;
+    s.edx = dx; s.edy = dy;
+    s.inv_len2 = 1.0f / len2;
     s.min_x = ax < bx ? ax : bx; s.min_y = ay < by ? ay : by;
     s.max_x = ax > bx ? ax : bx; s.max_y = ay > by ? ay : by;
     o->segs[o->count++] = s;
@@ -210,14 +214,14 @@ static void sdf_ol_add(SdfOutline* o, float ax, float ay, float bx, float by) {
 
 static void sdf_ol_free(SdfOutline* o) { free(o->segs); }
 
-// Adaptive quadratic Bezier subdivision (De Casteljau, flatness < 0.25px)
+// Adaptive quadratic Bezier subdivision (De Casteljau, flatness < 0.5px)
 static void sdf_subdiv_conic(SdfOutline* o,
     float p0x, float p0y, float p1x, float p1y, float p2x, float p2y, int depth)
 {
     if (depth >= 6) { sdf_ol_add(o, p0x, p0y, p2x, p2y); return; }
     float mx = (p0x + p2x) * 0.5f, my = (p0y + p2y) * 0.5f;
     float dx = p1x - mx, dy = p1y - my;
-    if (dx * dx + dy * dy < 0.0625f) { // 0.25² — quarter-pixel tolerance
+    if (dx * dx + dy * dy < 0.25f) { // 0.5² — half-pixel tolerance
         sdf_ol_add(o, p0x, p0y, p2x, p2y);
         return;
     }
@@ -241,7 +245,7 @@ static void sdf_subdiv_cubic(SdfOutline* o,
     float nx = -dy * inv, ny = dx * inv;
     float d1 = fabsf(nx * (p1x - p0x) + ny * (p1y - p0y));
     float d2 = fabsf(nx * (p2x - p0x) + ny * (p2y - p0y));
-    if (d1 < 0.25f && d2 < 0.25f) { sdf_ol_add(o, p0x, p0y, p3x, p3y); return; }
+    if (d1 < 0.5f && d2 < 0.5f) { sdf_ol_add(o, p0x, p0y, p3x, p3y); return; }
     float abx = (p0x+p1x)*0.5f, aby = (p0y+p1y)*0.5f;
     float bcx = (p1x+p2x)*0.5f, bcy = (p1y+p2y)*0.5f;
     float cdx = (p2x+p3x)*0.5f, cdy = (p2y+p3y)*0.5f;
@@ -341,7 +345,7 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
         return err ? (int)err : 0;
     }
 
-    // Step 4: Generate SDF — exact distance to outline segments + winding number sign
+    // Step 4: Generate SDF — segment-centric distance + scanline winding sign
     int pw = bw + 2 * spread;
     int ph = bh + 2 * spread;
     int pcount = pw * ph;
@@ -357,39 +361,78 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
     int seg_count = outline.count;
     const SdfSeg* segs = outline.segs;
 
-    // --- Precompute scanline crossing lists for winding number ---
-    // For each row, collect segments that cross the scanline (far cheaper than per-pixel).
-    // Crossing = segment whose Y-range spans the scanline's py value.
-    // We store crossing x-positions + direction, sorted by x, then walk left→right.
+    float px_base = bearing_x - spread_f + 0.5f;  // px at gx=0
+    float py_base = bearing_y + spread_f - 0.5f;  // py at gy=0
 
-    struct Crossing { float x; int dir; }; // dir: +1 upward, -1 downward
+    // --- Phase 1: Segment-centric distance computation ---
+    // For each segment, only visit pixels within spread of its AABB.
+    // This inverts the traditional pixel→segment loop, reducing total
+    // pixel×segment pairs from O(pixels × segments) to O(sum of relevant areas).
 
-    // Allocate workspace: worst case every row has every segment crossing
+    float* min_d2 = (float*)malloc(pcount * sizeof(float));
+    if (!min_d2) { free(sdf); sdf_ol_free(&outline); out_result->success = -1; return -1; }
+    for (int i = 0; i < pcount; i++) min_d2[i] = spread_sq;
+
+    for (int s = 0; s < seg_count; s++) {
+        // Relevant pixel range: segment AABB expanded by spread, clamped to grid
+        int gx0 = (int)(segs[s].min_x - spread_f - px_base);
+        if (gx0 < 0) gx0 = 0;
+        int gx1 = (int)(segs[s].max_x + spread_f - px_base) + 2;
+        if (gx1 > pw) gx1 = pw;
+        int gy0 = (int)(py_base - segs[s].max_y - spread_f);
+        if (gy0 < 0) gy0 = 0;
+        int gy1 = (int)(py_base - segs[s].min_y + spread_f) + 2;
+        if (gy1 > ph) gy1 = ph;
+
+        float sax = segs[s].ax, say = segs[s].ay;
+        float sedx = segs[s].edx, sedy = segs[s].edy;
+        float sinv = segs[s].inv_len2;
+        float dx_a_base = px_base - sax;
+
+        for (int gy = gy0; gy < gy1; gy++) {
+            float py = py_base - (float)gy;
+            float dy_a = py - say;
+            int row_off = gy * pw;
+            float dx_a = dx_a_base + (float)gx0;
+
+            for (int gx = gx0; gx < gx1; gx++, dx_a += 1.0f) {
+                // Point-to-segment squared distance (branchless clamp, precomputed data)
+                float t = (dx_a * sedx + dy_a * sedy) * sinv;
+                t = fmaxf(0.0f, fminf(1.0f, t));
+                float ex = t * sedx - dx_a;
+                float ey = t * sedy - dy_a;
+                float d2 = ex * ex + ey * ey;
+
+                int idx = row_off + gx;
+                if (d2 < min_d2[idx]) min_d2[idx] = d2;
+            }
+        }
+    }
+
+    // --- Phase 2: Scanline winding + SDF byte conversion ---
+    struct Crossing { float x; int dir; };
     Crossing* cross_buf = (Crossing*)malloc(seg_count * sizeof(Crossing));
-    int* row_winding = (int*)malloc(pw * sizeof(int));
 
     for (int gy = 0; gy < ph; gy++) {
-        int dst_row = (ph - 1 - gy) * pw;  // Y-flip
-        float py = bearing_y + spread_f - (float)gy - 0.5f;
+        float py = py_base - (float)gy;
+        int dst_row = (ph - 1 - gy) * pw;  // Y-flip for output
+        int src_row = gy * pw;
 
-        // --- Scanline winding: collect crossings for this row ---
+        // Collect scanline crossings for winding number
         int ncross = 0;
         for (int s = 0; s < seg_count; s++) {
             float ay = segs[s].ay, by = segs[s].by;
             int dir;
-            if (ay <= py && by > py) dir = 1;        // upward
-            else if (ay > py && by <= py) dir = -1;   // downward
+            if (ay <= py && by > py) dir = 1;
+            else if (ay > py && by <= py) dir = -1;
             else continue;
-
-            // X of crossing: linear interpolation along segment
-            float t = (py - ay) / (by - ay);
-            float cx = segs[s].ax + t * (segs[s].bx - segs[s].ax);
-            cross_buf[ncross].x = cx;
+            float t = (py - ay) / segs[s].edy;
+            cross_buf[ncross].x = segs[s].ax + t * segs[s].edx;
             cross_buf[ncross].dir = dir;
             ncross++;
         }
 
-        // Sort crossings by x (insertion sort — usually <20 crossings)
+        // Insertion sort crossings by x
         for (int i = 1; i < ncross; i++) {
             Crossing tmp = cross_buf[i];
             int j = i - 1;
@@ -400,61 +443,24 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
             cross_buf[j + 1] = tmp;
         }
 
-        // Walk left→right, fill winding for each pixel
+        // Walk left→right: winding + convert min_d2 to SDF byte
         int ci = 0, w = 0;
         for (int gx = 0; gx < pw; gx++) {
-            float px = bearing_x - spread_f + (float)gx + 0.5f;
+            float px = px_base + (float)gx;
             while (ci < ncross && cross_buf[ci].x <= px) {
                 w += cross_buf[ci].dir;
                 ci++;
             }
-            row_winding[gx] = w;
-        }
-
-        // --- Distance computation with AABB early-out ---
-        for (int gx = 0; gx < pw; gx++) {
-            float px = bearing_x - spread_f + (float)gx + 0.5f;
-            float min_d2 = spread_sq; // clamp: beyond spread → SDF is 0 or 255
-
-            for (int s = 0; s < seg_count; s++) {
-                // AABB early-out: skip if segment box is farther than current best
-                float dnx = 0.0f, dny = 0.0f;
-                if (px < segs[s].min_x) dnx = segs[s].min_x - px;
-                else if (px > segs[s].max_x) dnx = px - segs[s].max_x;
-                if (py < segs[s].min_y) dny = segs[s].min_y - py;
-                else if (py > segs[s].max_y) dny = py - segs[s].max_y;
-                if (dnx * dnx + dny * dny >= min_d2) continue;
-
-                // Full point-to-segment squared distance
-                float ax = segs[s].ax, ay = segs[s].ay;
-                float bx = segs[s].bx, by = segs[s].by;
-                float edx = bx - ax, edy = by - ay;
-                float len2 = edx * edx + edy * edy;
-                float d2;
-                if (len2 < 1e-10f) {
-                    float ex = px - ax, ey = py - ay;
-                    d2 = ex * ex + ey * ey;
-                } else {
-                    float t = ((px - ax) * edx + (py - ay) * edy) / len2;
-                    if (t < 0.0f) t = 0.0f;
-                    else if (t > 1.0f) t = 1.0f;
-                    float cx = ax + t * edx - px;
-                    float cy = ay + t * edy - py;
-                    d2 = cx * cx + cy * cy;
-                }
-                if (d2 < min_d2) min_d2 = d2;
-            }
-
-            float dist = sqrtf(min_d2);
-            if (row_winding[gx] != 0) dist = -dist; // inside glyph
+            float dist = sqrtf(min_d2[src_row + gx]);
+            if (w != 0) dist = -dist;
             float val = 128.0f - dist * inv_spread;
             int ival = (int)(val + 0.5f);
             sdf[dst_row + gx] = (unsigned char)(ival < 0 ? 0 : (ival > 255 ? 255 : ival));
         }
     }
 
-    free(row_winding);
     free(cross_buf);
+    free(min_d2);
 
     sdf_ol_free(&outline);
 
