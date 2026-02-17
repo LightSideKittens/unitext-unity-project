@@ -232,7 +232,9 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
         inside[i]  = 0.0f;
     }
 
-    // Fill glyph region using alpha for sub-pixel accuracy (mapbox/tiny-sdf approach).
+    // Fill glyph region using gradient-corrected sub-pixel distances (edtaa3 approach).
+    // The gradient magnitude of the alpha field encodes the edge angle, allowing
+    // accurate distance estimation for diagonal edges and curves — not just axis-aligned ones.
     for (int y = 0; y < bh; y++) {
         const unsigned char* row = b->buffer + y * b->pitch;
         for (int x = 0; x < bw; x++) {
@@ -245,7 +247,27 @@ UNITEXT_EXPORT int ut_ft_render_sdf_glyph(FT_Face face, unsigned int glyph_index
                 outside[pi] = 0.0f;
                 inside[pi]  = EDT_INF;
             } else {
-                float d = 0.5f - (float)a / 255.0f;
+                // Read 4-neighbors (0 outside bitmap = outside glyph)
+                float al = x > 0      ? (float)row[x - 1] : 0.0f;
+                float ar = x < bw - 1 ? (float)row[x + 1] : 0.0f;
+                float au = y > 0      ? (float)(b->buffer + (y - 1) * b->pitch)[x] : 0.0f;
+                float ad = y < bh - 1 ? (float)(b->buffer + (y + 1) * b->pitch)[x] : 0.0f;
+
+                float gx = (ar - al) * 0.5f;
+                float gy = (ad - au) * 0.5f;
+                float gmag = sqrtf(gx * gx + gy * gy);
+
+                float d;
+                if (gmag > 1.0f) {
+                    // Gradient-corrected: d = (midpoint - alpha) / |gradient|
+                    // Vertical edge:  |∇α|≈255  →  same as linear
+                    // 45° diagonal:   |∇α|≈180  →  distance scaled by ~√2 (correct)
+                    d = (127.5f - (float)a) / gmag;
+                } else {
+                    // Flat region fallback (rare for 0 < a < 255)
+                    d = 0.5f - (float)a / 255.0f;
+                }
+
                 outside[pi] = d > 0.0f ? d * d : 0.0f;
                 inside[pi]  = d < 0.0f ? d * d : 0.0f;
             }
