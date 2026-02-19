@@ -21,11 +21,14 @@ EXPORTS
     ut_ft_get_color_glyph_clipbox
     ut_ft_get_color_glyph_layer
 
-    ; === SDF Configuration ===
+    ; === SDF ===
     ut_ft_set_sdf_spread
+    ut_ft_render_sdf_glyph
+    ut_ft_free_sdf_buffer
 
     ; === FreeType Wrapper Functions ===
     ut_ft_get_face_info
+    ut_ft_get_extended_face_info
     ut_ft_get_fixed_size
     ut_ft_get_glyph_metrics
     ut_ft_get_bitmap_info

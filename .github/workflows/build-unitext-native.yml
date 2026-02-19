@@ -452,6 +452,8 @@ jobs:
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
+            -Wl,--version-script=native/exports.map \
+            -Wl,--gc-sections \
             -lpthread -lm -lrt
 
           strip libunitext_native.so
@@ -631,6 +633,8 @@ jobs:
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
+            -Wl,--version-script=native/exports.map \
+            -Wl,--gc-sections \
             -lpthread -lm
 
           aarch64-linux-gnu-strip libunitext_native.so
@@ -851,6 +855,8 @@ jobs:
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
+            -Wl,-exported_symbols_list,native/exports_macos.txt \
+            -Wl,-dead_strip \
             -framework CoreFoundation -framework CoreGraphics -framework CoreText \
             -lpthread
 
@@ -1048,6 +1054,8 @@ jobs:
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
+            -Wl,--version-script=native/exports.map \
+            -Wl,--gc-sections \
             -llog -lm \
             -Wl,-z,max-page-size=16384
 

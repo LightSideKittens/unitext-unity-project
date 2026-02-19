@@ -1,0 +1,9 @@
+/* UniText Native - ELF linker version script (Linux/Android)
+ * Only export ut_* API, hide all dependency symbols (hb_*, FT_*, bl*, png_*, etc.)
+ * This enables --gc-sections to remove unused internal code. */
+{
+  global:
+    ut_*;
+  local:
+    *;
+};
