@@ -447,11 +447,11 @@ jobs:
             native/unitext_native.cpp \
             -Wl,--whole-archive \
             deps/blend2d/lib/libblend2d.a \
+            -Wl,--no-whole-archive \
             deps/harfbuzz/lib/libharfbuzz.a \
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
-            -Wl,--no-whole-archive \
             -lpthread -lm -lrt
 
           strip libunitext_native.so
@@ -626,11 +626,11 @@ jobs:
             native/unitext_native.cpp \
             -Wl,--whole-archive \
             deps/blend2d/lib/libblend2d.a \
+            -Wl,--no-whole-archive \
             deps/harfbuzz/lib/libharfbuzz.a \
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
-            -Wl,--no-whole-archive \
             -lpthread -lm
 
           aarch64-linux-gnu-strip libunitext_native.so
@@ -846,8 +846,7 @@ jobs:
             -I deps/blend2d/include \
             -o libunitext_native.dylib \
             native/unitext_native.cpp \
-            -Wl,-all_load \
-            deps/blend2d/lib/libblend2d.a \
+            -Wl,-force_load,deps/blend2d/lib/libblend2d.a \
             deps/harfbuzz/lib/libharfbuzz.a \
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
@@ -1044,11 +1043,11 @@ jobs:
             native/unitext_native.cpp \
             -Wl,--whole-archive \
             deps/blend2d/lib/libblend2d.a \
+            -Wl,--no-whole-archive \
             deps/harfbuzz/lib/libharfbuzz.a \
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
-            -Wl,--no-whole-archive \
             -llog -lm \
             -Wl,-z,max-page-size=16384
 
