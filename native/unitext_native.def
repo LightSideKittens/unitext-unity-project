@@ -37,6 +37,7 @@ EXPORTS
     ut_ft_get_bitmap_left
     ut_ft_outline_to_blpath
     ut_ft_get_outline_info
+    ut_ft_outline_decompose
 
     ; === COLRv1 API ===
     ut_colr_get_glyph_paint
@@ -107,6 +108,7 @@ EXPORTS
     ut_blContextTransform
     ut_blContextResetMatrix
     ut_blContextSetCompOp
+    ut_blContextSetFillRule
     ut_blContextClipToRect
     ut_blContextRestoreClipping
     ut_blContextBlitImage
