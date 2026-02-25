@@ -36,6 +36,7 @@ public class GoldenFileTestRunner : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void OnAppStart()
     {
+        Application.targetFrameRate = 1000;
         Debug.Log("[GoldenFileTestRunner] === APP STARTING ===");
 
 #if UNITEXT_TESTS
@@ -486,7 +487,7 @@ public class GoldenFileTestRunner : MonoBehaviour
         if (vertexCount == 0) return;
 
         var font = fontProvider?.GetFontAsset(fontInfo.fontId);
-        int atlasSize = font != null ? font.AtlasSize : 0;
+        int atlasSize = font is LightSide.EmojiFont ef ? ef.AtlasSize : 0;
         int padding = font != null ? font.AtlasPadding : 0;
         Dictionary<uint, LightSide.Glyph> glyphTable = font?.GlyphLookupTable;
 
@@ -690,7 +691,7 @@ public class GoldenFileTestRunner : MonoBehaviour
             if (font == null) continue;
 
             var glyphTable = font.GlyphLookupTable;
-            int atlasSize = font.AtlasSize;
+            int atlasSize = font is LightSide.EmojiFont ef2 ? ef2.AtlasSize : 0;
             int atlasPadding = font.AtlasPadding;
             float invAtlas = 1f / atlasSize;
             const float eps = 2e-3f;
