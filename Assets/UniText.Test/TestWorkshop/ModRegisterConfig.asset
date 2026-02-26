@@ -17,43 +17,47 @@ MonoBehaviour:
     - modifier:
         rid: 2935973566340137106
       rule:
-        rid: 2935973566340137107
+        rid: 266425450685005831
     - modifier:
         rid: 2935973566340137110
       rule:
-        rid: 2935973566340137111
+        rid: 266425450685005832
     - modifier:
         rid: 2935973732210966574
       rule:
-        rid: 2935973732210966575
+        rid: 266425450685005833
     - modifier:
         rid: 266424891755987266
       rule:
-        rid: 266424891755987267
+        rid: 266425450685005834
   references:
     version: 2
     RefIds:
     - rid: 266424891755987266
       type: {class: GradientModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
-    - rid: 266424891755987267
-      type: {class: GradientParseRule, ns: LightSide, asm: LightSide.UniText}
-      data: 
+    - rid: 266425450685005831
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tagName: color
+    - rid: 266425450685005832
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tagName: line-height
+    - rid: 266425450685005833
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tagName: upper
+    - rid: 266425450685005834
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tagName: gradient
     - rid: 2935973566340137106
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
-    - rid: 2935973566340137107
-      type: {class: ColorParseRule, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 2935973566340137110
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
-    - rid: 2935973566340137111
-      type: {class: LineHeightParseRule, ns: LightSide, asm: LightSide.UniText}
-      data: 
     - rid: 2935973732210966574
       type: {class: UppercaseModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
-    - rid: 2935973732210966575
-      type: {class: UppercaseParseRule, ns: LightSide, asm: LightSide.UniText}
       data: 
