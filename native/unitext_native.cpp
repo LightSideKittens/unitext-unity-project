@@ -713,16 +713,18 @@ UNITEXT_EXPORT int ut_ft_get_outline_info(FT_Face face, int* outNumContours, int
 // - Conic (quadratic) → direct output
 // - Cubic (CFF/OTF) → split into two quadratics at midpoint
 //
-// Output format per curve: { p0.x, p0.y, p1.x, p1.y, p2.x, p2.y } in design units.
-// Contour ends: outContours[i] = index of last curve in contour i.
+// Output format per segment: 8 floats (p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y)
+// outTypes[i]: 1=linear (p0→p1), 2=quadratic (p0,ctrl=p1,end=p2), 3=cubic (p0,p1,p2,p3)
+// Contour ends: outContours[i] = index of last segment in contour i.
 
 UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_index,
-                                            float* outCurves, int* outCurveCount, int maxCurves,
+                                            float* outCurves, int* outTypes,
+                                            int* outCurveCount, int maxCurves,
                                             int* outContours, int* outContourCount, int maxContours,
                                             int* outBearingX, int* outBearingY,
                                             int* outAdvanceX, int* outWidth, int* outHeight)
 {
-    if (!face || !outCurves || !outCurveCount || !outContours || !outContourCount)
+    if (!face || !outCurves || !outTypes || !outCurveCount || !outContours || !outContourCount)
         return -1;
 
     // Load glyph outline in design units (no scaling, no bitmap)
@@ -753,13 +755,15 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
     int curveIdx = 0;
     int contourIdx = 0;
 
-    // Helper: emit one quadratic curve (6 floats)
-    #define EMIT_QUAD(ax, ay, bx, by, cx, cy) do { \
+    // Helper: emit one segment (8 floats + type)
+    #define EMIT_SEG(stype, ax, ay, bx, by, cx, cy, dx, dy) do { \
         if (curveIdx >= maxCurves) return -2; \
-        float* dst = outCurves + curveIdx * 6; \
+        float* dst = outCurves + curveIdx * 8; \
         dst[0] = (float)(ax); dst[1] = (float)(ay); \
         dst[2] = (float)(bx); dst[3] = (float)(by); \
         dst[4] = (float)(cx); dst[5] = (float)(cy); \
+        dst[6] = (float)(dx); dst[7] = (float)(dy); \
+        outTypes[curveIdx] = stype; \
         curveIdx++; \
     } while(0)
 
@@ -796,10 +800,9 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
             char tag = outline->tags[idx];
 
             if (tag & 1) {
-                // On-curve: line → degenerate quadratic
-                float mx = (penX + px) * 0.5f;
-                float my = (penY + py) * 0.5f;
-                EMIT_QUAD(penX, penY, mx, my, px, py);
+                // On-curve: linear segment
+                if (penX != px || penY != py)
+                    EMIT_SEG(1, penX, penY, px, py, 0, 0, 0, 0);
                 penX = px; penY = py;
             } else if (tag & 2) {
                 // Cubic control point — need two more points
@@ -809,23 +812,7 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
                 float p2x = (float)outline->points[idx2].x, p2y = (float)outline->points[idx2].y;
                 float p3x = (float)outline->points[idx3].x, p3y = (float)outline->points[idx3].y;
 
-                // Split cubic at t=0.5 into two quadratics (de Casteljau approximation)
-                // For cubic B(t) = (1-t)^3*P0 + 3(1-t)^2*t*P1 + 3(1-t)*t^2*P2 + t^3*P3
-                // Mid point at t=0.5: M = (P0 + 3P1 + 3P2 + P3) / 8
-                float midX = (penX + 3*p1x + 3*p2x + p3x) * 0.125f;
-                float midY = (penY + 3*p1y + 3*p2y + p3y) * 0.125f;
-                // Quadratic control for first half: Q1 = (3*P1 - P0) / 2 → but simpler:
-                // approximate: control1 = 0.75*P1 + 0.25*P0 (not exact but good enough)
-                // Actually use standard cubic-to-quadratic at midpoint split:
-                // First half control: C1 = (P0 + 3*P1) / 4, endpoint = M
-                // Second half control: C2 = (3*P2 + P3) / 4, endpoint = P3
-                float c1x = (penX + 3*p1x) * 0.25f;
-                float c1y = (penY + 3*p1y) * 0.25f;
-                float c2x = (3*p2x + p3x) * 0.25f;
-                float c2y = (3*p2y + p3y) * 0.25f;
-
-                EMIT_QUAD(penX, penY, c1x, c1y, midX, midY);
-                EMIT_QUAD(midX, midY, c2x, c2y, p3x, p3y);
+                EMIT_SEG(3, penX, penY, p1x, p1y, p2x, p2y, p3x, p3y);
 
                 penX = p3x; penY = p3y;
                 j += 2;
@@ -842,7 +829,7 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
                 if (tag2 & 1) {
                     // Next is on-curve
                     endX = p2x; endY = p2y;
-                    EMIT_QUAD(penX, penY, px, py, endX, endY);
+                    EMIT_SEG(2, penX, penY, px, py, endX, endY, 0, 0);
                     penX = endX; penY = endY;
                     j++;
                     i = idx2;
@@ -851,7 +838,7 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
                     // Next is also off-curve: endpoint is midpoint
                     endX = (px + p2x) * 0.5f;
                     endY = (py + p2y) * 0.5f;
-                    EMIT_QUAD(penX, penY, px, py, endX, endY);
+                    EMIT_SEG(2, penX, penY, px, py, endX, endY, 0, 0);
                     penX = endX; penY = endY;
                 }
             }
@@ -860,9 +847,7 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
 
         // Close contour: if pen != start, emit closing line
         if (penX != startX || penY != startY) {
-            float mx = (penX + startX) * 0.5f;
-            float my = (penY + startY) * 0.5f;
-            EMIT_QUAD(penX, penY, mx, my, startX, startY);
+            EMIT_SEG(1, penX, penY, startX, startY, 0, 0, 0, 0);
         }
 
         if (contourIdx >= maxContours) return -3;
@@ -870,7 +855,7 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
         contourStart = contourEnd + 1;
     }
 
-    #undef EMIT_QUAD
+    #undef EMIT_SEG
 
     *outCurveCount = curveIdx;
     *outContourCount = contourIdx;
