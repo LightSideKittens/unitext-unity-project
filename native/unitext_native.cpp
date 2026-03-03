@@ -705,17 +705,103 @@ UNITEXT_EXPORT int ut_ft_get_outline_info(FT_Face face, int* outNumContours, int
 }
 
 // =============================================================================
-// Outline Decompose — extract quadratic Bézier curves for vector text rendering
+// Outline Decompose — uses FT_Outline_Decompose (standard FreeType callback API)
 // =============================================================================
 //
-// Walks the FreeType outline and emits ALL curves as quadratic Béziers:
-// - On-curve lines → degenerate quadratic (control = midpoint)
-// - Conic (quadratic) → direct output
-// - Cubic (CFF/OTF) → split into two quadratics at midpoint
+// Delegates outline parsing entirely to FreeType via FT_Outline_Decompose.
+// This matches msdfgen's import-font.cpp exactly: moveTo/lineTo/conicTo/cubicTo callbacks.
 //
 // Output format per segment: 8 floats (p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y)
 // outTypes[i]: 1=linear (p0→p1), 2=quadratic (p0,ctrl=p1,end=p2), 3=cubic (p0,p1,p2,p3)
 // Contour ends: outContours[i] = index of last segment in contour i.
+
+struct DecomposeContext {
+    float* outCurves;
+    int*   outTypes;
+    int*   outContours;
+    int    curveIdx;
+    int    contourIdx;
+    int    maxCurves;
+    int    maxContours;
+    int    contourEdgeStart; // curveIdx at start of current contour
+    float  posX, posY;       // current pen position
+    int    error;            // overflow flag
+};
+
+static inline void ctx_emit(DecomposeContext* ctx, int stype,
+    float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy)
+{
+    if (ctx->curveIdx >= ctx->maxCurves) { ctx->error = -2; return; }
+    float* dst = ctx->outCurves + ctx->curveIdx * 8;
+    dst[0] = ax; dst[1] = ay;
+    dst[2] = bx; dst[3] = by;
+    dst[4] = cx; dst[5] = cy;
+    dst[6] = dx; dst[7] = dy;
+    ctx->outTypes[ctx->curveIdx] = stype;
+    ctx->curveIdx++;
+}
+
+static inline void ctx_close_contour(DecomposeContext* ctx)
+{
+    // Only close if current contour has at least one edge
+    if (ctx->curveIdx > ctx->contourEdgeStart) {
+        if (ctx->contourIdx >= ctx->maxContours) { ctx->error = -3; return; }
+        ctx->outContours[ctx->contourIdx++] = ctx->curveIdx - 1;
+    }
+}
+
+// FT_Outline_Decompose callbacks (matching msdfgen's import-font.cpp)
+
+static int ft_move_to(const FT_Vector* to, void* user) {
+    DecomposeContext* ctx = (DecomposeContext*)user;
+    if (ctx->error) return ctx->error;
+    // Close previous contour (if any)
+    ctx_close_contour(ctx);
+    ctx->posX = (float)to->x;
+    ctx->posY = (float)to->y;
+    ctx->contourEdgeStart = ctx->curveIdx;
+    return 0;
+}
+
+static int ft_line_to(const FT_Vector* to, void* user) {
+    DecomposeContext* ctx = (DecomposeContext*)user;
+    if (ctx->error) return ctx->error;
+    float ex = (float)to->x, ey = (float)to->y;
+    // Skip zero-length lines (matching msdfgen)
+    if (ex != ctx->posX || ey != ctx->posY) {
+        ctx_emit(ctx, 1, ctx->posX, ctx->posY, ex, ey, 0, 0, 0, 0);
+        ctx->posX = ex; ctx->posY = ey;
+    }
+    return ctx->error;
+}
+
+static int ft_conic_to(const FT_Vector* control, const FT_Vector* to, void* user) {
+    DecomposeContext* ctx = (DecomposeContext*)user;
+    if (ctx->error) return ctx->error;
+    float cx = (float)control->x, cy = (float)control->y;
+    float ex = (float)to->x, ey = (float)to->y;
+    // Skip degenerate (matching msdfgen: endpoint != position)
+    if (ex != ctx->posX || ey != ctx->posY) {
+        ctx_emit(ctx, 2, ctx->posX, ctx->posY, cx, cy, ex, ey, 0, 0);
+        ctx->posX = ex; ctx->posY = ey;
+    }
+    return ctx->error;
+}
+
+static int ft_cubic_to(const FT_Vector* control1, const FT_Vector* control2, const FT_Vector* to, void* user) {
+    DecomposeContext* ctx = (DecomposeContext*)user;
+    if (ctx->error) return ctx->error;
+    float c1x = (float)control1->x, c1y = (float)control1->y;
+    float c2x = (float)control2->x, c2y = (float)control2->y;
+    float ex = (float)to->x, ey = (float)to->y;
+    // Matching msdfgen: emit if endpoint differs OR if control points form non-zero area
+    if (ex != ctx->posX || ey != ctx->posY ||
+        (c1x - ex) * (c2y - ey) - (c1y - ey) * (c2x - ex) != 0.0f) {
+        ctx_emit(ctx, 3, ctx->posX, ctx->posY, c1x, c1y, c2x, c2y, ex, ey);
+        ctx->posX = ex; ctx->posY = ey;
+    }
+    return ctx->error;
+}
 
 UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_index,
                                             float* outCurves, int* outTypes,
@@ -752,114 +838,45 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
         return 0;
     }
 
-    int curveIdx = 0;
-    int contourIdx = 0;
+    DecomposeContext ctx = {};
+    ctx.outCurves = outCurves;
+    ctx.outTypes = outTypes;
+    ctx.outContours = outContours;
+    ctx.maxCurves = maxCurves;
+    ctx.maxContours = maxContours;
 
-    // Helper: emit one segment (8 floats + type)
-    #define EMIT_SEG(stype, ax, ay, bx, by, cx, cy, dx, dy) do { \
-        if (curveIdx >= maxCurves) return -2; \
-        float* dst = outCurves + curveIdx * 8; \
-        dst[0] = (float)(ax); dst[1] = (float)(ay); \
-        dst[2] = (float)(bx); dst[3] = (float)(by); \
-        dst[4] = (float)(cx); dst[5] = (float)(cy); \
-        dst[6] = (float)(dx); dst[7] = (float)(dy); \
-        outTypes[curveIdx] = stype; \
-        curveIdx++; \
-    } while(0)
+    FT_Outline_Funcs funcs = {};
+    funcs.move_to = ft_move_to;
+    funcs.line_to = ft_line_to;
+    funcs.conic_to = ft_conic_to;
+    funcs.cubic_to = ft_cubic_to;
 
-    int contourStart = 0;
-    for (int c = 0; c < outline->n_contours; c++) {
-        int contourEnd = outline->contours[c];
-        int numPoints = contourEnd - contourStart + 1;
-        if (numPoints < 2) { contourStart = contourEnd + 1; continue; }
+    err = FT_Outline_Decompose(outline, &funcs, &ctx);
 
-        // Find the starting on-curve point (or synthesize one)
-        float startX, startY;
-        int firstOnCurve = -1;
-        for (int i = contourStart; i <= contourEnd; i++) {
-            if (outline->tags[i] & 1) { firstOnCurve = i; break; }
-        }
-
-        if (firstOnCurve >= 0) {
-            startX = (float)outline->points[firstOnCurve].x;
-            startY = (float)outline->points[firstOnCurve].y;
-        } else {
-            // All off-curve: start at midpoint of first two
-            startX = (outline->points[contourStart].x + outline->points[contourStart + 1].x) * 0.5f;
-            startY = (outline->points[contourStart].y + outline->points[contourStart + 1].y) * 0.5f;
-            firstOnCurve = contourStart; // walk from here
-        }
-
-        float penX = startX, penY = startY;
-        int i = firstOnCurve;
-
-        for (int j = 0; j < numPoints; j++) {
-            int idx = contourStart + ((i - contourStart + 1) % numPoints);
-            float px = (float)outline->points[idx].x;
-            float py = (float)outline->points[idx].y;
-            char tag = outline->tags[idx];
-
-            if (tag & 1) {
-                // On-curve: linear segment
-                if (penX != px || penY != py)
-                    EMIT_SEG(1, penX, penY, px, py, 0, 0, 0, 0);
-                penX = px; penY = py;
-            } else if (tag & 2) {
-                // Cubic control point — need two more points
-                int idx2 = contourStart + ((idx - contourStart + 1) % numPoints);
-                int idx3 = contourStart + ((idx - contourStart + 2) % numPoints);
-                float p1x = px, p1y = py;
-                float p2x = (float)outline->points[idx2].x, p2y = (float)outline->points[idx2].y;
-                float p3x = (float)outline->points[idx3].x, p3y = (float)outline->points[idx3].y;
-
-                EMIT_SEG(3, penX, penY, p1x, p1y, p2x, p2y, p3x, p3y);
-
-                penX = p3x; penY = p3y;
-                j += 2;
-                i = idx3;
-                continue;
-            } else {
-                // Quadratic (conic) off-curve
-                int idx2 = contourStart + ((idx - contourStart + 1) % numPoints);
-                float p2x = (float)outline->points[idx2].x;
-                float p2y = (float)outline->points[idx2].y;
-                char tag2 = outline->tags[idx2];
-
-                float endX, endY;
-                if (tag2 & 1) {
-                    // Next is on-curve
-                    endX = p2x; endY = p2y;
-                    EMIT_SEG(2, penX, penY, px, py, endX, endY, 0, 0);
-                    penX = endX; penY = endY;
-                    j++;
-                    i = idx2;
-                    continue;
-                } else {
-                    // Next is also off-curve: endpoint is midpoint
-                    endX = (px + p2x) * 0.5f;
-                    endY = (py + p2y) * 0.5f;
-                    EMIT_SEG(2, penX, penY, px, py, endX, endY, 0, 0);
-                    penX = endX; penY = endY;
-                }
-            }
-            i = idx;
-        }
-
-        // Close contour: if pen != start, emit closing line
-        if (penX != startX || penY != startY) {
-            EMIT_SEG(1, penX, penY, startX, startY, 0, 0, 0, 0);
-        }
-
-        if (contourIdx >= maxContours) return -3;
-        outContours[contourIdx++] = curveIdx - 1;
-        contourStart = contourEnd + 1;
+    if (ctx.error) {
+        *outCurveCount = 0;
+        *outContourCount = 0;
+        return ctx.error;
     }
 
-    #undef EMIT_SEG
+    if (err) {
+        *outCurveCount = 0;
+        *outContourCount = 0;
+        return (int)err;
+    }
 
-    *outCurveCount = curveIdx;
-    *outContourCount = contourIdx;
-    return 0;
+    // Close the last contour
+    ctx_close_contour(&ctx);
+
+    // Remove empty trailing contour (matching msdfgen)
+    if (ctx.contourIdx > 0 && ctx.curveIdx > 0 &&
+        ctx.outContours[ctx.contourIdx - 1] >= ctx.curveIdx) {
+        ctx.contourIdx--;
+    }
+
+    *outCurveCount = ctx.curveIdx;
+    *outContourCount = ctx.contourIdx;
+    return ctx.error;
 }
 
 // =============================================================================
