@@ -881,6 +881,167 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
 }
 
 // =============================================================================
+// Legacy Outline Decompose — manual FT_Outline walking (all-quadratic output)
+// =============================================================================
+//
+// Preserves the original extraction algorithm that manually walks FT_Outline
+// points and emits ALL curves as quadratic Béziers:
+// - On-curve lines → degenerate quadratic (control = midpoint)
+// - Conic (quadratic) → direct output
+// - Cubic (CFF/OTF) → split into two quadratics at midpoint
+//
+// Output format per curve: 8 floats (p0.x, p0.y, ctrl.x, ctrl.y, p2.x, p2.y, 0, 0)
+// outTypes[i]: always 2 (quadratic)
+
+UNITEXT_EXPORT int ut_ft_outline_decompose_legacy(FT_Face face, unsigned int glyph_index,
+                                            float* outCurves, int* outTypes,
+                                            int* outCurveCount, int maxCurves,
+                                            int* outContours, int* outContourCount, int maxContours,
+                                            int* outBearingX, int* outBearingY,
+                                            int* outAdvanceX, int* outWidth, int* outHeight)
+{
+    if (!face || !outCurves || !outTypes || !outCurveCount || !outContours || !outContourCount)
+        return -1;
+
+    FT_Error err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP | FT_LOAD_NO_SCALE);
+    if (err) return (int)err;
+
+    if (face->glyph->format != FT_GLYPH_FORMAT_OUTLINE) {
+        *outCurveCount = 0;
+        *outContourCount = 0;
+        return 0;
+    }
+
+    FT_Glyph_Metrics* m = &face->glyph->metrics;
+    if (outBearingX) *outBearingX = (int)(m->horiBearingX);
+    if (outBearingY) *outBearingY = (int)(m->horiBearingY);
+    if (outAdvanceX) *outAdvanceX = (int)(m->horiAdvance);
+    if (outWidth)    *outWidth    = (int)(m->width);
+    if (outHeight)   *outHeight   = (int)(m->height);
+
+    FT_Outline* outline = &face->glyph->outline;
+    if (outline->n_points <= 0 || outline->n_contours <= 0) {
+        *outCurveCount = 0;
+        *outContourCount = 0;
+        return 0;
+    }
+
+    int curveIdx = 0;
+    int contourIdx = 0;
+
+    #define EMIT_SEG(ax, ay, bx, by, cx, cy) do { \
+        if (curveIdx >= maxCurves) return -2; \
+        float* dst = outCurves + curveIdx * 8; \
+        dst[0] = (float)(ax); dst[1] = (float)(ay); \
+        dst[2] = (float)(bx); dst[3] = (float)(by); \
+        dst[4] = (float)(cx); dst[5] = (float)(cy); \
+        dst[6] = 0; dst[7] = 0; \
+        outTypes[curveIdx] = 2; \
+        curveIdx++; \
+    } while(0)
+
+    int contourStart = 0;
+    for (int c = 0; c < outline->n_contours; c++) {
+        int contourEnd = outline->contours[c];
+        int numPoints = contourEnd - contourStart + 1;
+        if (numPoints < 2) { contourStart = contourEnd + 1; continue; }
+
+        float startX, startY;
+        int firstOnCurve = -1;
+        for (int i = contourStart; i <= contourEnd; i++) {
+            if (outline->tags[i] & 1) { firstOnCurve = i; break; }
+        }
+
+        if (firstOnCurve >= 0) {
+            startX = (float)outline->points[firstOnCurve].x;
+            startY = (float)outline->points[firstOnCurve].y;
+        } else {
+            startX = (outline->points[contourStart].x + outline->points[contourStart + 1].x) * 0.5f;
+            startY = (outline->points[contourStart].y + outline->points[contourStart + 1].y) * 0.5f;
+            firstOnCurve = contourStart;
+        }
+
+        float penX = startX, penY = startY;
+        int ii = firstOnCurve;
+
+        for (int j = 0; j < numPoints; j++) {
+            int idx = contourStart + ((ii - contourStart + 1) % numPoints);
+            float px = (float)outline->points[idx].x;
+            float py = (float)outline->points[idx].y;
+            char tag = outline->tags[idx];
+
+            if (tag & 1) {
+                float mx = (penX + px) * 0.5f;
+                float my = (penY + py) * 0.5f;
+                EMIT_SEG(penX, penY, mx, my, px, py);
+                penX = px; penY = py;
+            } else if (tag & 2) {
+                int idx2 = contourStart + ((idx - contourStart + 1) % numPoints);
+                int idx3 = contourStart + ((idx - contourStart + 2) % numPoints);
+                float p1x = px, p1y = py;
+                float p2x = (float)outline->points[idx2].x, p2y = (float)outline->points[idx2].y;
+                float p3x = (float)outline->points[idx3].x, p3y = (float)outline->points[idx3].y;
+
+                float midX = (penX + 3*p1x + 3*p2x + p3x) * 0.125f;
+                float midY = (penY + 3*p1y + 3*p2y + p3y) * 0.125f;
+                float c1x = (penX + 3*p1x) * 0.25f;
+                float c1y = (penY + 3*p1y) * 0.25f;
+                float c2x = (3*p2x + p3x) * 0.25f;
+                float c2y = (3*p2y + p3y) * 0.25f;
+
+                EMIT_SEG(penX, penY, c1x, c1y, midX, midY);
+                EMIT_SEG(midX, midY, c2x, c2y, p3x, p3y);
+
+                penX = p3x; penY = p3y;
+                j += 2;
+                ii = idx3;
+                continue;
+            } else {
+                int idx2 = contourStart + ((idx - contourStart + 1) % numPoints);
+                float p2x = (float)outline->points[idx2].x;
+                float p2y = (float)outline->points[idx2].y;
+                char tag2 = outline->tags[idx2];
+
+                float endX, endY;
+                if (tag2 & 1) {
+                    endX = p2x; endY = p2y;
+                    EMIT_SEG(penX, penY, px, py, endX, endY);
+                    penX = endX; penY = endY;
+                    j++;
+                    ii = idx2;
+                    continue;
+                } else {
+                    endX = (px + p2x) * 0.5f;
+                    endY = (py + p2y) * 0.5f;
+                    EMIT_SEG(penX, penY, px, py, endX, endY);
+                    penX = endX; penY = endY;
+                }
+            }
+            ii = idx;
+        }
+
+        if (penX != startX || penY != startY) {
+            float mx = (penX + startX) * 0.5f;
+            float my = (penY + startY) * 0.5f;
+            EMIT_SEG(penX, penY, mx, my, startX, startY);
+        }
+
+        if (contourIdx >= maxContours) return -3;
+        if (curveIdx > 0) {
+            outContours[contourIdx++] = curveIdx - 1;
+        }
+
+        contourStart = contourEnd + 1;
+    }
+
+    #undef EMIT_SEG
+
+    *outCurveCount = curveIdx;
+    *outContourCount = contourIdx;
+    return 0;
+}
+
+// =============================================================================
 // COLRv1 Wrapper Functions
 // All structs decomposed to primitives for cross-platform ABI safety
 // =============================================================================
