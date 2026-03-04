@@ -706,198 +706,24 @@ UNITEXT_EXPORT int ut_ft_get_outline_info(FT_Face face, int* outNumContours, int
 }
 
 // =============================================================================
-// Outline Decompose — uses FT_Outline_Decompose (standard FreeType callback API)
+// Outline Decompose — manual FT_Outline walking (all-quadratic output)
 // =============================================================================
 //
-// Delegates outline parsing entirely to FreeType via FT_Outline_Decompose.
-// This matches msdfgen's import-font.cpp exactly: moveTo/lineTo/conicTo/cubicTo callbacks.
-//
-// Output format per segment: 8 floats (p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y)
-// outTypes[i]: 1=linear (p0→p1), 2=quadratic (p0,ctrl=p1,end=p2), 3=cubic (p0,p1,p2,p3)
-// Contour ends: outContours[i] = index of last segment in contour i.
-
-struct DecomposeContext {
-    float* outCurves;
-    int*   outTypes;
-    int*   outContours;
-    int    curveIdx;
-    int    contourIdx;
-    int    maxCurves;
-    int    maxContours;
-    int    contourEdgeStart; // curveIdx at start of current contour
-    float  posX, posY;       // current pen position
-    int    error;            // overflow flag
-};
-
-static inline void ctx_emit(DecomposeContext* ctx, int stype,
-    float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy)
-{
-    if (ctx->curveIdx >= ctx->maxCurves) { ctx->error = -2; return; }
-    float* dst = ctx->outCurves + ctx->curveIdx * 8;
-    dst[0] = ax; dst[1] = ay;
-    dst[2] = bx; dst[3] = by;
-    dst[4] = cx; dst[5] = cy;
-    dst[6] = dx; dst[7] = dy;
-    ctx->outTypes[ctx->curveIdx] = stype;
-    ctx->curveIdx++;
-}
-
-static inline void ctx_close_contour(DecomposeContext* ctx)
-{
-    // Only close if current contour has at least one edge
-    if (ctx->curveIdx > ctx->contourEdgeStart) {
-        if (ctx->contourIdx >= ctx->maxContours) { ctx->error = -3; return; }
-        ctx->outContours[ctx->contourIdx++] = ctx->curveIdx - 1;
-    }
-}
-
-// FT_Outline_Decompose callbacks (matching msdfgen's import-font.cpp)
-
-static int ft_move_to(const FT_Vector* to, void* user) {
-    DecomposeContext* ctx = (DecomposeContext*)user;
-    if (ctx->error) return ctx->error;
-    // Close previous contour (if any)
-    ctx_close_contour(ctx);
-    ctx->posX = (float)to->x;
-    ctx->posY = (float)to->y;
-    ctx->contourEdgeStart = ctx->curveIdx;
-    return 0;
-}
-
-static int ft_line_to(const FT_Vector* to, void* user) {
-    DecomposeContext* ctx = (DecomposeContext*)user;
-    if (ctx->error) return ctx->error;
-    float ex = (float)to->x, ey = (float)to->y;
-    // Skip zero-length lines (matching msdfgen)
-    if (ex != ctx->posX || ey != ctx->posY) {
-        // TEST: emit line as degenerate quadratic (type=2) instead of linear (type=1)
-        // to isolate whether SDF quality issue is in C# SeedLinear handling
-        float mx = (ctx->posX + ex) * 0.5f;
-        float my = (ctx->posY + ey) * 0.5f;
-        ctx_emit(ctx, 2, ctx->posX, ctx->posY, mx, my, ex, ey, 0, 0);
-        ctx->posX = ex; ctx->posY = ey;
-    }
-    return ctx->error;
-}
-
-static int ft_conic_to(const FT_Vector* control, const FT_Vector* to, void* user) {
-    DecomposeContext* ctx = (DecomposeContext*)user;
-    if (ctx->error) return ctx->error;
-    float cx = (float)control->x, cy = (float)control->y;
-    float ex = (float)to->x, ey = (float)to->y;
-    // Skip degenerate (matching msdfgen: endpoint != position)
-    if (ex != ctx->posX || ey != ctx->posY) {
-        ctx_emit(ctx, 2, ctx->posX, ctx->posY, cx, cy, ex, ey, 0, 0);
-        ctx->posX = ex; ctx->posY = ey;
-    }
-    return ctx->error;
-}
-
-static int ft_cubic_to(const FT_Vector* control1, const FT_Vector* control2, const FT_Vector* to, void* user) {
-    DecomposeContext* ctx = (DecomposeContext*)user;
-    if (ctx->error) return ctx->error;
-    float c1x = (float)control1->x, c1y = (float)control1->y;
-    float c2x = (float)control2->x, c2y = (float)control2->y;
-    float ex = (float)to->x, ey = (float)to->y;
-    // Matching msdfgen: emit if endpoint differs OR if control points form non-zero area
-    if (ex != ctx->posX || ey != ctx->posY ||
-        (c1x - ex) * (c2y - ey) - (c1y - ey) * (c2x - ex) != 0.0f) {
-        ctx_emit(ctx, 3, ctx->posX, ctx->posY, c1x, c1y, c2x, c2y, ex, ey);
-        ctx->posX = ex; ctx->posY = ey;
-    }
-    return ctx->error;
-}
-
-UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_index,
-                                            float* outCurves, int* outTypes,
-                                            int* outCurveCount, int maxCurves,
-                                            int* outContours, int* outContourCount, int maxContours,
-                                            int* outBearingX, int* outBearingY,
-                                            int* outAdvanceX, int* outWidth, int* outHeight)
-{
-    if (!face || !outCurves || !outTypes || !outCurveCount || !outContours || !outContourCount)
-        return -1;
-
-    // Load glyph outline in design units (no scaling, no bitmap)
-    FT_Error err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP | FT_LOAD_NO_SCALE);
-    if (err) return (int)err;
-
-    if (face->glyph->format != FT_GLYPH_FORMAT_OUTLINE) {
-        *outCurveCount = 0;
-        *outContourCount = 0;
-        return 0;
-    }
-
-    // Export metrics in design units
-    FT_Glyph_Metrics* m = &face->glyph->metrics;
-    if (outBearingX) *outBearingX = (int)(m->horiBearingX);
-    if (outBearingY) *outBearingY = (int)(m->horiBearingY);
-    if (outAdvanceX) *outAdvanceX = (int)(m->horiAdvance);
-    if (outWidth)    *outWidth    = (int)(m->width);
-    if (outHeight)   *outHeight   = (int)(m->height);
-
-    FT_Outline* outline = &face->glyph->outline;
-    if (outline->n_points <= 0 || outline->n_contours <= 0) {
-        *outCurveCount = 0;
-        *outContourCount = 0;
-        return 0;
-    }
-
-    DecomposeContext ctx = {};
-    ctx.outCurves = outCurves;
-    ctx.outTypes = outTypes;
-    ctx.outContours = outContours;
-    ctx.maxCurves = maxCurves;
-    ctx.maxContours = maxContours;
-
-    FT_Outline_Funcs funcs = {};
-    funcs.move_to = ft_move_to;
-    funcs.line_to = ft_line_to;
-    funcs.conic_to = ft_conic_to;
-    funcs.cubic_to = ft_cubic_to;
-
-    err = FT_Outline_Decompose(outline, &funcs, &ctx);
-
-    if (ctx.error) {
-        *outCurveCount = 0;
-        *outContourCount = 0;
-        return ctx.error;
-    }
-
-    if (err) {
-        *outCurveCount = 0;
-        *outContourCount = 0;
-        return (int)err;
-    }
-
-    // Close the last contour
-    ctx_close_contour(&ctx);
-
-    // Remove empty trailing contour (matching msdfgen)
-    if (ctx.contourIdx > 0 && ctx.curveIdx > 0 &&
-        ctx.outContours[ctx.contourIdx - 1] >= ctx.curveIdx) {
-        ctx.contourIdx--;
-    }
-
-    *outCurveCount = ctx.curveIdx;
-    *outContourCount = ctx.contourIdx;
-    return ctx.error;
-}
-
-// =============================================================================
-// Legacy Outline Decompose — manual FT_Outline walking (all-quadratic output)
-// =============================================================================
-//
-// Preserves the original extraction algorithm that manually walks FT_Outline
-// points and emits ALL curves as quadratic Béziers:
+// Walks FT_Outline points/tags/contours directly, emitting ALL curves as
+// quadratic Béziers with float-precision implicit midpoints:
 // - On-curve lines → degenerate quadratic (control = midpoint)
 // - Conic (quadratic) → direct output
 // - Cubic (CFF/OTF) → split into two quadratics at midpoint
 //
+// This produces better SDF quality than FT_Outline_Decompose because:
+// - Float midpoints (a+b)*0.5f vs FreeType's integer (a+b)/2 truncation
+// - Consistent contour starting point (first on-curve by linear search)
+// - No degenerate segment skipping
+//
 // Output format per curve: 8 floats (p0.x, p0.y, ctrl.x, ctrl.y, p2.x, p2.y, 0, 0)
 // outTypes[i]: always 2 (quadratic)
 
-UNITEXT_EXPORT int ut_ft_outline_decompose_legacy(FT_Face face, unsigned int glyph_index,
+UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_index,
                                             float* outCurves, int* outTypes,
                                             int* outCurveCount, int maxCurves,
                                             int* outContours, int* outContourCount, int maxContours,
