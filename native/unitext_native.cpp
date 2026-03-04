@@ -946,6 +946,7 @@ UNITEXT_EXPORT int ut_ft_outline_decompose_legacy(FT_Face face, unsigned int gly
         int numPoints = contourEnd - contourStart + 1;
         if (numPoints < 2) { contourStart = contourEnd + 1; continue; }
 
+        int contourCurveStart = curveIdx;
         float startX, startY;
         int firstOnCurve = -1;
         for (int i = contourStart; i <= contourEnd; i++) {
@@ -1026,8 +1027,8 @@ UNITEXT_EXPORT int ut_ft_outline_decompose_legacy(FT_Face face, unsigned int gly
             EMIT_SEG(penX, penY, mx, my, startX, startY);
         }
 
-        if (contourIdx >= maxContours) return -3;
-        if (curveIdx > 0) {
+        if (curveIdx > contourCurveStart) {
+            if (contourIdx >= maxContours) return -3;
             outContours[contourIdx++] = curveIdx - 1;
         }
 
