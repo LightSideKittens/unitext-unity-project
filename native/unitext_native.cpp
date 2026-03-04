@@ -770,7 +770,11 @@ static int ft_line_to(const FT_Vector* to, void* user) {
     float ex = (float)to->x, ey = (float)to->y;
     // Skip zero-length lines (matching msdfgen)
     if (ex != ctx->posX || ey != ctx->posY) {
-        ctx_emit(ctx, 1, ctx->posX, ctx->posY, ex, ey, 0, 0, 0, 0);
+        // TEST: emit line as degenerate quadratic (type=2) instead of linear (type=1)
+        // to isolate whether SDF quality issue is in C# SeedLinear handling
+        float mx = (ctx->posX + ex) * 0.5f;
+        float my = (ctx->posY + ey) * 0.5f;
+        ctx_emit(ctx, 2, ctx->posX, ctx->posY, mx, my, ex, ey, 0, 0);
         ctx->posX = ex; ctx->posY = ey;
     }
     return ctx->error;
