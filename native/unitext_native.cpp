@@ -525,8 +525,8 @@ UNITEXT_EXPORT void ut_ft_get_face_info(FT_Face face, long* out_face_flags, int*
     if (out_height) *out_height = face->height;
 }
 
-// Reads OS/2 table metrics + post table underline + face names.
-// Returns 1 if OS/2 table was found, 0 otherwise. Post/name data is always filled if available.
+// Reads OS/2 table metrics + post table underline + face names + weight/style.
+// Returns 1 if OS/2 table was found, 0 otherwise. Post/name/style data is always filled if available.
 UNITEXT_EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     // OS/2 table
     short* out_cap_height, short* out_x_height,
@@ -536,7 +536,9 @@ UNITEXT_EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     // post table (via FT_FaceRec)
     short* out_underline_position, short* out_underline_thickness,
     // name table (via FT_FaceRec)
-    const char** out_family_name, const char** out_style_name)
+    const char** out_family_name, const char** out_style_name,
+    // weight & style (OS/2 usWeightClass + FT_FaceRec style_flags)
+    short* out_weight_class, int* out_style_flags)
 {
     if (!face) return 0;
 
@@ -547,6 +549,12 @@ UNITEXT_EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     // Name table fields from FT_FaceRec
     if (out_family_name) *out_family_name = face->family_name;
     if (out_style_name) *out_style_name = face->style_name;
+
+    // Style flags from FT_FaceRec (always available)
+    if (out_style_flags) *out_style_flags = (int)face->style_flags;
+
+    // Default weight class (overwritten below if OS/2 exists)
+    if (out_weight_class) *out_weight_class = 0;
 
     // OS/2 table
     TT_OS2* os2 = (TT_OS2*)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
@@ -560,6 +568,7 @@ UNITEXT_EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     if (out_y_subscript_y_size) *out_y_subscript_y_size = os2->ySubscriptYSize;
     if (out_y_strikeout_position) *out_y_strikeout_position = os2->yStrikeoutPosition;
     if (out_y_strikeout_size) *out_y_strikeout_size = os2->yStrikeoutSize;
+    if (out_weight_class) *out_weight_class = (short)os2->usWeightClass;
 
     return 1;
 }

@@ -109,7 +109,8 @@ EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     short* out_y_subscript_y_offset, short* out_y_subscript_y_size,
     short* out_y_strikeout_position, short* out_y_strikeout_size,
     short* out_underline_position, short* out_underline_thickness,
-    const char** out_family_name, const char** out_style_name)
+    const char** out_family_name, const char** out_style_name,
+    short* out_weight_class, int* out_style_flags)
 {
     if (!face) return 0;
 
@@ -117,6 +118,8 @@ EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     if (out_underline_thickness) *out_underline_thickness = face->underline_thickness;
     if (out_family_name) *out_family_name = face->family_name;
     if (out_style_name) *out_style_name = face->style_name;
+    if (out_style_flags) *out_style_flags = (int)face->style_flags;
+    if (out_weight_class) *out_weight_class = 0;
 
     TT_OS2* os2 = (TT_OS2*)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
     if (!os2) return 0;
@@ -129,6 +132,7 @@ EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     if (out_y_subscript_y_size) *out_y_subscript_y_size = os2->ySubscriptYSize;
     if (out_y_strikeout_position) *out_y_strikeout_position = os2->yStrikeoutPosition;
     if (out_y_strikeout_size) *out_y_strikeout_size = os2->yStrikeoutSize;
+    if (out_weight_class) *out_weight_class = (short)os2->usWeightClass;
 
     return 1;
 }
