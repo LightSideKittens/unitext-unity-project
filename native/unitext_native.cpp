@@ -439,7 +439,7 @@ UNITEXT_EXPORT int ut_ft_done_mm_var(FT_Library library, FT_MM_Var* amaster) {
     return FT_Done_MM_Var(library, amaster);
 }
 
-UNITEXT_EXPORT int ut_ft_set_var_design_coordinates(FT_Face face, unsigned int num_coords, const FT_Fixed* coords) {
+UNITEXT_EXPORT int ut_ft_set_var_design_coordinates(FT_Face face, unsigned int num_coords, FT_Fixed* coords) {
     return FT_Set_Var_Design_Coordinates(face, num_coords, coords);
 }
 
