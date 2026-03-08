@@ -48,8 +48,47 @@ env:
   BLEND2D_VERSION: "master"
   EMSCRIPTEN_VERSION: "3.1.38"
 
-  # HarfBuzz flags: HB_TINY without HB_NO_MT (keeps thread-safety for UniText.UseParallel)
-  HB_FLAGS: "-DHB_MINI -DHB_LEAN -DHB_OPTIMIZE_SIZE -DHB_OPTIMIZE_SIZE_MORE -DHB_MINIMIZE_MEMORY_USAGE -DHB_NO_UCD_UNASSIGNED -DNDEBUG"
+  # HarfBuzz flags: HB_LEAN expanded without HB_NO_VAR (variable font axes needed)
+  # and without HB_NO_MT (thread-safety for UniText.UseParallel).
+  # HB_MINI kept (disables AAT/legacy shapers).
+  # When upgrading HARFBUZZ_VERSION, review hb-config.hh for new HB_LEAN entries.
+  HB_FLAGS: >-
+    -DHB_MINI
+    -DHB_DISABLE_DEPRECATED
+    -DHB_NO_ATEXIT
+    -DHB_NO_BUFFER_MESSAGE
+    -DHB_NO_BUFFER_SERIALIZE
+    -DHB_NO_BUFFER_VERIFY
+    -DHB_NO_BITMAP
+    -DHB_NO_CFF
+    -DHB_NO_COLOR
+    -DHB_NO_DRAW
+    -DHB_NO_ERRNO
+    -DHB_NO_FACE_COLLECT_UNICODES
+    -DHB_NO_GETENV
+    -DHB_NO_HINTING
+    -DHB_NO_LAYOUT_FEATURE_PARAMS
+    -DHB_NO_LAYOUT_COLLECT_GLYPHS
+    -DHB_NO_LAYOUT_RARELY_USED
+    -DHB_NO_LAYOUT_UNUSED
+    -DHB_NO_MATH
+    -DHB_NO_META
+    -DHB_NO_METRICS
+    -DHB_NO_MMAP
+    -DHB_NO_NAME
+    -DHB_NO_OPEN
+    -DHB_NO_OT_FONT_GLYPH_NAMES
+    -DHB_NO_OT_SHAPE_FRACTIONS
+    -DHB_NO_PAINT
+    -DHB_NO_SETLOCALE
+    -DHB_NO_STYLE
+    -DHB_NO_SUBSET_LAYOUT
+    -DHB_NO_VERTICAL
+    -DHB_OPTIMIZE_SIZE
+    -DHB_OPTIMIZE_SIZE_MORE
+    -DHB_MINIMIZE_MEMORY_USAGE
+    -DHB_NO_UCD_UNASSIGNED
+    -DNDEBUG
 
   # HarfBuzz flags for WebGL (more aggressive, no threading needed in WASM)
   HB_WEBGL_FLAGS: "-DHB_NO_FALLBACK_SHAPE -DHB_NO_WIN1256 -DHB_DISABLE_DEPRECATED -DHB_NO_BUFFER_SERIALIZE -DHB_NO_BUFFER_VERIFY -DHB_NO_BUFFER_MESSAGE -DHB_NO_SETLOCALE -DHB_NO_MMAP -DHB_NO_META -DHB_NO_MT -DHB_NO_DRAW -DHB_NO_PAINT -fno-exceptions -fno-rtti"
@@ -58,7 +97,7 @@ env:
   # BLEND2D_NO_JIT=ON for all platforms (consistent behavior, smaller size)
 
   # Cache version suffix
-  CACHE_VERSION: "v9"
+  CACHE_VERSION: "v10"
 
 jobs:
   # ============================================================================
