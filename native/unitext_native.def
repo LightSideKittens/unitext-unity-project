@@ -88,6 +88,14 @@ EXPORTS
     ut_hb_buffer_get_glyph_positions
     ut_hb_shape
 
+    ; === Variable Font API ===
+    ut_hb_ot_var_get_axis_count
+    ut_hb_ot_var_get_axis_infos
+    ut_hb_font_set_variations
+    ut_ft_get_mm_var
+    ut_ft_done_mm_var
+    ut_ft_set_var_design_coordinates
+
     ; === Blend2D Unified API ===
     ut_blImageCreate
     ut_blImageDestroy

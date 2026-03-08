@@ -14,6 +14,7 @@
 #include FT_COLOR_H
 #include FT_TRUETYPE_TABLES_H
 #include FT_MODULE_H
+#include FT_MULTIPLE_MASTERS_H
 
 #include <hb.h>
 #include <hb-ot.h>
@@ -407,6 +408,39 @@ UNITEXT_EXPORT hb_glyph_position_t* ut_hb_buffer_get_glyph_positions(hb_buffer_t
 
 UNITEXT_EXPORT void ut_hb_shape(hb_font_t* font, hb_buffer_t* buffer, const hb_feature_t* features, unsigned int num_features) {
     hb_shape(font, buffer, features, num_features);
+}
+
+// =============================================================================
+// Variable Font API
+// =============================================================================
+
+// --- HarfBuzz variable font ---
+
+UNITEXT_EXPORT unsigned int ut_hb_ot_var_get_axis_count(hb_face_t* face) {
+    return hb_ot_var_get_axis_count(face);
+}
+
+UNITEXT_EXPORT unsigned int ut_hb_ot_var_get_axis_infos(hb_face_t* face, unsigned int start_offset,
+    unsigned int* axes_count, hb_ot_var_axis_info_t* axes_info) {
+    return hb_ot_var_get_axis_infos(face, start_offset, axes_count, axes_info);
+}
+
+UNITEXT_EXPORT void ut_hb_font_set_variations(hb_font_t* font, const hb_variation_t* variations, unsigned int variations_length) {
+    hb_font_set_variations(font, variations, variations_length);
+}
+
+// --- FreeType variable font ---
+
+UNITEXT_EXPORT int ut_ft_get_mm_var(FT_Face face, FT_MM_Var** amaster) {
+    return FT_Get_MM_Var(face, amaster);
+}
+
+UNITEXT_EXPORT int ut_ft_done_mm_var(FT_Library library, FT_MM_Var* amaster) {
+    return FT_Done_MM_Var(library, amaster);
+}
+
+UNITEXT_EXPORT int ut_ft_set_var_design_coordinates(FT_Face face, unsigned int num_coords, const FT_Fixed* coords) {
+    return FT_Set_Var_Design_Coordinates(face, num_coords, coords);
 }
 
 // === sbix Diagnostic ===
