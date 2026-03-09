@@ -315,7 +315,7 @@ jobs:
           cd zstd-src\build\cmake && mkdir build && cd build
           cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
             -DCMAKE_BUILD_TYPE=Release ^
-            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\..\..\..\deps\zstd ^
+            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\..\..\deps\zstd ^
             -DZSTD_BUILD_PROGRAMS=OFF ^
             -DZSTD_BUILD_TESTS=OFF ^
             -DZSTD_BUILD_CONTRIB=OFF ^
