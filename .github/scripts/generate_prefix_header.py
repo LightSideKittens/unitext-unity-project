@@ -46,6 +46,7 @@ WRAPPER_HARFBUZZ_SYMBOLS = {
 WRAPPER_ZSTD_SYMBOLS = {
     'ZSTD_compress', 'ZSTD_decompress',
     'ZSTD_compressBound', 'ZSTD_isError',
+    'ZSTD_getFrameContentSize',
 }
 
 

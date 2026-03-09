@@ -1454,3 +1454,7 @@ UNITEXT_EXPORT int ut_zstd_decompress(const void* src, int srcSize, void* dst, i
     return (int)result;
 }
 
+UNITEXT_EXPORT long long ut_zstd_get_frame_content_size(const void* src, int srcSize) {
+    return (long long)ZSTD_getFrameContentSize(src, (size_t)srcSize);
+}
+

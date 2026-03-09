@@ -141,3 +141,4 @@ EXPORTS
     ut_zstd_compress_bound
     ut_zstd_compress
     ut_zstd_decompress
+    ut_zstd_get_frame_content_size
