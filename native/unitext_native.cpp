@@ -1,5 +1,5 @@
 // UniText Native - Unified library exports
-// Combines: HarfBuzz, FreeType, Blend2D
+// Combines: HarfBuzz, FreeType, Blend2D, Zstd
 //
 // This file is compiled into a single native library for each platform:
 // - Windows: unitext_native.dll
@@ -8,6 +8,7 @@
 // - Android: libunitext_native.so
 // - iOS/tvOS: libunitext_native.a (static)
 
+#include <zstd.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
@@ -1429,5 +1430,27 @@ UNITEXT_EXPORT void ut_blGradientResetStops(void* grad) {
 UNITEXT_EXPORT void ut_blGradientApplyTransform(void* grad, double m00, double m01, double m10, double m11, double m20, double m21) {
     BLMatrix2D mat(m00, m01, m10, m11, m20, m21);
     static_cast<BLGradient*>(grad)->apply_transform(mat);
+}
+
+// =============================================================================
+// Zstd Compression API (ut_zstd_*)
+// =============================================================================
+
+UNITEXT_EXPORT int ut_zstd_compress_bound(int srcSize) {
+    return (int)ZSTD_compressBound((size_t)srcSize);
+}
+
+UNITEXT_EXPORT int ut_zstd_compress(const void* src, int srcSize, void* dst, int dstCapacity, int level) {
+    size_t result = ZSTD_compress(dst, (size_t)dstCapacity, src, (size_t)srcSize, level);
+    if (ZSTD_isError(result))
+        return -1;
+    return (int)result;
+}
+
+UNITEXT_EXPORT int ut_zstd_decompress(const void* src, int srcSize, void* dst, int dstCapacity) {
+    size_t result = ZSTD_decompress(dst, (size_t)dstCapacity, src, (size_t)srcSize);
+    if (ZSTD_isError(result))
+        return -1;
+    return (int)result;
 }
 

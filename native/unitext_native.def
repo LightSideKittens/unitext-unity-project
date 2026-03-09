@@ -136,3 +136,8 @@ EXPORTS
     ut_blGradientAddStop
     ut_blGradientResetStops
     ut_blGradientApplyTransform
+
+    ; === Zstd Compression ===
+    ut_zstd_compress_bound
+    ut_zstd_compress
+    ut_zstd_decompress

@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <zstd.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_BITMAP_H
@@ -655,6 +656,28 @@ EXPORT int ut_debug_sbix_graphic_type(FT_Face face, unsigned char* outGraphicTyp
     if (outGraphicType) outGraphicType[0] = 0;
     if (outNumStrikes) *outNumStrikes = 0;
     return 0;
+}
+
+// =============================================================================
+// Zstd Compression API (ut_zstd_*)
+// =============================================================================
+
+EXPORT int ut_zstd_compress_bound(int srcSize) {
+    return (int)ZSTD_compressBound((size_t)srcSize);
+}
+
+EXPORT int ut_zstd_compress(const void* src, int srcSize, void* dst, int dstCapacity, int level) {
+    size_t result = ZSTD_compress(dst, (size_t)dstCapacity, src, (size_t)srcSize, level);
+    if (ZSTD_isError(result))
+        return -1;
+    return (int)result;
+}
+
+EXPORT int ut_zstd_decompress(const void* src, int srcSize, void* dst, int dstCapacity) {
+    size_t result = ZSTD_decompress(dst, (size_t)dstCapacity, src, (size_t)srcSize);
+    if (ZSTD_isError(result))
+        return -1;
+    return (int)result;
 }
 
 // Blend2D not supported on WebGL - stubs are in C# (BL.cs)

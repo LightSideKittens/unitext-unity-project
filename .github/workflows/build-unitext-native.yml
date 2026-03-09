@@ -46,6 +46,7 @@ env:
   FREETYPE_VERSION: "VER-2-14-1"
   HARFBUZZ_VERSION: "12.3.2"
   BLEND2D_VERSION: "master"
+  ZSTD_VERSION: "1.5.6"
   EMSCRIPTEN_VERSION: "3.1.38"
 
   # HarfBuzz flags: HB_LEAN expanded without HB_NO_VAR (variable font axes needed)
@@ -298,20 +299,50 @@ jobs:
           cmake --build . --config Release
           cmake --install . --config Release
 
+      # --- Zstd ---
+      - name: Cache Zstd
+        id: cache-zstd
+        uses: actions/cache@v4
+        with:
+          path: deps/zstd
+          key: win-${{ matrix.arch }}-zstd-${{ env.ZSTD_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Zstd
+        if: steps.cache-zstd.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch v%ZSTD_VERSION% https://github.com/facebook/zstd.git zstd-src
+          cd zstd-src\build\cmake && mkdir build && cd build
+          cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\..\..\..\deps\zstd ^
+            -DZSTD_BUILD_PROGRAMS=OFF ^
+            -DZSTD_BUILD_TESTS=OFF ^
+            -DZSTD_BUILD_CONTRIB=OFF ^
+            -DZSTD_BUILD_SHARED=OFF ^
+            -DZSTD_BUILD_STATIC=ON ^
+            -DZSTD_MULTITHREAD_SUPPORT=OFF ^
+            -DZSTD_BUILD_DICTBUILDER=OFF ^
+            -DZSTD_BUILD_DEPRECATED=OFF ^
+            -DZSTD_LEGACY_SUPPORT=0 ^
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          cmake --build . --config Release
+          cmake --install . --config Release
+
       # --- Link unified DLL ---
       # x64: HarfBuzz from meson creates libharfbuzz.a
       - name: Link unified DLL (x64)
         if: matrix.arch == 'x64'
         shell: cmd
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MD /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\libharfbuzz.a deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib gdi32.lib user32.lib ole32.lib advapi32.lib
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MD /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /I deps\zstd\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\libharfbuzz.a deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib deps\zstd\lib\zstd_static.lib gdi32.lib user32.lib ole32.lib advapi32.lib
 
       # ARM64: HarfBuzz from cmake creates harfbuzz.lib
       - name: Link unified DLL (ARM64)
         if: matrix.arch == 'arm64'
         shell: cmd
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MD /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\harfbuzz.lib deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib gdi32.lib user32.lib ole32.lib advapi32.lib
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MD /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /I deps\zstd\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\harfbuzz.lib deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib deps\zstd\lib\zstd_static.lib gdi32.lib user32.lib ole32.lib advapi32.lib
 
       - name: Verify DLL
         shell: bash
@@ -475,6 +506,34 @@ jobs:
             -DBLEND2D_NO_JIT=ON
           make -j$(nproc) && make install
 
+      # --- Zstd ---
+      - name: Cache Zstd
+        id: cache-zstd
+        uses: actions/cache@v4
+        with:
+          path: deps/zstd
+          key: linux-x64-zstd-${{ env.ZSTD_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Zstd
+        if: steps.cache-zstd.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.ZSTD_VERSION }} https://github.com/facebook/zstd.git zstd-src
+          cd zstd-src/build/cmake && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/zstd \
+            -DZSTD_BUILD_PROGRAMS=OFF \
+            -DZSTD_BUILD_TESTS=OFF \
+            -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF \
+            -DZSTD_BUILD_STATIC=ON \
+            -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF \
+            -DZSTD_BUILD_DEPRECATED=OFF \
+            -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(nproc) && make install
+
       # --- Link unified SO ---
       - name: Link unified SO
         run: |
@@ -483,6 +542,7 @@ jobs:
             -I deps/freetype/include/freetype2 \
             -I deps/harfbuzz/include/harfbuzz \
             -I deps/blend2d/include \
+            -I deps/zstd/include \
             native/unitext_native.cpp \
             -Wl,--whole-archive \
             deps/blend2d/lib/libblend2d.a \
@@ -491,6 +551,7 @@ jobs:
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
+            deps/zstd/lib/libzstd.a \
             -Wl,--version-script=native/exports.map \
             -Wl,--gc-sections \
             -lpthread -lm -lrt
@@ -656,6 +717,37 @@ jobs:
             -DBLEND2D_NO_JIT=ON
           make -j$(nproc) && make install
 
+      # --- Zstd ---
+      - name: Cache Zstd
+        id: cache-zstd
+        uses: actions/cache@v4
+        with:
+          path: deps/zstd
+          key: linux-arm64-zstd-${{ env.ZSTD_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Zstd
+        if: steps.cache-zstd.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.ZSTD_VERSION }} https://github.com/facebook/zstd.git zstd-src
+          cd zstd-src/build/cmake && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/zstd \
+            -DZSTD_BUILD_PROGRAMS=OFF \
+            -DZSTD_BUILD_TESTS=OFF \
+            -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF \
+            -DZSTD_BUILD_STATIC=ON \
+            -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF \
+            -DZSTD_BUILD_DEPRECATED=OFF \
+            -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(nproc) && make install
+
       # --- Link unified SO ---
       - name: Link unified SO
         run: |
@@ -664,6 +756,7 @@ jobs:
             -I deps/freetype/include/freetype2 \
             -I deps/harfbuzz/include/harfbuzz \
             -I deps/blend2d/include \
+            -I deps/zstd/include \
             native/unitext_native.cpp \
             -Wl,--whole-archive \
             deps/blend2d/lib/libblend2d.a \
@@ -672,6 +765,7 @@ jobs:
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
+            deps/zstd/lib/libzstd.a \
             -Wl,--version-script=native/exports.map \
             -Wl,--gc-sections \
             -lpthread -lm
@@ -878,6 +972,35 @@ jobs:
             ${{ github.workspace }}/deps/blend2d-x64/lib/libblend2d.a \
             -output ${{ github.workspace }}/deps/blend2d/lib/libblend2d.a
 
+      # --- Zstd ---
+      - name: Cache Zstd
+        id: cache-zstd
+        uses: actions/cache@v4
+        with:
+          path: deps/zstd
+          key: macos-universal-zstd-${{ env.ZSTD_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Zstd
+        if: steps.cache-zstd.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.ZSTD_VERSION }} https://github.com/facebook/zstd.git zstd-src
+          cd zstd-src/build/cmake && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/zstd \
+            -DZSTD_BUILD_PROGRAMS=OFF \
+            -DZSTD_BUILD_TESTS=OFF \
+            -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF \
+            -DZSTD_BUILD_STATIC=ON \
+            -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF \
+            -DZSTD_BUILD_DEPRECATED=OFF \
+            -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(sysctl -n hw.ncpu) && make install
+
       # --- Link unified dylib ---
       - name: Link unified dylib
         run: |
@@ -887,6 +1010,7 @@ jobs:
             -I deps/freetype/include/freetype2 \
             -I deps/harfbuzz/include/harfbuzz \
             -I deps/blend2d/include \
+            -I deps/zstd/include \
             -o libunitext_native.dylib \
             native/unitext_native.cpp \
             -Wl,-force_load,deps/blend2d/lib/libblend2d.a \
@@ -894,6 +1018,7 @@ jobs:
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
+            deps/zstd/lib/libzstd.a \
             -Wl,-exported_symbols_list,native/exports_macos.txt \
             -Wl,-dead_strip \
             -framework CoreFoundation -framework CoreGraphics -framework CoreText \
@@ -1065,6 +1190,36 @@ jobs:
             -DBLEND2D_NO_JIT=ON
           make -j$(nproc) && make install
 
+      # --- Zstd ---
+      - name: Cache Zstd
+        id: cache-zstd
+        uses: actions/cache@v4
+        with:
+          path: deps/zstd
+          key: android-${{ matrix.abi }}-zstd-${{ env.ZSTD_VERSION }}-${{ env.CACHE_VERSION }}
+
+      - name: Build Zstd
+        if: steps.cache-zstd.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v${{ env.ZSTD_VERSION }} https://github.com/facebook/zstd.git zstd-src
+          cd zstd-src/build/cmake && mkdir build && cd build
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=${{ steps.ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-24 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/zstd \
+            -DZSTD_BUILD_PROGRAMS=OFF \
+            -DZSTD_BUILD_TESTS=OFF \
+            -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF \
+            -DZSTD_BUILD_STATIC=ON \
+            -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF \
+            -DZSTD_BUILD_DEPRECATED=OFF \
+            -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(nproc) && make install
+
       # --- Link unified SO ---
       - name: Link unified SO
         run: |
@@ -1084,6 +1239,7 @@ jobs:
             -I deps/freetype/include/freetype2 \
             -I deps/harfbuzz/include/harfbuzz \
             -I deps/blend2d/include \
+            -I deps/zstd/include \
             -o libunitext_native.so \
             native/unitext_native.cpp \
             -Wl,--whole-archive \
@@ -1093,6 +1249,7 @@ jobs:
             deps/freetype/lib/libfreetype.a \
             deps/libpng/lib/libpng.a \
             deps/zlib/lib/libz.a \
+            deps/zstd/lib/libzstd.a \
             -Wl,--version-script=native/exports.map \
             -Wl,--gc-sections \
             -llog -lm \
@@ -1130,6 +1287,7 @@ jobs:
           git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://github.com/freetype/freetype.git freetype-src
           git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
           git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          git clone --depth 1 --branch v${{ env.ZSTD_VERSION }} https://github.com/facebook/zstd.git zstd-src
           bash .github/scripts/patch-freetype.sh freetype-src
 
       - name: Generate prefix header
@@ -1196,6 +1354,17 @@ jobs:
             -DBLEND2D_STATIC=ON -DBLEND2D_NO_JIT=ON
           make -j$(sysctl -n hw.ncpu) && make install
 
+          # Zstd (will use objcopy post-processing for symbol prefixing)
+          cd ${{ github.workspace }}/zstd-src/build/cmake && mkdir build-device && cd build-device
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-device \
+            -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(sysctl -n hw.ncpu) && make install
+
       - name: Install llvm (for objcopy)
         run: |
           brew install llvm
@@ -1207,7 +1376,8 @@ jobs:
           # This handles C++ mangled names (starting with _Z) that grep misses
           python3 .github/scripts/macho_symbol_renamer.py __ut_ \
             ${{ github.workspace }}/deps-device/lib/libfreetype.a \
-            ${{ github.workspace }}/deps-device/lib/libharfbuzz.a
+            ${{ github.workspace }}/deps-device/lib/libharfbuzz.a \
+            ${{ github.workspace }}/deps-device/lib/libzstd.a
 
       - name: Build iOS device wrapper
         run: |
@@ -1232,7 +1402,8 @@ jobs:
             deps-device/lib/libharfbuzz.a \
             deps-device/lib/libfreetype.a \
             deps-device/lib/libpng.a \
-            deps-device/lib/libz.a
+            deps-device/lib/libz.a \
+            deps-device/lib/libzstd.a
 
       - name: Build iOS simulator (arm64 + x86_64)
         run: |
@@ -1285,6 +1456,16 @@ jobs:
             -DBLEND2D_STATIC=ON -DBLEND2D_NO_JIT=ON
           make -j$(sysctl -n hw.ncpu) && make install
 
+          cd ${{ github.workspace }}/zstd-src/build/cmake && mkdir build-sim-arm64 && cd build-sim-arm64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-arm64 \
+            -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(sysctl -n hw.ncpu) && make install
+
           # === Simulator x86_64 ===
           cd ${{ github.workspace }}/zlib-src && mkdir build-sim-x64 && cd build-sim-x64
           cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
@@ -1334,13 +1515,24 @@ jobs:
             -DBLEND2D_STATIC=ON -DBLEND2D_NO_JIT=ON
           make -j$(sysctl -n hw.ncpu) && make install
 
+          cd ${{ github.workspace }}/zstd-src/build/cmake && mkdir build-sim-x64 && cd build-sim-x64
+          cmake .. -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps-sim-x64 \
+            -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(sysctl -n hw.ncpu) && make install
+
       - name: Rename simulator symbols (post-processing)
         run: |
           # Rename symbols for both arm64 and x86_64 simulator builds
           for ARCH_DIR in deps-sim-arm64 deps-sim-x64; do
             python3 ${{ github.workspace }}/.github/scripts/macho_symbol_renamer.py __ut_ \
               ${{ github.workspace }}/${ARCH_DIR}/lib/libfreetype.a \
-              ${{ github.workspace }}/${ARCH_DIR}/lib/libharfbuzz.a
+              ${{ github.workspace }}/${ARCH_DIR}/lib/libharfbuzz.a \
+              ${{ github.workspace }}/${ARCH_DIR}/lib/libzstd.a
           done
 
       - name: Build iOS simulator wrappers
@@ -1364,7 +1556,8 @@ jobs:
             deps-sim-arm64/lib/libharfbuzz.a \
             deps-sim-arm64/lib/libfreetype.a \
             deps-sim-arm64/lib/libpng.a \
-            deps-sim-arm64/lib/libz.a
+            deps-sim-arm64/lib/libz.a \
+            deps-sim-arm64/lib/libzstd.a
 
           # Compile x86_64 wrapper
           clang++ -c -std=c++17 -arch x86_64 -mios-simulator-version-min=12.0 -isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) \
@@ -1383,7 +1576,8 @@ jobs:
             deps-sim-x64/lib/libharfbuzz.a \
             deps-sim-x64/lib/libfreetype.a \
             deps-sim-x64/lib/libpng.a \
-            deps-sim-x64/lib/libz.a
+            deps-sim-x64/lib/libz.a \
+            deps-sim-x64/lib/libzstd.a
 
       - name: Verify symbol prefixing
         run: |
@@ -1440,6 +1634,7 @@ jobs:
           git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://github.com/freetype/freetype.git freetype-src
           git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
           git clone --depth 1 https://github.com/blend2d/blend2d.git blend2d-src
+          git clone --depth 1 --branch v${{ env.ZSTD_VERSION }} https://github.com/facebook/zstd.git zstd-src
           bash .github/scripts/patch-freetype.sh freetype-src
 
       - name: Generate prefix header
@@ -1504,6 +1699,17 @@ jobs:
             -DBLEND2D_STATIC=ON -DBLEND2D_NO_JIT=ON
           make -j$(sysctl -n hw.ncpu) && make install
 
+          # Zstd (will use objcopy post-processing for symbol prefixing)
+          cd ${{ github.workspace }}/zstd-src/build/cmake && mkdir build && cd build
+          cmake .. -DCMAKE_SYSTEM_NAME=tvOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps \
+            -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(sysctl -n hw.ncpu) && make install
+
       - name: Install llvm (for objcopy)
         run: |
           brew install llvm
@@ -1513,7 +1719,8 @@ jobs:
         run: |
           python3 ${{ github.workspace }}/.github/scripts/macho_symbol_renamer.py __ut_ \
             ${{ github.workspace }}/deps/lib/libfreetype.a \
-            ${{ github.workspace }}/deps/lib/libharfbuzz.a
+            ${{ github.workspace }}/deps/lib/libharfbuzz.a \
+            ${{ github.workspace }}/deps/lib/libzstd.a
 
       - name: Build tvOS wrapper
         run: |
@@ -1536,7 +1743,8 @@ jobs:
             deps/lib/libharfbuzz.a \
             deps/lib/libfreetype.a \
             deps/lib/libpng.a \
-            deps/lib/libz.a
+            deps/lib/libz.a \
+            deps/lib/libzstd.a
 
       - name: Verify symbol prefixing
         run: |
@@ -1592,6 +1800,7 @@ jobs:
           git clone --depth 1 --branch v${{ env.LIBPNG_VERSION }} https://github.com/pnggroup/libpng.git libpng-src
           git clone --depth 1 --branch ${{ env.FREETYPE_VERSION }} https://gitlab.freedesktop.org/freetype/freetype.git freetype-src
           git clone --depth 1 --branch ${{ env.HARFBUZZ_VERSION }} https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
+          git clone --depth 1 --branch v${{ env.ZSTD_VERSION }} https://github.com/facebook/zstd.git zstd-src
           bash .github/scripts/patch-freetype.sh freetype-src
 
       - name: Generate prefix header
@@ -1667,12 +1876,29 @@ jobs:
             -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_ICU=OFF -DHB_HAVE_GRAPHITE2=OFF
           emmake make -j$(nproc)
 
+      - name: Build Zstd
+        run: |
+          cd zstd-src/build/cmake && mkdir -p build && cd build
+          emcmake cmake .. \
+            -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DZSTD_BUILD_PROGRAMS=OFF \
+            -DZSTD_BUILD_TESTS=OFF \
+            -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF \
+            -DZSTD_BUILD_STATIC=ON \
+            -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF \
+            -DZSTD_BUILD_DEPRECATED=OFF \
+            -DZSTD_LEGACY_SUPPORT=0 \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          emmake make -j$(nproc)
+
       - name: Rename symbols (post-processing)
         run: |
           LLVM_NM="$EMSDK/upstream/bin/llvm-nm"
 
           echo "=== Library sizes before renaming ==="
-          ls -lh freetype-src/build/libfreetype.a harfbuzz-src/build/libharfbuzz.a
+          ls -lh freetype-src/build/libfreetype.a harfbuzz-src/build/libharfbuzz.a zstd-src/build/cmake/build/lib/libzstd.a
 
           # Use wasm_symbol_renamer.py to rename symbols in WASM archives
           # This script works at the WASM binary level, modifying the linking section
@@ -1680,7 +1906,8 @@ jobs:
           # Using __ut_ prefix (double underscore) for INTERNAL symbols
           python3 .github/scripts/wasm_symbol_renamer.py __ut_ \
             freetype-src/build/libfreetype.a \
-            harfbuzz-src/build/libharfbuzz.a
+            harfbuzz-src/build/libharfbuzz.a \
+            zstd-src/build/cmake/build/lib/libzstd.a
 
           echo ""
           echo "=== Verification ==="
@@ -1688,6 +1915,8 @@ jobs:
           $LLVM_NM --defined-only freetype-src/build/libfreetype.a 2>/dev/null | grep ' [TtDd] __ut_' | head -5 || echo "(checking...)"
           echo "HarfBuzz __ut_ symbols:"
           $LLVM_NM --defined-only harfbuzz-src/build/libharfbuzz.a 2>/dev/null | grep ' [TtDd] __ut_' | head -5 || echo "(checking...)"
+          echo "Zstd __ut_ symbols:"
+          $LLVM_NM --defined-only zstd-src/build/cmake/build/lib/libzstd.a 2>/dev/null | grep ' [TtDd] __ut_' | head -5 || echo "(checking...)"
 
       - name: Build WebGL wrapper
         run: |
@@ -1698,19 +1927,22 @@ jobs:
             -include ut_wrapper_prefix.h \
             -I"freetype-src/include" \
             -I"harfbuzz-src/src" \
+            -I"zstd-src/lib" \
             -Oz -c -o wrapper.o
 
           # Link everything into single relocatable object, then archive
           # Symbol prefixing:
           # - zlib-ng: ut_* via -DZLIB_SYMBOL_PREFIX=ut_ (compile-time, built-in option)
           # - libpng: ut_* via -DPNG_PREFIX=ut_ (compile-time, built-in option)
-          # - FreeType: ut_* via llvm-objcopy post-processing
-          # - HarfBuzz: ut_* via llvm-objcopy post-processing
+          # - FreeType: __ut_* via wasm_symbol_renamer post-processing
+          # - HarfBuzz: __ut_* via wasm_symbol_renamer post-processing
+          # - Zstd: __ut_* via wasm_symbol_renamer post-processing
           emcc -r -o unitext_combined.o wrapper.o \
             freetype-src/build/libfreetype.a \
             harfbuzz-src/build/libharfbuzz.a \
             libpng-src/build/libpng.a \
-            zlib-src/build/libz.a
+            zlib-src/build/libz.a \
+            zstd-src/build/cmake/build/lib/libzstd.a
 
           emar rcs libunitext_native.a unitext_combined.o
 

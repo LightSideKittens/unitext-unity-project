@@ -43,6 +43,11 @@ WRAPPER_HARFBUZZ_SYMBOLS = {
     'hb_shape',
 }
 
+WRAPPER_ZSTD_SYMBOLS = {
+    'ZSTD_compress', 'ZSTD_decompress',
+    'ZSTD_compressBound', 'ZSTD_isError',
+}
+
 
 def generate_header(symbols: Set[str], output_path: Path, prefix: str):
     """Generate C header with #define macros for symbol prefixing."""
@@ -54,7 +59,7 @@ def generate_header(symbols: Set[str], output_path: Path, prefix: str):
  * Prefix: {prefix}
  * Symbols: {len(sorted_symbols)}
  *
- * Maps FT_xxx/hb_xxx calls to {prefix}xxx prefixed symbols.
+ * Maps FT_xxx/hb_xxx/ZSTD_xxx calls to {prefix}xxx prefixed symbols.
  * Usage: Compile with -include {output_path.name}
  */
 
@@ -70,6 +75,11 @@ def generate_header(symbols: Set[str], output_path: Path, prefix: str):
         f.write("\n/* HarfBuzz */\n")
         for sym in sorted_symbols:
             if sym.startswith('hb_'):
+                f.write(f"#define {sym} {prefix}{sym}\n")
+
+        f.write("\n/* Zstd */\n")
+        for sym in sorted_symbols:
+            if sym.startswith('ZSTD_'):
                 f.write(f"#define {sym} {prefix}{sym}\n")
 
         f.write("\n#endif /* UT_PREFIX_H */\n")
@@ -89,7 +99,7 @@ def main():
         print("Error: --wrapper-only is required", file=sys.stderr)
         return 1
 
-    symbols = WRAPPER_FREETYPE_SYMBOLS | WRAPPER_HARFBUZZ_SYMBOLS
+    symbols = WRAPPER_FREETYPE_SYMBOLS | WRAPPER_HARFBUZZ_SYMBOLS | WRAPPER_ZSTD_SYMBOLS
     generate_header(symbols, args.output, args.prefix)
     return 0
 
