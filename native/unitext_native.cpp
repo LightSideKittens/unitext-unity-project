@@ -1433,19 +1433,9 @@ UNITEXT_EXPORT void ut_blGradientApplyTransform(void* grad, double m00, double m
 }
 
 // =============================================================================
-// Zstd Compression API (ut_zstd_*)
+// Zstd Decompression API (ut_zstd_*)
+// Compression lives in unitext_native_editor (editor-only)
 // =============================================================================
-
-UNITEXT_EXPORT int ut_zstd_compress_bound(int srcSize) {
-    return (int)ZSTD_compressBound((size_t)srcSize);
-}
-
-UNITEXT_EXPORT int ut_zstd_compress(const void* src, int srcSize, void* dst, int dstCapacity, int level) {
-    size_t result = ZSTD_compress(dst, (size_t)dstCapacity, src, (size_t)srcSize, level);
-    if (ZSTD_isError(result))
-        return -1;
-    return (int)result;
-}
 
 UNITEXT_EXPORT int ut_zstd_decompress(const void* src, int srcSize, void* dst, int dstCapacity) {
     size_t result = ZSTD_decompress(dst, (size_t)dstCapacity, src, (size_t)srcSize);

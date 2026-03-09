@@ -8,3 +8,5 @@ EXPORTS
     get_font_codepoints
     unitext_open_files_dialog
     unitext_free_dialog_result
+    ut_zstd_compress_bound
+    ut_zstd_compress

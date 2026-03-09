@@ -6,6 +6,7 @@ on:
 
 env:
   HARFBUZZ_VERSION: "12.3.2"
+  ZSTD_VERSION: "1.5.6"
   # Aggressive size optimization - we only need subset, not shaping
   HB_FLAGS: "-DHB_MINI -DHB_LEAN -DHB_OPTIMIZE_SIZE -DHB_OPTIMIZE_SIZE_MORE -DHB_MINIMIZE_MEMORY_USAGE -DHB_NO_FALLBACK_SHAPE -DHB_NO_WIN1256 -DHB_DISABLE_DEPRECATED -DHB_NO_BUFFER_SERIALIZE -DHB_NO_BUFFER_VERIFY -DHB_NO_BUFFER_MESSAGE -DHB_NO_SETLOCALE -DHB_NO_MMAP -DHB_NO_META -DHB_NO_MT -DHB_NO_DRAW -DHB_NO_PAINT -DNDEBUG"
 
@@ -36,12 +37,26 @@ jobs:
             -Dcpp_args="%HB_FLAGS%"
           ninja -C build install
 
+      - name: Build Zstd
+        shell: cmd
+        run: |
+          git clone --depth 1 --branch v%ZSTD_VERSION% https://github.com/facebook/zstd.git zstd-src
+          cd zstd-src\build\cmake && mkdir build && cd build
+          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ^
+            -DCMAKE_INSTALL_PREFIX=%cd%\..\..\..\..\deps\zstd ^
+            -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF ^
+            -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF ^
+            -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 ^
+            -DZSTD_BUILD_DECOMPRESSION=OFF ^
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          nmake install
+
       - name: Build DLL
         shell: cmd
         run: |
-          cl /c /O1 /MD /EHsc /std:c++17 native\unitext_subset.cpp /I deps\harfbuzz\include\harfbuzz /DNDEBUG
+          cl /c /O1 /MD /EHsc /std:c++17 native\unitext_subset.cpp /I deps\harfbuzz\include\harfbuzz /I deps\zstd\include /DNDEBUG
           cl /c /O1 /MD /EHsc /std:c++17 native\unitext_file_dialog.cpp /DNDEBUG
-          link /DLL /OUT:unitext_native_editor.dll /DEF:native\unitext_subset.def unitext_subset.obj unitext_file_dialog.obj deps\harfbuzz\lib\libharfbuzz-subset.a deps\harfbuzz\lib\libharfbuzz.a comdlg32.lib
+          link /DLL /OUT:unitext_native_editor.dll /DEF:native\unitext_subset.def unitext_subset.obj unitext_file_dialog.obj deps\harfbuzz\lib\libharfbuzz-subset.a deps\harfbuzz\lib\libharfbuzz.a deps\zstd\lib\zstd_static.lib comdlg32.lib
 
       - name: Verify
         shell: bash
@@ -94,17 +109,47 @@ jobs:
             -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Dbenchmark=disabled -Dutilities=disabled
           ninja -C build-x64 install
 
+      - name: Build Zstd
+        run: |
+          git clone --depth 1 --branch v$ZSTD_VERSION https://github.com/facebook/zstd.git zstd-src
+          cd zstd-src/build/cmake
+
+          mkdir build-arm64 && cd build-arm64
+          cmake .. -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/zstd-arm64 \
+            -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
+            -DZSTD_BUILD_DECOMPRESSION=OFF \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(sysctl -n hw.ncpu) install
+          cd ..
+
+          mkdir build-x64 && cd build-x64
+          cmake .. -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/deps/zstd-x64 \
+            -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
+            -DZSTD_BUILD_DECOMPRESSION=OFF \
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+          make -j$(sysctl -n hw.ncpu) install
+
       - name: Build universal dylib
         run: |
-          clang++ -c -Os -std=c++17 -arch arm64 -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz-arm64/include/harfbuzz -o subset_arm64.o
-          clang++ -c -Os -std=c++17 -arch x86_64 -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz-x64/include/harfbuzz -o subset_x64.o
+          clang++ -c -Os -std=c++17 -arch arm64 -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz-arm64/include/harfbuzz -I deps/zstd-arm64/include -o subset_arm64.o
+          clang++ -c -Os -std=c++17 -arch x86_64 -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz-x64/include/harfbuzz -I deps/zstd-x64/include -o subset_x64.o
           clang++ -c -Os -std=c++17 -arch arm64 -DNDEBUG -x objective-c++ native/unitext_file_dialog.cpp -o dialog_arm64.o
           clang++ -c -Os -std=c++17 -arch x86_64 -DNDEBUG -x objective-c++ native/unitext_file_dialog.cpp -o dialog_x64.o
 
           clang++ -dynamiclib -arch arm64 -dead_strip -o libunitext_native_editor_arm64.dylib subset_arm64.o dialog_arm64.o \
-            deps/harfbuzz-arm64/lib/libharfbuzz-subset.a deps/harfbuzz-arm64/lib/libharfbuzz.a -framework AppKit -weak_framework UniformTypeIdentifiers -lc++
+            deps/harfbuzz-arm64/lib/libharfbuzz-subset.a deps/harfbuzz-arm64/lib/libharfbuzz.a \
+            deps/zstd-arm64/lib/libzstd.a -framework AppKit -weak_framework UniformTypeIdentifiers -lc++
           clang++ -dynamiclib -arch x86_64 -dead_strip -o libunitext_native_editor_x64.dylib subset_x64.o dialog_x64.o \
-            deps/harfbuzz-x64/lib/libharfbuzz-subset.a deps/harfbuzz-x64/lib/libharfbuzz.a -framework AppKit -weak_framework UniformTypeIdentifiers -lc++
+            deps/harfbuzz-x64/lib/libharfbuzz-subset.a deps/harfbuzz-x64/lib/libharfbuzz.a \
+            deps/zstd-x64/lib/libzstd.a -framework AppKit -weak_framework UniformTypeIdentifiers -lc++
 
           lipo -create libunitext_native_editor_arm64.dylib libunitext_native_editor_x64.dylib -output libunitext_native_editor.dylib
           strip -x libunitext_native_editor.dylib
@@ -145,12 +190,26 @@ jobs:
             -Dcpp_args="-fPIC $HB_FLAGS"
           ninja -C build install
 
+      - name: Build Zstd
+        run: |
+          git clone --depth 1 --branch v$ZSTD_VERSION https://github.com/facebook/zstd.git zstd-src
+          cd zstd-src/build/cmake && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/deps/zstd \
+            -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
+            -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
+            -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
+            -DZSTD_BUILD_DECOMPRESSION=OFF \
+            -DCMAKE_C_FLAGS="-fPIC -DZSTD_LIB_MINIFY"
+          make -j$(nproc) install
+
       - name: Build SO
         run: |
-          g++ -c -Os -std=c++17 -fPIC -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz/include/harfbuzz -o unitext_subset.o
+          g++ -c -Os -std=c++17 -fPIC -DNDEBUG native/unitext_subset.cpp -I deps/harfbuzz/include/harfbuzz -I deps/zstd/include -o unitext_subset.o
           g++ -c -Os -std=c++17 -fPIC -DNDEBUG native/unitext_file_dialog.cpp -o unitext_file_dialog.o
           g++ -shared -Wl,--gc-sections -o libunitext_native_editor.so unitext_subset.o unitext_file_dialog.o \
-            deps/harfbuzz/lib/libharfbuzz-subset.a deps/harfbuzz/lib/libharfbuzz.a -lstdc++ -ldl
+            deps/harfbuzz/lib/libharfbuzz-subset.a deps/harfbuzz/lib/libharfbuzz.a \
+            deps/zstd/lib/libzstd.a -lstdc++ -ldl
           strip libunitext_native_editor.so
 
       - name: Verify

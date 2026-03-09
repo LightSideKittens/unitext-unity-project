@@ -325,6 +325,7 @@ jobs:
             -DZSTD_BUILD_DICTBUILDER=OFF ^
             -DZSTD_BUILD_DEPRECATED=OFF ^
             -DZSTD_LEGACY_SUPPORT=0 ^
+            -DZSTD_BUILD_COMPRESSION=OFF ^
             -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           cmake --build . --config Release
           cmake --install . --config Release
@@ -531,6 +532,7 @@ jobs:
             -DZSTD_BUILD_DICTBUILDER=OFF \
             -DZSTD_BUILD_DEPRECATED=OFF \
             -DZSTD_LEGACY_SUPPORT=0 \
+            -DZSTD_BUILD_COMPRESSION=OFF \
             -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           make -j$(nproc) && make install
 
@@ -745,6 +747,7 @@ jobs:
             -DZSTD_BUILD_DICTBUILDER=OFF \
             -DZSTD_BUILD_DEPRECATED=OFF \
             -DZSTD_LEGACY_SUPPORT=0 \
+            -DZSTD_BUILD_COMPRESSION=OFF \
             -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           make -j$(nproc) && make install
 
@@ -998,6 +1001,7 @@ jobs:
             -DZSTD_BUILD_DICTBUILDER=OFF \
             -DZSTD_BUILD_DEPRECATED=OFF \
             -DZSTD_LEGACY_SUPPORT=0 \
+            -DZSTD_BUILD_COMPRESSION=OFF \
             -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           make -j$(sysctl -n hw.ncpu) && make install
 
@@ -1217,6 +1221,7 @@ jobs:
             -DZSTD_BUILD_DICTBUILDER=OFF \
             -DZSTD_BUILD_DEPRECATED=OFF \
             -DZSTD_LEGACY_SUPPORT=0 \
+            -DZSTD_BUILD_COMPRESSION=OFF \
             -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           make -j$(nproc) && make install
 
@@ -1362,7 +1367,7 @@ jobs:
             -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
             -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
             -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
-            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+            -DZSTD_BUILD_COMPRESSION=OFF -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           make -j$(sysctl -n hw.ncpu) && make install
 
       - name: Install llvm (for objcopy)
@@ -1463,7 +1468,7 @@ jobs:
             -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
             -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
             -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
-            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+            -DZSTD_BUILD_COMPRESSION=OFF -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           make -j$(sysctl -n hw.ncpu) && make install
 
           # === Simulator x86_64 ===
@@ -1522,7 +1527,7 @@ jobs:
             -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
             -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
             -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
-            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+            -DZSTD_BUILD_COMPRESSION=OFF -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           make -j$(sysctl -n hw.ncpu) && make install
 
       - name: Rename simulator symbols (post-processing)
@@ -1707,7 +1712,7 @@ jobs:
             -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF \
             -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF \
             -DZSTD_BUILD_DICTBUILDER=OFF -DZSTD_BUILD_DEPRECATED=OFF -DZSTD_LEGACY_SUPPORT=0 \
-            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+            -DZSTD_BUILD_COMPRESSION=OFF -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           make -j$(sysctl -n hw.ncpu) && make install
 
       - name: Install llvm (for objcopy)
@@ -1890,6 +1895,7 @@ jobs:
             -DZSTD_BUILD_DICTBUILDER=OFF \
             -DZSTD_BUILD_DEPRECATED=OFF \
             -DZSTD_LEGACY_SUPPORT=0 \
+            -DZSTD_BUILD_COMPRESSION=OFF \
             -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
           emmake make -j$(nproc)
 

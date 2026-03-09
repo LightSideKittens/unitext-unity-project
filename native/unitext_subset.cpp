@@ -288,3 +288,20 @@ EXPORT unsigned int get_font_codepoints(
     hb_font_destroy(font);
     return count;
 }
+
+// =============================================================================
+// Zstd Compression (editor-only, runtime uses unitext_native for decompression)
+// =============================================================================
+
+#include <zstd.h>
+
+EXPORT int ut_zstd_compress_bound(int srcSize) {
+    return (int)ZSTD_compressBound((size_t)srcSize);
+}
+
+EXPORT int ut_zstd_compress(const void* src, int srcSize, void* dst, int dstCapacity, int level) {
+    size_t result = ZSTD_compress(dst, (size_t)dstCapacity, src, (size_t)srcSize, level);
+    if (ZSTD_isError(result))
+        return -1;
+    return (int)result;
+}
