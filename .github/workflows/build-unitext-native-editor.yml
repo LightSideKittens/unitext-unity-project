@@ -174,7 +174,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           apt-get update
-          apt-get install -y git build-essential ninja-build pkg-config python3-pip ca-certificates
+          apt-get install -y git build-essential cmake ninja-build pkg-config python3-pip ca-certificates
           pip3 install meson
 
       - name: Build HarfBuzz
