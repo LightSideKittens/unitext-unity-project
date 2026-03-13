@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c462a215d824769a04b6e8060809d3b, type: 3}
-  m_Name: ModRegisterConfig
-  m_EditorClassIdentifier: LightSide.UniText::ModRegisterConfig
-  modRegisters:
+  m_Name: StylePreset
+  m_EditorClassIdentifier: LightSide.UniText::StylePreset
+  styles:
     items:
     - modifier:
         rid: 2935973566340137106

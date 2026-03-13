@@ -24,7 +24,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     [Header("Color Tests")] [SerializeField]
     private Color testColor = Color.red;
 
-    [SerializeReference] public List<ModRegister> modifiers = new();
+    [SerializeReference] public List<Style> modifiers = new();
 
     private UniTextFontStack originalFontStack;
     private float originalFontSize;
@@ -537,7 +537,7 @@ public class UniTextInteractiveTest : MonoBehaviour
                   $"───────────────────────────────────────\n" +
                   $"Text: \"{target.Text}\" ({target.Text?.Length ?? 0} chars)\n" +
                   $"Fonts: {(target.FontStack != null ? target.FontStack.name : "null")}\n" +
-                  $"MainFont: {(target.MainFont != null ? target.MainFont.name : "null")}\n" +
+                  $"MainFont: {(target.PrimaryFont != null ? target.PrimaryFont.name : "null")}\n" +
                   $"FontSize: {target.FontSize}\n" +
                   $"Color: {target.color}\n" +
                   $"Direction: {target.BaseDirection}\n" +
@@ -623,22 +623,22 @@ public class UniTextInteractiveTest : MonoBehaviour
 
     #endregion
 
-    private List<ModRegister> last;
+    private List<Style> last;
     
     [ContextMenu("Modifiers/Set")]
     public void SetMods()
     {
-        last ??= new((List<ModRegister>)target.ModRegisters);
-        target.ClearModifiers();
-        for (var i = 0; i < modifiers.Count; i++) target.RegisterModifier(modifiers[i]);
+        last ??= new((List<Style>)target.Styles);
+        target.ClearStyles();
+        for (var i = 0; i < modifiers.Count; i++) target.AddStyle(modifiers[i]);
     }
     
     [ContextMenu("Modifiers/Restore")]
     public void RestoreMods()
     {
         if(last == null) return;
-        target.ClearModifiers();
-        for (var i = 0; i < last.Count; i++) target.RegisterModifier(last[i]);
+        target.ClearStyles();
+        for (var i = 0; i < last.Count; i++) target.AddStyle(last[i]);
     }
     
     [ContextMenu("Modifiers/Add")]
@@ -646,13 +646,13 @@ public class UniTextInteractiveTest : MonoBehaviour
     {
         RemovedMods();
 
-        for (var i = 0; i < modifiers.Count; i++) target.RegisterModifier(modifiers[i]);
+        for (var i = 0; i < modifiers.Count; i++) target.AddStyle(modifiers[i]);
     }
 
     [ContextMenu("Modifiers/Remove")]
     public void RemovedMods()
     {
-        for (var i = 0; i < modifiers.Count; i++) target.UnregisterModifier(modifiers[i]);
+        for (var i = 0; i < modifiers.Count; i++) target.RemoveStyle(modifiers[i]);
     }
 
     private void Log(string message)

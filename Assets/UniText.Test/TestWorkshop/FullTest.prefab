@@ -145,7 +145,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 2031797866453532880
@@ -183,7 +183,7 @@ MonoBehaviour:
         rid: 2935973566340137021
       rule:
         rid: 266425450751590468
-  modRegisterConfigs:
+  stylePresets:
     items:
     - {fileID: 11400000, guid: c63bfb476d8131e49bfee56b80320ec3, type: 2}
   highlighter:

@@ -1029,6 +1029,7 @@ jobs:
             -lpthread
 
           strip -x libunitext_native.dylib
+          codesign --force --sign - libunitext_native.dylib
 
       - name: Verify dylib
         run: |

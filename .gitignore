@@ -102,5 +102,7 @@ InitTestScene*.unity*
 /[Aa]ssets/UniText/UniText.xml
 /[Aa]ssets/UniText/UniText.xml.meta
 /tools/api.json
-/tools/node_modules/
+/tools/types-audit.json
+/tools/UniTextDocGen/bin/
+/tools/UniTextDocGen/obj/
 /Fonts/

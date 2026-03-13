@@ -316,9 +316,9 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items: []
-  modRegisterConfigs:
+  stylePresets:
     items: []
   highlighter:
     rid: 266425198091698225

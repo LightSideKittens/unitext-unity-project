@@ -153,6 +153,7 @@ jobs:
 
           lipo -create libunitext_native_editor_arm64.dylib libunitext_native_editor_x64.dylib -output libunitext_native_editor.dylib
           strip -x libunitext_native_editor.dylib
+          codesign --force --sign - libunitext_native_editor.dylib
 
       - name: Verify
         run: ls -lh libunitext_native_editor.dylib && file libunitext_native_editor.dylib

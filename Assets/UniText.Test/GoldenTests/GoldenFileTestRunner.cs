@@ -450,7 +450,8 @@ public class GoldenFileTestRunner : MonoBehaviour
 
         return snapshot;
     }
-
+    
+#if UNITEXT_TESTS
     void AddMeshToSnapshot(Mesh mesh, MeshDataSnapshot snapshot,
         UniText.TestSegmentFontInfo fontInfo, LightSide.UniTextFontProvider fontProvider)
     {
@@ -515,7 +516,7 @@ public class GoldenFileTestRunner : MonoBehaviour
                     if (uv.y > uvMaxY) uvMaxY = uv.y;
                 }
 
-                glyphId = IdentifyGlyphFromUVs(glyphTable, fontInfo.atlasIndex,
+                glyphId = IdentifyGlyphFromUVs(glyphTable,
                     atlasSize, padding, uvMinX, uvMinY, uvMaxX, uvMaxY);
 
                 if (glyphId >= 0 && glyphTable.TryGetValue((uint)glyphId, out var glyph))
@@ -534,8 +535,7 @@ public class GoldenFileTestRunner : MonoBehaviour
         }
     }
 
-    static int IdentifyGlyphFromUVs(Dictionary<uint, LightSide.Glyph> glyphTable,
-        int atlasIndex, int atlasSize, int padding,
+    static int IdentifyGlyphFromUVs(Dictionary<uint, LightSide.Glyph> glyphTable, int atlasSize, int padding,
         float uvMinX, float uvMinY, float uvMaxX, float uvMaxY)
     {
         const float eps = 1e-3f;
@@ -544,7 +544,6 @@ public class GoldenFileTestRunner : MonoBehaviour
         foreach (var kvp in glyphTable)
         {
             var glyph = kvp.Value;
-            if (glyph.atlasIndex != atlasIndex) continue;
 
             var rect = glyph.glyphRect;
             float gMinX = (rect.x - padding) * invAtlas;
@@ -560,7 +559,6 @@ public class GoldenFileTestRunner : MonoBehaviour
         foreach (var kvp in glyphTable)
         {
             var glyph = kvp.Value;
-            if (glyph.atlasIndex != atlasIndex) continue;
 
             var rect = glyph.glyphRect;
             float gMinX = (rect.x - padding) * invAtlas;
@@ -602,6 +600,7 @@ public class GoldenFileTestRunner : MonoBehaviour
     }
 
     #endregion
+#endif
 
     #region Union-Find Primitive Discovery
 

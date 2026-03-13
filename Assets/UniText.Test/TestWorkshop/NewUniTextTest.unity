@@ -189,7 +189,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 266425359752233017
@@ -199,13 +199,16 @@ MonoBehaviour:
         rid: 266425359752233019
       rule:
         rid: 266425359752233020
-  modRegisterConfigs:
+  stylePresets:
     items: []
+  renderMode: 0
   highlighter:
     rid: 266425198091698270
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 266425198091698270
       type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -215,7 +218,6 @@ MonoBehaviour:
     - rid: 266425359752233017
       type: {class: ShadowModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        layer: 2
         fixedPixelSize: 0
     - rid: 266425359752233018
       type: {class: ShadowRangeRule, ns: LightSide, asm: LightSide.UniText}
@@ -559,7 +561,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 2031797989190140001
@@ -569,8 +571,9 @@ MonoBehaviour:
         rid: 2031797989190140031
       rule:
         rid: 2031797989190140032
-  modRegisterConfigs:
+  stylePresets:
     items: []
+  renderMode: 0
   highlighter:
     rid: 2935973836690030638
   references:
@@ -779,7 +782,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 266425359752233017
@@ -789,13 +792,16 @@ MonoBehaviour:
         rid: 266425359752233019
       rule:
         rid: 266425359752233020
-  modRegisterConfigs:
+  stylePresets:
     items: []
+  renderMode: 0
   highlighter:
     rid: 266425198091698270
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 266425198091698270
       type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -805,7 +811,6 @@ MonoBehaviour:
     - rid: 266425359752233017
       type: {class: ShadowModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        layer: 2
         fixedPixelSize: 0
     - rid: 266425359752233018
       type: {class: ShadowRangeRule, ns: LightSide, asm: LightSide.UniText}
@@ -1052,19 +1057,22 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 266425320887025865
       rule:
         rid: 266425320887025873
-  modRegisterConfigs:
+  stylePresets:
     items: []
+  renderMode: 0
   highlighter:
     rid: 266425198091698270
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 266425198091698270
       type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -1452,7 +1460,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 266425320887025891
@@ -1462,13 +1470,16 @@ MonoBehaviour:
         rid: 266425320887025896
       rule:
         rid: 266425320887025897
-  modRegisterConfigs:
+  stylePresets:
     items: []
+  renderMode: 0
   highlighter:
     rid: 266425198091698270
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 266425198091698270
       type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -1478,7 +1489,6 @@ MonoBehaviour:
     - rid: 266425320887025891
       type: {class: ShadowModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        layer: 2
         fixedPixelSize: 1
     - rid: 266425320887025892
       type: {class: ShadowRangeRule, ns: LightSide, asm: LightSide.UniText}
@@ -1687,8 +1697,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 182.2, y: 63}
+  m_SizeDelta: {x: 131.86, y: 167.49}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1521897149
 MonoBehaviour:
@@ -1710,9 +1720,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  text: 'Test1
-
-'
+  text: "<tag>Hello world \u0645\u0631\u062D\u0628\u0627 \u0627\u0644\u0639\u0627\u0644\u0645
+    good bye wor</tag>\n\n<tag2>Hello world \u0645\u0631\u062D\u0628\u0627 \u0627\u0644\u0639\u0627\u0644\u0645
+    good bye wor</tag2>"
   fontStack: {fileID: 11400000, guid: 72f6e3edfbc82804791ebe8e4814fa46, type: 2}
   fontSize: 36
   baseDirection: 2
@@ -1725,14 +1735,15 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
-        rid: 266425320887025878
+        rid: 4507959470655799408
       rule:
-        rid: 266425320887025879
-  modRegisterConfigs:
+        rid: 4507959470655799416
+  stylePresets:
     items: []
+  renderMode: 1
   highlighter:
     rid: 266425320887025859
   references:
@@ -1744,16 +1755,26 @@ MonoBehaviour:
         clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
         fadeDuration: 0.25
         hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
-    - rid: 266425320887025878
-      type: {class: OutlineModifier, ns: LightSide, asm: LightSide.UniText}
+    - rid: 4507959470655799408
+      type: {class: GradientModifier, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 4507959470655799416
+      type: {class: CompositeParseRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        fixedPixelSize: 0
-    - rid: 266425320887025879
-      type: {class: OutlineRangeRule, ns: LightSide, asm: LightSide.UniText}
+        rules:
+          items:
+          - rid: 4507959470655799417
+          - rid: 4507959470655799418
+    - rid: 4507959470655799417
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        range: ..
-        dilate: 0.4
-        color: {r: 1, g: 0, b: 0, a: 1}
+        tagName: tag
+        defaultParameter: rainbow,linear,0
+    - rid: 4507959470655799418
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tagName: tag2
+        defaultParameter: ocean,angular,227
 --- !u!222 &1521897150
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2101,7 +2122,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 2031797866453532878
@@ -2131,8 +2152,9 @@ MonoBehaviour:
         rid: 2031797913714425946
       rule:
         rid: 2031797913714425947
-  modRegisterConfigs:
+  stylePresets:
     items: []
+  renderMode: 0
   highlighter:
     rid: 2935973836690030637
   references:
@@ -2146,8 +2168,7 @@ MonoBehaviour:
       data: 
     - rid: 2031797866453532880
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
-      data:
-        boldWeight: 1
+      data: 
     - rid: 2031797866453532881
       type: {class: BoldParseRule, ns: LightSide, asm: LightSide.UniText}
       data: 
@@ -2293,7 +2314,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 266425359752233017
@@ -2303,13 +2324,16 @@ MonoBehaviour:
         rid: 266425359752233019
       rule:
         rid: 266425359752233020
-  modRegisterConfigs:
+  stylePresets:
     items: []
+  renderMode: 0
   highlighter:
     rid: 266425198091698270
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 266425198091698270
       type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -2319,7 +2343,6 @@ MonoBehaviour:
     - rid: 266425359752233017
       type: {class: ShadowModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        layer: 2
         fixedPixelSize: 0
     - rid: 266425359752233018
       type: {class: ShadowRangeRule, ns: LightSide, asm: LightSide.UniText}
@@ -2445,7 +2468,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 2031797989190140001
@@ -2455,8 +2478,9 @@ MonoBehaviour:
         rid: 2031797989190140031
       rule:
         rid: 2031797989190140032
-  modRegisterConfigs:
+  stylePresets:
     items: []
+  renderMode: 0
   highlighter:
     rid: 2935973836690030639
   references:

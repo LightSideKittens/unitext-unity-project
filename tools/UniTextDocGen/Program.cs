@@ -57,7 +57,7 @@ return 0;
 
 public class ApiDocument
 {
-    public string Version { get; set; } = "0.9.0";
+    public string Version { get; set; } = "2.0.0";
     public string GeneratedAt { get; set; } = DateTime.UtcNow.ToString("o");
     public List<string> Namespaces { get; set; } = new();
     public List<TypeDoc> Types { get; set; } = new();
@@ -211,7 +211,7 @@ public class DocumentationGenerator
         ("UniTextEditorResources", "editor"),
         ("EditorShaderUtilities", "editor"),
         ("EscapeTextArea", "editor"),
-        ("ModRegisterDrawer", "editor"),
+        ("StyleDrawer", "editor"),
         ("StyledListDrawer", "editor"),
         ("StyledListUtility", "editor"),
         ("TypeGroupAttribute", "editor"),
@@ -219,12 +219,16 @@ public class DocumentationGenerator
         ("TypeSelectorDrawer", "editor"),
         ("TypedListDrawer", "editor"),
         ("ListCallbacks", "editor"),
+        ("DefaultParameterAttribute", "editor"),
+        ("ParameterFieldAttribute", "editor"),
+        ("TypeDescriptionAttribute", "editor"),
 
         // ============ Fonts ============
         ("UniTextFont", "fonts"),
         ("UniTextAppearance", "fonts"),
         ("UniTextRenderMode", "fonts"),  // SDF/Smooth/Mono — defined in FontTypes.cs
         ("UniTextFontError", "fonts"),
+        ("FontFamily", "fonts"),
         ("FontMaterial", "fonts"),
         ("FaceInfo", "fonts"),
         ("SharedFontCache", "fonts"),
@@ -239,6 +243,10 @@ public class DocumentationGenerator
         ("FontSubsetter", "fonts"),
         ("=COLRv1Renderer", "fonts"),   // Exact match (not COLRv1RendererPool → utilities)
 
+        // ============ Exact-match overrides (before broad Core patterns) ============
+        ("=UniTextArrayPool", "utilities"),  // before "UniText" → core
+        ("=StyledList", "utilities"),        // before "Style" → modifiers
+
         // ============ Core ============
         ("UniText", "core"),
         ("TextProcessor", "core"),
@@ -246,6 +254,9 @@ public class DocumentationGenerator
         ("LayoutSettings", "core"),
         ("HorizontalAlignment", "core"),
         ("VerticalAlignment", "core"),
+        ("LeadingDistribution", "core"),
+        ("TextOverEdge", "core"),
+        ("TextUnderEdge", "core"),
         ("TruncationMode", "core"),
         ("TextLine", "core"),
         ("TextRun", "core"),
@@ -263,7 +274,9 @@ public class DocumentationGenerator
         // ============ Parse Rules (before Modifiers - more specific) ============
         ("ParseRule", "parseRules"),
         ("IParseRule", "parseRules"),
+        ("TagRule", "parseRules"),
         ("RangeRule", "parseRules"),
+        ("MarkdownWrapRule", "parseRules"),
         ("EllipsisTagRule", "parseRules"),
         ("RangeRule.Data", "parseRules"),
 
@@ -277,7 +290,9 @@ public class DocumentationGenerator
         ("AttributeKeys", "modifiers"),
         ("IAttributeData", "modifiers"),
         ("LinkData", "modifiers"),
-        ("ModRegister", "modifiers"),
+        ("Effect", "modifiers"),        // EffectPacking, EffectPass
+        ("ColorParsing", "modifiers"),
+        ("Style", "modifiers"),
         ("ListItemInfo", "modifiers"),
         ("OrderedMarkerStyle", "modifiers"),
         ("GlyphRenderHelper", "modifiers"),
@@ -291,6 +306,7 @@ public class DocumentationGenerator
         ("Grapheme", "unicode"),
         ("Script", "unicode"),
         ("Unicode", "unicode"),
+        ("WordSegment", "unicode"),     // IWordSegmenter, WordSegmentationDictionary
         ("BracketEntry", "unicode"),
         ("DefaultIgnorable", "unicode"),
         ("EastAsianWidth", "unicode"),
@@ -324,8 +340,7 @@ public class DocumentationGenerator
         ("IndexEx", "utilities"),
         ("Enumerator", "utilities"),
         ("ObjectUtils", "utilities"),
-        ("StyledList", "utilities"),     // StyledList<T> (StyledListDrawer matched earlier → editor)
-        ("TypedList", "utilities"),      // TypedList<T> (TypedListDrawer matched earlier → editor)
+        ("TypedList", "utilities"),
     };
 
     // Типы которые нужно исключить
@@ -618,7 +633,7 @@ public class DocumentationGenerator
             ["AttributeParser"] = 3,
             ["AttributeSpan"] = 4,
             ["ParsedRange"] = 5,
-            ["ModRegister"] = 6,
+            ["Style"] = 6,
 
             // Parse Rules
             ["IParseRule"] = 1,

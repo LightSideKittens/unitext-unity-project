@@ -434,7 +434,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 2031797989190140001
@@ -444,7 +444,7 @@ MonoBehaviour:
         rid: 2031797989190140031
       rule:
         rid: 266425450751590473
-  modRegisterConfigs:
+  stylePresets:
     items: []
   highlighter:
     rid: 2935973836690030638
@@ -1094,9 +1094,9 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items: []
-  modRegisterConfigs:
+  stylePresets:
     items: []
   highlighter:
     rid: 2935973836690030637
@@ -1214,7 +1214,7 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
-  modRegisters:
+  styles:
     items:
     - modifier:
         rid: 2031797989190140001
@@ -1224,7 +1224,7 @@ MonoBehaviour:
         rid: 2031797989190140031
       rule:
         rid: 266425450751590471
-  modRegisterConfigs:
+  stylePresets:
     items: []
   highlighter:
     rid: 2935973836690030639
