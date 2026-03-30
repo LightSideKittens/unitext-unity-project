@@ -26,7 +26,14 @@ EXPORTS
     ut_ft_render_sdf_glyph
     ut_ft_free_sdf_buffer
 
+    ; === FreeType Stroker API ===
+    ut_ft_stroker_new
+    ut_ft_stroker_done
+    ut_ft_stroker_set
+    ut_ft_stroke_glyph_border
+
     ; === FreeType Wrapper Functions ===
+    ut_ft_get_bbox_height
     ut_ft_get_face_info
     ut_ft_get_extended_face_info
     ut_ft_get_fixed_size

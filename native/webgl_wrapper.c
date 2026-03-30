@@ -11,6 +11,8 @@
 #include FT_TRUETYPE_TABLES_H
 #include FT_MULTIPLE_MASTERS_H
 #include FT_OUTLINE_H
+#include FT_GLYPH_H
+#include FT_STROKER_H
 #include <hb.h>
 #include <hb-ot.h>
 #include <hb-ft.h>
@@ -89,6 +91,11 @@ EXPORT int ut_ft_get_color_glyph_layer(FT_Face face, unsigned int base_glyph, un
 // =============================================================================
 // FreeType Wrapper Functions (ut_ft_*)
 // =============================================================================
+
+EXPORT int ut_ft_get_bbox_height(FT_Face face) {
+    if (!face) return 0;
+    return (int)(face->bbox.yMax - face->bbox.yMin);
+}
 
 EXPORT void ut_ft_get_face_info(FT_Face face, long long* out_face_flags, int* out_num_glyphs,
                                 int* out_units_per_em, int* out_num_fixed_sizes,
@@ -171,6 +178,14 @@ EXPORT void ut_ft_get_bitmap_info(FT_Face face, int* out_width, int* out_height,
 
 EXPORT FT_GlyphSlot ut_ft_get_glyph_slot(FT_Face face) {
     return face ? face->glyph : NULL;
+}
+
+EXPORT int ut_ft_get_bitmap_top(FT_Face face) {
+    return (face && face->glyph) ? face->glyph->bitmap_top : 0;
+}
+
+EXPORT int ut_ft_get_bitmap_left(FT_Face face) {
+    return (face && face->glyph) ? face->glyph->bitmap_left : 0;
 }
 
 // === Felzenszwalb & Huttenlocher EDT ===
@@ -870,6 +885,79 @@ EXPORT int ut_ft_get_outline_info(FT_Face face, int* numContours, int* numPoints
 EXPORT int ut_debug_sbix_graphic_type(FT_Face face, unsigned char* outGraphicType, int* outNumStrikes) {
     if (outGraphicType) outGraphicType[0] = 0;
     if (outNumStrikes) *outNumStrikes = 0;
+    return 0;
+}
+
+// =============================================================================
+// FreeType Stroker API (ut_ft_stroker_*)
+// =============================================================================
+
+// Holds the last stroked glyph so its bitmap buffer stays valid until the next call.
+// WebGL is single-threaded, static is safe.
+static FT_Glyph s_lastStrokedGlyph = NULL;
+
+EXPORT int ut_ft_stroker_new(FT_Library library, FT_Stroker* out_stroker) {
+    return FT_Stroker_New(library, out_stroker);
+}
+
+EXPORT void ut_ft_stroker_done(FT_Stroker stroker) {
+    FT_Stroker_Done(stroker);
+}
+
+EXPORT void ut_ft_stroker_set(FT_Stroker stroker, int radius, int lineCap, int lineJoin, int miterLimit) {
+    FT_Stroker_Set(stroker, (FT_Fixed)radius,
+                   (FT_Stroker_LineCap)lineCap,
+                   (FT_Stroker_LineJoin)lineJoin,
+                   (FT_Fixed)miterLimit);
+}
+
+EXPORT int ut_ft_stroke_glyph_border(
+    FT_Face face, unsigned int glyphIndex, FT_Stroker stroker,
+    int inside, int loadFlags,
+    int* out_width, int* out_height,
+    int* out_bearingX, int* out_bearingY,
+    float* out_advanceX,
+    int* out_pitch, unsigned char** out_buffer)
+{
+    if (!face || !stroker) return -1;
+
+    // Load glyph outline
+    FT_Error err = FT_Load_Glyph(face, glyphIndex, loadFlags);
+    if (err) return (int)err;
+
+    // Read advance from the loaded glyph (unaffected by stroke)
+    float advanceX = (float)face->glyph->metrics.horiAdvance / 64.0f;
+
+    // Extract glyph object
+    FT_Glyph glyph;
+    err = FT_Get_Glyph(face->glyph, &glyph);
+    if (err) return (int)err;
+
+    // Apply stroke border
+    err = FT_Glyph_StrokeBorder(&glyph, stroker, (FT_Bool)inside, 0);
+    if (err) { FT_Done_Glyph(glyph); return (int)err; }
+
+    // Rasterize to grayscale bitmap (destroy = 1: replaces vector glyph in-place)
+    err = FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, NULL, 1);
+    if (err) { FT_Done_Glyph(glyph); return (int)err; }
+
+    // Extract bitmap data
+    FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)glyph;
+    FT_Bitmap* b = &bitmapGlyph->bitmap;
+
+    if (out_width)    *out_width    = (int)b->width;
+    if (out_height)   *out_height   = (int)b->rows;
+    if (out_bearingX) *out_bearingX = bitmapGlyph->left;
+    if (out_bearingY) *out_bearingY = bitmapGlyph->top;
+    if (out_advanceX) *out_advanceX = advanceX;
+    if (out_pitch)    *out_pitch    = b->pitch;
+    if (out_buffer)   *out_buffer   = b->buffer;
+
+    // Free previous glyph, keep current alive so buffer stays valid
+    if (s_lastStrokedGlyph)
+        FT_Done_Glyph(s_lastStrokedGlyph);
+    s_lastStrokedGlyph = glyph;
+
     return 0;
 }
 

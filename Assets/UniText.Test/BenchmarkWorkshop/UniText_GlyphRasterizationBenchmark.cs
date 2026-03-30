@@ -88,10 +88,7 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         report.Clear();
 
         bool wasParallel = UniText.UseParallel;
-        bool wasForceST = GlyphAtlas.ForceSingleThreaded;
-
         UniText.UseParallel = !singleThreaded;
-        GlyphAtlas.ForceSingleThreaded = singleThreaded;
 
         string mode = singleThreaded ? "SINGLE-THREADED" : "PARALLEL";
 
@@ -175,7 +172,6 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
             textObjects[i].SetActive(false);
 
         UniText.UseParallel = wasParallel;
-        GlyphAtlas.ForceSingleThreaded = wasForceST;
 
         LastResults = new GlyphRasterResults
         {

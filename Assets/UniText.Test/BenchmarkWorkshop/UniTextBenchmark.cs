@@ -11,15 +11,14 @@ public class UniTextBenchmark : TextBenchmarkBase
     protected override void OnBeforeAllTests()
     {
         UniText.UseParallel = parallelMode;
-        GlyphAtlas.ForceSingleThreaded = !parallelMode;
         UniTextDebug.Enabled = true;
         UniTextPoolStats.ResetAll();
     }
+    
 
     protected override void OnAfterAllTests()
     {
         UniText.UseParallel = true;
-        GlyphAtlas.ForceSingleThreaded = false;
         UniTextDebug.Enabled = false;
     }
 

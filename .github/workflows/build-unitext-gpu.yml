@@ -224,6 +224,7 @@ jobs:
           mkdir -p out/Linux/x86_64 out/Linux/ARM64
           mkdir -p out/macOS
           mkdir -p out/Android/arm64-v8a out/Android/armeabi-v7a out/Android/x86_64 out/Android/x86
+          mkdir -p out/iOS
 
           [ -d artifacts/win-x64 ] && cp artifacts/win-x64/unitext_gpu.dll out/Windows/x86_64/ || true
           [ -d artifacts/win-arm64 ] && cp artifacts/win-arm64/unitext_gpu.dll out/Windows/ARM64/ || true
