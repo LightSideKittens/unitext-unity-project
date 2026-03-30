@@ -1,0 +1,424 @@
+name: 'Run Unity App'
+description: 'Run Unity build (tests or benchmarks) on target platform and collect results'
+
+inputs:
+  platform:
+    description: 'Target platform'
+    required: true
+  mode:
+    description: 'test or benchmark'
+    required: true
+  unity_version:
+    description: 'Unity version (used to separate Firebase results)'
+    required: false
+    default: 'unknown'
+  build_path:
+    description: 'Path to build directory'
+    required: false
+    default: 'build'
+  timeout:
+    description: 'Timeout in seconds'
+    required: false
+    default: '600'
+
+runs:
+  using: 'composite'
+  steps:
+    # ----------------------------------------
+    # Windows
+    # ----------------------------------------
+    - name: Run (Windows)
+      if: inputs.platform == 'StandaloneWindows64'
+      shell: pwsh
+      env:
+        APP_MODE: ${{ inputs.mode }}
+        APP_TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        $ErrorActionPreference = "Stop"
+        $mode = $env:APP_MODE
+
+        $exe = Get-ChildItem -Path ${{ inputs.build_path }} -Filter *.exe -Recurse | Select-Object -First 1
+        if ($null -eq $exe) { Write-Host "ERROR: No .exe found"; exit 1 }
+
+        $logFile = if ($mode -eq "benchmark") { "benchmark.log" } else { "test.log" }
+        $resultFile = if ($mode -eq "benchmark") { "benchmarkResults.json" } else { "testResults.xml" }
+        $args = @("-logFile", $logFile)
+        if ($mode -eq "test") { $args = @("-batchmode") + $args }
+
+        Write-Host "Running ($mode): $($exe.FullName)"
+        $process = Start-Process -FilePath $exe.FullName -ArgumentList $args -PassThru -NoNewWindow
+        $timeout = [int]$env:APP_TIMEOUT
+        if (-not $process.WaitForExit($timeout * 1000)) {
+          Write-Host "ERROR: Timed out after $timeout seconds"
+          $process.Kill()
+          $exitCode = 124
+        } else { $exitCode = $process.ExitCode }
+
+        if (Test-Path $logFile) {
+          Write-Host "=== $logFile (last 100 lines) ==="
+          Get-Content $logFile -Tail 100
+        }
+
+        Start-Sleep -Seconds 3
+
+        $searchPath = "$env:LOCALAPPDATA\..\LocalLow"
+        $found = $null
+        for ($i = 0; $i -lt 5; $i++) {
+          $found = Get-ChildItem -Path $searchPath -Filter $resultFile -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($found) { break }
+          Write-Host "Attempt $($i+1): $resultFile not found, waiting..."
+          Start-Sleep -Seconds 2
+        }
+
+        if ($found) {
+          Copy-Item $found.FullName -Destination ./$resultFile
+          Write-Host "Copied: $($found.FullName)"
+        } else {
+          Write-Host "WARNING: $resultFile not found"
+        }
+
+        if ($mode -eq "test" -and (Test-Path ./$resultFile)) {
+          $failureCount = ([regex]::Matches((Get-Content ./$resultFile -Raw), '<failure')).Count
+          if ($failureCount -gt 0) { Write-Host "ERROR: $failureCount test failure(s)"; exit 1 }
+
+          $screenshotsDir = Get-ChildItem -Path $searchPath -Directory -Filter "Screenshots" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($screenshotsDir) {
+            New-Item -ItemType Directory -Force -Path ./screenshots | Out-Null
+            Copy-Item "$($screenshotsDir.FullName)\*.png" -Destination ./screenshots/ -ErrorAction SilentlyContinue
+          }
+        }
+
+        exit $exitCode
+
+    # ----------------------------------------
+    # Linux
+    # ----------------------------------------
+    - name: Run (Linux)
+      if: inputs.platform == 'StandaloneLinux64'
+      shell: bash
+      env:
+        APP_MODE: ${{ inputs.mode }}
+        APP_TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        set -uo pipefail
+        MODE="$APP_MODE"
+
+        BUILD_DIR="${{ inputs.build_path }}/StandaloneLinux64"
+        [ ! -d "$BUILD_DIR" ] && { echo "ERROR: $BUILD_DIR not found"; exit 1; }
+
+        chmod +x "$BUILD_DIR"/* 2>/dev/null || true
+        EXE=$(find "$BUILD_DIR" -maxdepth 1 -type f -executable ! -name "*.so" | head -1)
+        [ -z "$EXE" ] && { echo "ERROR: No executable found"; ls -la "$BUILD_DIR"; exit 1; }
+
+        if [ "$MODE" = "benchmark" ]; then
+          LOG_FILE="benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS=""
+        else
+          LOG_FILE="test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
+        fi
+
+        echo "Running ($MODE): $EXE"
+
+        sudo apt-get update -qq && sudo apt-get install -y -qq xserver-xorg-video-dummy x11-xserver-utils
+
+        cat > /tmp/xorg-dummy.conf << 'XORGEOF'
+        Section "Device"
+            Identifier "DummyDevice"
+            Driver "dummy"
+            VideoRam 256000
+        EndSection
+        Section "Screen"
+            Identifier "DummyScreen"
+            Device "DummyDevice"
+            Monitor "DummyMonitor"
+            DefaultDepth 24
+            SubSection "Display"
+                Depth 24
+                Modes "1920x1080"
+            EndSubSection
+        EndSection
+        Section "Monitor"
+            Identifier "DummyMonitor"
+            HorizSync 30-80
+            VertRefresh 50-75
+            Modeline "1920x1080" 148.50 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync
+        EndSection
+        XORGEOF
+
+        sudo Xorg :99 -config /tmp/xorg-dummy.conf -noreset +extension GLX +extension RANDR &
+        XORG_PID=$!
+        sleep 3
+        export DISPLAY=:99
+
+        vblank_mode=0 timeout "$APP_TIMEOUT" "$EXE" $EXTRA_ARGS -logFile "$LOG_FILE" || EXIT_CODE=$?
+
+        sudo kill $XORG_PID 2>/dev/null || true
+
+        echo "=== $LOG_FILE ==="
+        cat "$LOG_FILE" 2>/dev/null || echo "$LOG_FILE not found"
+
+        FOUND=$(find ~/.config/unity3d -name "$RESULT_FILE" 2>/dev/null | head -1)
+        [ -n "$FOUND" ] && cp "$FOUND" "./$RESULT_FILE" && echo "Copied: $FOUND" || echo "WARNING: $RESULT_FILE not found"
+
+        if [ "$MODE" = "test" ] && [ -f "./$RESULT_FILE" ]; then
+          FAILURE_COUNT=$(grep -c '<failure' "./$RESULT_FILE" 2>/dev/null || echo "0")
+          [ "$FAILURE_COUNT" -gt 0 ] && { echo "ERROR: $FAILURE_COUNT test failure(s)"; exit 1; }
+
+          SCREENSHOTS_DIR=$(find ~/.config/unity3d -name "Screenshots" -type d 2>/dev/null | head -1)
+          if [ -n "$SCREENSHOTS_DIR" ]; then
+            mkdir -p ./screenshots
+            cp "$SCREENSHOTS_DIR"/*.png ./screenshots/ 2>/dev/null || true
+          fi
+        fi
+
+        exit ${EXIT_CODE:-0}
+
+    # ----------------------------------------
+    # macOS
+    # ----------------------------------------
+    - name: Run (macOS)
+      if: inputs.platform == 'StandaloneOSX'
+      shell: bash
+      env:
+        APP_MODE: ${{ inputs.mode }}
+        APP_TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        set -uo pipefail
+        MODE="$APP_MODE"
+
+        brew install coreutils 2>/dev/null || true
+
+        APP=$(find ${{ inputs.build_path }} -name "*.app" -type d | head -1)
+        [ -z "$APP" ] && { echo "ERROR: No .app found"; exit 1; }
+
+        EXE=$(find "$APP/Contents/MacOS" -type f ! -name "*.dylib" | head -1)
+        [ -z "$EXE" ] && { echo "ERROR: No executable found"; exit 1; }
+
+        if [ "$MODE" = "benchmark" ]; then
+          LOG_FILE="benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS=""
+        else
+          LOG_FILE="test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
+        fi
+
+        echo "Running ($MODE): $EXE"
+        chmod +x "$EXE"
+        gtimeout "$APP_TIMEOUT" "$EXE" $EXTRA_ARGS -logFile "$LOG_FILE" || EXIT_CODE=$?
+
+        echo "=== $LOG_FILE (last 100 lines) ==="
+        tail -100 "$LOG_FILE" 2>/dev/null || echo "$LOG_FILE not found"
+
+        FOUND=$(find ~/Library -name "$RESULT_FILE" 2>/dev/null | head -1)
+        [ -n "$FOUND" ] && cp "$FOUND" "./$RESULT_FILE" && echo "Copied: $FOUND" || echo "WARNING: $RESULT_FILE not found"
+
+        if [ "$MODE" = "test" ] && [ -f "./$RESULT_FILE" ]; then
+          FAILURE_COUNT=$(grep -c '<failure' "./$RESULT_FILE" 2>/dev/null || echo "0")
+          [ "$FAILURE_COUNT" -gt 0 ] && { echo "ERROR: $FAILURE_COUNT test failure(s)"; exit 1; }
+
+          SCREENSHOTS_DIR=$(find ~/Library -name "Screenshots" -type d 2>/dev/null | head -1)
+          if [ -n "$SCREENSHOTS_DIR" ]; then
+            mkdir -p ./screenshots
+            cp "$SCREENSHOTS_DIR"/*.png ./screenshots/ 2>/dev/null || true
+          fi
+        fi
+
+        exit ${EXIT_CODE:-0}
+
+    # ----------------------------------------
+    # WebGL
+    # ----------------------------------------
+    - name: Setup Node.js (WebGL)
+      if: inputs.platform == 'WebGL'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run (WebGL)
+      if: inputs.platform == 'WebGL'
+      shell: bash
+      env:
+        APP_MODE: ${{ inputs.mode }}
+        APP_TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        set -uo pipefail
+
+        INDEX_HTML=$(find ${{ inputs.build_path }} -name "index.html" | head -1)
+        [ -z "$INDEX_HTML" ] && { echo "ERROR: No index.html found"; exit 1; }
+
+        WEBGL_DIR=$(dirname "$INDEX_HTML")
+        echo "WebGL directory: $WEBGL_DIR"
+
+        npm init -y > /dev/null
+        npm install playwright @playwright/test --silent
+        npx playwright install chromium
+
+        openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
+          -keyout localhost-key.pem -out localhost.pem \
+          -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" 2>/dev/null
+
+        cp localhost*.pem "$WEBGL_DIR/"
+        cp Assets/server.js "$WEBGL_DIR/"
+
+        (cd "$WEBGL_DIR" && node server.js) & SERVER_PID=$!
+
+        for i in {1..30}; do
+          curl -s -k https://localhost:8080/ -o /dev/null && { echo "Server ready"; break; }
+          [ $i -eq 30 ] && { echo "ERROR: Server failed to start"; kill $SERVER_PID 2>/dev/null; exit 1; }
+          sleep 1
+        done
+
+        cp "${{ github.action_path }}/webgl.spec.js" ./webgl.spec.js
+        cp "${{ github.action_path }}/playwright.config.js" ./playwright.config.js
+
+        npx playwright test webgl.spec.js --reporter=list || EXIT_CODE=$?
+
+        kill $SERVER_PID 2>/dev/null || true
+        exit ${EXIT_CODE:-0}
+
+    # ----------------------------------------
+    # iOS (Fastlane IPA + Firebase Test Lab)
+    # ----------------------------------------
+    - name: Checkout ci-workflows (iOS)
+      if: inputs.platform == 'iOS'
+      uses: actions/checkout@v4
+      with:
+        repository: LightSideKittens/ci-workflows
+        token: ${{ env.GH_PAT }}
+        sparse-checkout: fastlane
+        path: ci-workflows
+
+    - name: Setup Ruby (iOS)
+      if: inputs.platform == 'iOS'
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+        working-directory: ci-workflows/fastlane
+
+    - name: Configure Git Credentials (iOS)
+      if: inputs.platform == 'iOS'
+      shell: bash
+      run: |
+        git config --global credential.helper store
+        echo "https://x-access-token:${{ env.GH_PAT }}@github.com" > ~/.git-credentials
+
+    - name: Build Signed IPA (iOS)
+      if: inputs.platform == 'iOS'
+      shell: bash
+      env:
+        MATCH_PASSWORD: ${{ env.MATCH_PASSWORD }}
+        MATCH_GIT_URL: ${{ env.MATCH_GIT_URL }}
+        APP_IDENTIFIER: ${{ env.APP_IDENTIFIER }}
+        TEAM_ID: ${{ env.TEAM_ID }}
+        APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ env.APP_STORE_CONNECT_KEY_ID }}
+        APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ env.APP_STORE_CONNECT_ISSUER_ID }}
+        APP_STORE_CONNECT_API_KEY_KEY: ${{ env.APP_STORE_CONNECT_API_KEY }}
+      run: |
+        set -euo pipefail
+
+        XCODEPROJ=$(find ${{ inputs.build_path }} -name "*.xcodeproj" | head -1)
+        [ -z "$XCODEPROJ" ] && { echo "ERROR: No .xcodeproj found"; exit 1; }
+        echo "Xcode project: $XCODEPROJ"
+
+        PROJECT_DIR=$(dirname "$XCODEPROJ")
+        find "$PROJECT_DIR" -name "*.sh" -exec chmod +x {} \;
+        find "$PROJECT_DIR" -name "usymtool*" -exec chmod +x {} \;
+
+        cd ci-workflows/fastlane
+        bundle install --quiet
+        bundle exec fastlane build_ipa \
+          xcode_project:"$GITHUB_WORKSPACE/$XCODEPROJ" \
+          output_name:"UniText.ipa" \
+          output_dir:"$GITHUB_WORKSPACE"
+
+        ls -lh "$GITHUB_WORKSPACE/UniText.ipa"
+
+    - name: Launch on Firebase (iOS)
+      if: inputs.platform == 'iOS'
+      shell: bash
+      env:
+        APP_TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        set -uo pipefail
+        IPA="$GITHUB_WORKSPACE/UniText.ipa"
+        [ ! -f "$IPA" ] && { echo "ERROR: IPA not found"; exit 1; }
+
+        TIMEOUT_MINUTES=$((APP_TIMEOUT / 60))
+        [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
+
+        RESULTS_DIR="${{ inputs.platform }}-${{ inputs.mode }}-${{ inputs.unity_version }}-${{ github.run_id }}"
+        echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
+
+        gcloud beta firebase test ios run \
+          --type game-loop \
+          --app "$IPA" \
+          --device model=iphone14pro,version=16.6 \
+          --device model=iphone16pro,version=18.3 \
+          --scenario-numbers=1 \
+          --timeout "${TIMEOUT_MINUTES}m" \
+          --results-bucket="$FIREBASE_RESULTS_BUCKET" \
+          --results-dir="$RESULTS_DIR" 2>&1 | tee firebase_output.log || echo "Firebase exit code: $?"
+
+    - name: Launch on Firebase (Android)
+      if: inputs.platform == 'Android'
+      shell: bash
+      env:
+        APP_TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        set -uo pipefail
+        APK=$(find ${{ inputs.build_path }} -name "*.apk" | head -1)
+        [ -z "$APK" ] && { echo "ERROR: No .apk found"; exit 1; }
+        echo "APK: $APK"
+
+        TIMEOUT_MINUTES=$((APP_TIMEOUT / 60))
+        [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
+
+        RESULTS_DIR="${{ inputs.platform }}-${{ inputs.mode }}-${{ inputs.unity_version }}-${{ github.run_id }}"
+        echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
+
+        gcloud firebase test android run \
+          --type game-loop \
+          --app "$APK" \
+          --device model=shiba,version=34 \
+          --device model=dm3q,version=34 \
+          --scenario-numbers=1 \
+          --timeout "${TIMEOUT_MINUTES}m" \
+          --results-bucket="$FIREBASE_RESULTS_BUCKET" \
+          --results-dir="$RESULTS_DIR" || echo "Firebase exit code: $?"
+
+    - name: Collect Firebase Results
+      if: inputs.platform == 'Android' || inputs.platform == 'iOS'
+      shell: bash
+      env:
+        APP_MODE: ${{ inputs.mode }}
+      run: |
+        set -uo pipefail
+
+        mkdir -p firebase-results
+        gsutil -m rsync -r "gs://$FIREBASE_RESULTS_BUCKET/$FIREBASE_RESULTS_DIR/" ./firebase-results/ 2>/dev/null || true
+
+        echo "=== Firebase results ==="
+        find ./firebase-results -type f 2>/dev/null | head -50
+
+        RESULT_FILES=$(find ./firebase-results \( -name "benchmarkResults.json" -o -name "results_scenario_*.json" -o -name "testResults.xml" \) -type f 2>/dev/null || true)
+
+        if [ -z "$RESULT_FILES" ]; then
+          echo "ERROR: No result files found in Firebase results"; exit 1
+        fi
+
+        echo "=== Found result files ==="
+        echo "$RESULT_FILES"
+
+        if [ "$APP_MODE" = "benchmark" ]; then
+          BENCH_FILES=$(echo "$RESULT_FILES" | grep -E "benchmarkResults\.json|results_scenario_" || true)
+          if [ -z "$BENCH_FILES" ]; then echo "ERROR: No benchmark results found"; exit 1; fi
+          FIRST=$(echo "$BENCH_FILES" | head -1)
+          cp "$FIRST" ./benchmarkResults.json
+          for R in $BENCH_FILES; do
+            DNAME=$(basename "$(dirname "$R")")
+            cp "$R" "./benchmarkResults_${DNAME}.json" 2>/dev/null || true
+          done
+        else
+          TEST_FILES=$(echo "$RESULT_FILES" | grep -E "testResults\.xml|results_scenario_" || true)
+          if [ -z "$TEST_FILES" ]; then echo "ERROR: No test results found"; exit 1; fi
+          python3 "$GITHUB_WORKSPACE/.github/scripts/merge-test-results.py" \
+            testResults.xml $TEST_FILES
+        fi

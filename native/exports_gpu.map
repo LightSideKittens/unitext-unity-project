@@ -1,0 +1,8 @@
+{
+  global:
+    ut_gpu_*;
+    UnityPluginLoad;
+    UnityPluginUnload;
+  local:
+    *;
+};

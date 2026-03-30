@@ -1,0 +1,113 @@
+name: Unity Build & Test
+run-name: "🔨 ${{ (inputs.win64 && inputs.linux && inputs.macos && inputs.android && inputs.ios && inputs.webgl) && '🌍 All platforms ' || format('{0}{1}{2}{3}{4}{5}', inputs.win64 && '🪟 Win64 ' || '', inputs.linux && '🐧 Linux ' || '', inputs.macos && '🍎 macOS ' || '', inputs.android && '🤖 Android ' || '', inputs.ios && '📱 iOS ' || '', inputs.webgl && '🌐 WebGL ' || '') }}• ${{ (inputs.unity_2021 && inputs.unity_2022 && inputs.unity_6) && '🎮 All versions ' || format('{0}{1}{2}', inputs.unity_2021 && '🎮 2021 ' || '', inputs.unity_2022 && '🎮 2022 ' || '', inputs.unity_6 && '🎮 6000 ' || '') }}${{ inputs.run_tests && '• 🧪 Tests' || '' }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      # Unity Versions
+      unity_2021:
+        description: '🎮 Unity 2021'
+        type: boolean
+        default: false
+      unity_2022:
+        description: '🎮 Unity 2022'
+        type: boolean
+        default: true
+      unity_6:
+        description: '🎮 Unity 6000ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ'
+        type: boolean
+        default: false
+
+      # Platforms
+      win64:
+        description: '🪟 Windows x64'
+        type: boolean
+        default: false
+      linux:
+        description: '🐧 Linux x64'
+        type: boolean
+        default: false
+      macos:
+        description: '🍎 macOS'
+        type: boolean
+        default: false
+      android:
+        description: '🤖 Android'
+        type: boolean
+        default: false
+      ios:
+        description: '📱 iOS'
+        type: boolean
+        default: false
+      webgl:
+        description: '🌐 WebGLㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ'
+        type: boolean
+        default: false
+
+      # Options
+      debug:
+        description: '🐛 Debug'
+        type: boolean
+        default: true
+      benchmark:
+        description: '📊 Benchmark'
+        type: boolean
+        default: false
+      run_tests:
+        description: '🧪 Run tests'
+        type: boolean
+        default: true
+      build_runner:
+        description: '🖥️ Build runner'
+        type: choice
+        options:
+          - 'unity-runner'
+          - 'ubuntu-latest'
+        default: 'unity-runner'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          VERSIONS="["
+          FIRST_V=true
+          ${{ inputs.unity_2021 }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"2021.3.45f1\""; FIRST_V=false; }
+          ${{ inputs.unity_2022 }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"2022.3.62f2\""; FIRST_V=false; }
+          ${{ inputs.unity_6 }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"6000.3.11f1\""; FIRST_V=false; }
+          VERSIONS+="]"
+
+          PLATFORMS="["
+          FIRST_P=true
+          ${{ inputs.win64 }} && { $FIRST_P || PLATFORMS+=","; PLATFORMS+="\"StandaloneWindows64\""; FIRST_P=false; }
+          ${{ inputs.linux }} && { $FIRST_P || PLATFORMS+=","; PLATFORMS+="\"StandaloneLinux64\""; FIRST_P=false; }
+          ${{ inputs.macos }} && { $FIRST_P || PLATFORMS+=","; PLATFORMS+="\"StandaloneOSX\""; FIRST_P=false; }
+          ${{ inputs.android }} && { $FIRST_P || PLATFORMS+=","; PLATFORMS+="\"Android\""; FIRST_P=false; }
+          ${{ inputs.ios }} && { $FIRST_P || PLATFORMS+=","; PLATFORMS+="\"iOS\""; FIRST_P=false; }
+          ${{ inputs.webgl }} && { $FIRST_P || PLATFORMS+=","; PLATFORMS+="\"WebGL\""; FIRST_P=false; }
+          PLATFORMS+="]"
+
+          # Default to Win64 + Unity 2022 if nothing selected
+          [ "$VERSIONS" = "[]" ] && VERSIONS='["2022.3.62f2"]'
+          [ "$PLATFORMS" = "[]" ] && PLATFORMS='["StandaloneWindows64"]'
+
+          MATRIX="{\"unity_version\": $VERSIONS, \"platform\": $PLATFORMS}"
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+  build-and-test:
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
+    uses: ./.github/workflows/build-and-test.yml
+    with:
+      unity_version: ${{ matrix.unity_version }}
+      platform: ${{ matrix.platform }}
+      debug: ${{ inputs.debug == true }}
+      benchmark: ${{ inputs.benchmark == true }}
+      run_tests: ${{ inputs.run_tests == true }}
+      build_runner: ${{ inputs.build_runner }}
+    secrets: inherit

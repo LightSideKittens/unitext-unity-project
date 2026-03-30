@@ -1,0 +1,165 @@
+# ScriptAnalyzerTest-17.0.0.txt
+# Date: 2024-12-05
+#
+# Unicode Script Analyzer Conformance Tests
+# Based on UAX #24: Unicode Script Property
+# https://www.unicode.org/reports/tr24/
+#
+# Format:
+# <hex_codepoints> ; <expected_resolved_scripts> # <comment>
+#
+# Where:
+# - hex_codepoints: space-separated hex values
+# - expected_resolved_scripts: space-separated script names after Common/Inherited resolution
+#
+# Per UAX #24 Section 5.1:
+# "In determining the boundaries of a run of text in a given script, programs must
+# resolve any of the special Script property values, such as Common, based on the
+# context of the surrounding characters."
+
+# ========================================
+# Basic script detection (no resolution needed)
+# ========================================
+
+# Pure Latin
+0041 0042 0043 ; Latin Latin Latin # ABC
+
+# Pure Cyrillic
+0410 0411 0412 ; Cyrillic Cyrillic Cyrillic # АБВ
+
+# Pure Greek
+03B1 03B2 03B3 ; Greek Greek Greek # αβγ
+
+# Pure Arabic
+0627 0628 0629 ; Arabic Arabic Arabic # ابة
+
+# Pure Hebrew
+05D0 05D1 05D2 ; Hebrew Hebrew Hebrew # אבג
+
+# Pure Han
+4E2D 6587 ; Han Han # 中文
+
+# Pure Devanagari
+0905 0906 0907 ; Devanagari Devanagari Devanagari # अआइ
+
+# ========================================
+# Common resolution - inherits from surrounding
+# ========================================
+
+# Latin with Common space
+0048 0069 0020 ; Latin Latin Latin # "Hi "
+
+# Latin with Common punctuation
+0041 0021 ; Latin Latin # "A!"
+
+# Cyrillic with Common digits
+0410 0030 0031 0411 ; Cyrillic Cyrillic Cyrillic Cyrillic # А01Б
+
+# Arabic with Common space
+0627 0020 0628 ; Arabic Arabic Arabic # ا ب
+
+# Hebrew with Common
+05D0 0020 05D1 ; Hebrew Hebrew Hebrew # א ב
+
+# Han with Common
+4E2D 0020 6587 ; Han Han Han # 中 文
+
+# ========================================
+# Common at boundaries
+# ========================================
+
+# Common at start - inherits from following
+0020 0041 0042 ; Latin Latin Latin # " AB"
+
+# Common at end - inherits from preceding  
+0041 0042 0020 ; Latin Latin Latin # "AB "
+
+# Multiple Common at start
+0020 0021 0410 ; Cyrillic Cyrillic Cyrillic # " !А"
+
+# Multiple Common at end
+0410 0020 0021 ; Cyrillic Cyrillic Cyrillic # "А !"
+
+# ========================================
+# Inherited marks resolution
+# ========================================
+
+# Latin + combining acute (U+0301 = Inherited)
+0065 0301 ; Latin Latin # é (e + combining acute)
+
+# Greek + combining acute
+03B1 0301 ; Greek Greek # ά (α + combining acute)
+
+# Cyrillic + combining grave (U+0300 = Inherited)
+0430 0300 ; Cyrillic Cyrillic # а̀
+
+# Devanagari + combining mark
+0905 0300 ; Devanagari Devanagari # अ̀
+
+# Arabic + combining mark
+0627 0300 ; Arabic Arabic # ا̀
+
+# ========================================
+# Script transitions with Common
+# ========================================
+
+# Latin-Common-Cyrillic
+0041 0020 0410 ; Latin Latin Cyrillic # A А
+
+# Latin-Common-Greek
+0041 0020 03B1 ; Latin Latin Greek # A α
+
+# Cyrillic-Common-Latin
+0410 0020 0041 ; Cyrillic Cyrillic Latin # А A
+
+# Han-Common-Latin
+4E2D 0020 0041 ; Han Han Latin # 中 A
+
+# Multiple transitions
+0041 0020 03B1 0020 0410 ; Latin Latin Greek Greek Cyrillic # A α А
+
+# ========================================
+# Edge cases
+# ========================================
+
+# Only Common - remains Common (no script to inherit from)
+0020 0021 003F ; Common Common Common # " !?"
+
+# Only Inherited at start followed by Latin
+0301 0041 ; Latin Latin # combining acute + A
+
+# Single characters
+0041 ; Latin # A
+0020 ; Common # space
+0410 ; Cyrillic # А
+
+# ========================================
+# Complex sequences
+# ========================================
+
+# Latin word with punctuation
+0048 0065 006C 006C 006F 0021 ; Latin Latin Latin Latin Latin Latin # Hello!
+
+# Mixed with numbers
+0041 0031 0032 0033 0042 ; Latin Latin Latin Latin Latin # A123B
+
+# Sentence with multiple Common
+0048 0069 002C 0020 0077 006F 0072 006C 0064 0021 ; Latin Latin Latin Latin Latin Latin Latin Latin Latin Latin # Hi, world!
+
+# ========================================
+# Real-world examples
+# ========================================
+
+# Russian with punctuation: "Привет!"
+041F 0440 0438 0432 0435 0442 0021 ; Cyrillic Cyrillic Cyrillic Cyrillic Cyrillic Cyrillic Cyrillic
+
+# Japanese mixed (Hiragana + Common): "あ！"
+3042 0021 ; Hiragana Hiragana
+
+# Arabic with tatweel (U+0640 = Common): "ابـب"
+0627 0628 0640 0628 ; Arabic Arabic Arabic Arabic
+
+# Thai with Common
+0E01 0020 0E02 ; Thai Thai Thai # ก ข
+
+# EOF

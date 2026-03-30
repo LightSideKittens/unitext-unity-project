@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="auto">
+<head>
+<meta charset="UTF-8">
+<title>Shaping Runs Analysis</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400&family=Noto+Sans+Arabic:wght@400&family=Noto+Sans+Hebrew:wght@400&display=swap');
+
+body {
+    font-family: 'Noto Sans', 'Noto Sans Arabic', 'Noto Sans Hebrew', sans-serif;
+    font-size: 24px;
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+#text-container {
+    border: 1px solid #ccc;
+    padding: 20px;
+    margin: 20px 0;
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
+#results {
+    font-family: monospace;
+    font-size: 14px;
+    background: #f0f0f0;
+    padding: 20px;
+    white-space: pre-wrap;
+    margin: 20px 0;
+}
+
+textarea {
+    width: 100%;
+    height: 200px;
+    font-size: 16px;
+    font-family: 'Noto Sans', 'Noto Sans Arabic', 'Noto Sans Hebrew', sans-serif;
+}
+
+button {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin: 10px 0;
+    cursor: pointer;
+}
+
+h2 { margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<h1>Shaping Runs Analysis</h1>
+<p>Paste your benchmark text below, then click "Analyze".</p>
+<p>Open Chrome DevTools → Performance tab → Record → click Analyze → Stop recording → look for "Shaping" in the flame chart.</p>
+
+<textarea id="input" placeholder="Paste benchmark text here..."></textarea>
+<br>
+<button onclick="analyze()">Analyze</button>
+<button onclick="measurePerformance()">Measure Performance</button>
+
+<h2>Rendered Text</h2>
+<div id="text-container"></div>
+
+<h2>Analysis</h2>
+<pre id="results">Click "Analyze" to see results.</pre>
+
+<script>
+function analyze() {
+    const text = document.getElementById('input').value;
+    if (!text) { alert('Paste text first'); return; }
+
+    const container = document.getElementById('text-container');
+    container.textContent = text;
+
+    // Force layout
+    container.offsetHeight;
+
+    // Analyze character properties
+    let scriptChanges = 0;
+    let dirChanges = 0;
+    let lastScript = null;
+    let lastDir = null;
+
+    const scripts = [];
+    const dirs = [];
+
+    for (let i = 0; i < text.length; i++) {
+        const cp = text.codePointAt(i);
+        if (cp > 0xFFFF) i++; // skip surrogate
+
+        const s = getScriptGroup(cp);
+        const d = getBidiDir(cp);
+
+        if (lastScript !== null && s !== 'Common' && lastScript !== 'Common' && s !== lastScript)
+            scriptChanges++;
+        if (lastDir !== null && d !== 'Neutral' && lastDir !== 'Neutral' && d !== lastDir)
+            dirChanges++;
+
+        if (s !== 'Common') lastScript = s;
+        if (d !== 'Neutral') lastDir = d;
+
+        scripts.push(s);
+        dirs.push(d);
+    }
+
+    // Count unique scripts
+    const uniqueScripts = new Set(scripts.filter(s => s !== 'Common'));
+    const uniqueDirs = new Set(dirs.filter(d => d !== 'Neutral'));
+
+    // Estimate runs (script + direction changes)
+    const codepoints = [...text].length;
+    const chars = text.length;
+
+    // Count spaces and punctuation
+    let spaces = 0, punctuation = 0;
+    for (const ch of text) {
+        if (ch === ' ' || ch === '\t') spaces++;
+        else if (/[\.,;:!?\-\(\)\[\]{}'"،؛]/.test(ch)) punctuation++;
+    }
+
+    const results = document.getElementById('results');
+    results.textContent =
+`Text length: ${chars} chars, ${codepoints} codepoints
+Scripts: ${[...uniqueScripts].join(', ')}
+Directions: ${[...uniqueDirs].join(', ')}
+Script changes: ${scriptChanges}
+Direction changes: ${dirChanges}
+Spaces: ${spaces}
+Punctuation: ${punctuation}
+
+Estimated minimum runs (script+dir only): ~${scriptChanges + dirChanges + 1}
+Estimated runs with font breaks on spaces: ~${scriptChanges + dirChanges + 1 + spaces * 2}
+
+NOTE: For exact run count, use Chrome DevTools Performance tab.
+Record a trace while the text renders, then search for "Shape" in the flame chart.
+Each ShapeRange call = one shaping run.`;
+}
+
+function measurePerformance() {
+    const text = document.getElementById('input').value;
+    if (!text) { alert('Paste text first'); return; }
+
+    const container = document.getElementById('text-container');
+    const iterations = 100;
+
+    const start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+        container.textContent = text + ' ' + i; // force re-layout
+        container.offsetHeight; // force layout
+    }
+    const elapsed = performance.now() - start;
+
+    const results = document.getElementById('results');
+    results.textContent += `\n\nPerformance: ${iterations} iterations in ${elapsed.toFixed(1)}ms = ${(elapsed/iterations).toFixed(2)}ms per layout`;
+}
+
+function getScriptGroup(cp) {
+    if (cp >= 0x0590 && cp <= 0x05FF) return 'Hebrew';
+    if (cp >= 0x0600 && cp <= 0x06FF) return 'Arabic';
+    if (cp >= 0x0750 && cp <= 0x077F) return 'Arabic';
+    if (cp >= 0x08A0 && cp <= 0x08FF) return 'Arabic';
+    if (cp >= 0xFB50 && cp <= 0xFDFF) return 'Arabic';
+    if (cp >= 0xFE70 && cp <= 0xFEFF) return 'Arabic';
+    if (cp >= 0x0041 && cp <= 0x024F) return 'Latin';
+    if (cp >= 0x0400 && cp <= 0x04FF) return 'Cyrillic';
+    if (cp >= 0x4E00 && cp <= 0x9FFF) return 'CJK';
+    if (cp >= 0x3040 && cp <= 0x30FF) return 'Japanese';
+    if (cp >= 0xAC00 && cp <= 0xD7AF) return 'Korean';
+    if (cp >= 0x0900 && cp <= 0x097F) return 'Devanagari';
+    if (cp >= 0x0E00 && cp <= 0x0E7F) return 'Thai';
+    if (cp === 0x20 || cp === 0x09 || cp === 0x0A || cp === 0x0D) return 'Common';
+    if (cp >= 0x2000 && cp <= 0x206F) return 'Common';
+    if (cp >= 0x0020 && cp <= 0x002F) return 'Common';
+    if (cp >= 0x003A && cp <= 0x0040) return 'Common';
+    if (cp >= 0x005B && cp <= 0x0060) return 'Common';
+    if (cp >= 0x007B && cp <= 0x007E) return 'Common';
+    if (cp >= 0x0660 && cp <= 0x0669) return 'Arabic'; // Arabic-Indic digits
+    if (cp >= 0x0030 && cp <= 0x0039) return 'Common'; // ASCII digits
+    return 'Other';
+}
+
+function getBidiDir(cp) {
+    if (cp >= 0x0590 && cp <= 0x05FF) return 'RTL';
+    if (cp >= 0x0600 && cp <= 0x06FF) return 'RTL';
+    if (cp >= 0x0750 && cp <= 0x077F) return 'RTL';
+    if (cp >= 0x08A0 && cp <= 0x08FF) return 'RTL';
+    if (cp >= 0xFB50 && cp <= 0xFDFF) return 'RTL';
+    if (cp >= 0xFE70 && cp <= 0xFEFF) return 'RTL';
+    if (cp >= 0x0041 && cp <= 0x005A) return 'LTR';
+    if (cp >= 0x0061 && cp <= 0x007A) return 'LTR';
+    if (cp >= 0x00C0 && cp <= 0x024F) return 'LTR';
+    if (cp >= 0x0400 && cp <= 0x04FF) return 'LTR';
+    if (cp === 0x20 || cp === 0x09) return 'Neutral';
+    if (cp >= 0x0030 && cp <= 0x0039) return 'Neutral';
+    if (cp >= 0x0020 && cp <= 0x007E) return 'Neutral';
+    return 'Neutral';
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,241 @@
+name: Build UniText GPU
+run-name: "🔨 UniText GPU • ${{ (inputs.windows && inputs.linux && inputs.macos && inputs.android && inputs.ios) && '🌍 All platforms' || format('{0}{1}{2}{3}{4}', inputs.windows && '🪟 Win ' || '', inputs.linux && '🐧 Linux ' || '', inputs.macos && '🍎 macOS ' || '', inputs.android && '🤖 Android ' || '', inputs.ios && '📱 iOS ' || '') }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      windows:
+        description: '🪟 Windows (x64 + ARM64)'
+        type: boolean
+        default: true
+      linux:
+        description: '🐧 Linux (x64 + ARM64)'
+        type: boolean
+        default: true
+      macos:
+        description: '🍎 macOS (Universal)'
+        type: boolean
+        default: true
+      android:
+        description: '🤖 Android (all ABIs)'
+        type: boolean
+        default: true
+      ios:
+        description: '📱 iOS (device + simulator)'
+        type: boolean
+        default: true
+
+jobs:
+  windows:
+    if: inputs.windows
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch == 'x64' && 'amd64' || 'amd64_arm64' }}
+      - name: Build unitext_gpu.dll (${{ matrix.arch }})
+        run: |
+          cl /c /O2 /MD /EHsc /std:c++17 /I native native/unitext_gpu.cpp /Fo:unitext_gpu.obj
+          link /DLL /OUT:unitext_gpu.dll /DEF:native/unitext_gpu.def unitext_gpu.obj d3d11.lib d3d12.lib
+          dumpbin //EXPORTS unitext_gpu.dll
+      - uses: actions/upload-artifact@v4
+        with:
+          name: win-${{ matrix.arch }}
+          path: unitext_gpu.dll
+
+  linux-x64:
+    if: inputs.linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y libgl-dev libvulkan-dev
+      - name: Build libunitext_gpu.so (x64)
+        run: |
+          g++ -shared -fPIC -std=c++17 -O2 -I native \
+            native/unitext_gpu.cpp \
+            -Wl,--version-script=native/exports_gpu.map \
+            -Wl,--gc-sections \
+            -lGL \
+            -o libunitext_gpu.so
+          strip libunitext_gpu.so
+          nm -D libunitext_gpu.so | grep " T "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: libunitext_gpu.so
+
+  linux-arm64:
+    if: inputs.linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cross-compiler
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libvulkan-dev
+      - name: Build libunitext_gpu.so (ARM64)
+        run: |
+          aarch64-linux-gnu-g++ -shared -fPIC -std=c++17 -O2 -I native \
+            native/unitext_gpu.cpp \
+            -Wl,--version-script=native/exports_gpu.map \
+            -Wl,--gc-sections \
+            -o libunitext_gpu.so
+          aarch64-linux-gnu-strip libunitext_gpu.so
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: libunitext_gpu.so
+
+  macos:
+    if: inputs.macos
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build libunitext_gpu.dylib (Universal)
+        run: |
+          clang++ -c -std=c++17 -O2 -fPIC -I native \
+            -arch x86_64 -arch arm64 \
+            native/unitext_gpu.cpp -o unitext_gpu.o
+
+          clang++ -c -std=c++17 -O2 -fPIC -I native \
+            -arch x86_64 -arch arm64 \
+            -x objective-c++ \
+            -framework Metal \
+            native/unitext_gpu_metal.mm -o unitext_gpu_metal.o
+
+          clang++ -dynamiclib \
+            -arch x86_64 -arch arm64 \
+            -exported_symbols_list native/exports_gpu_macos.txt \
+            -framework Metal -framework Foundation -lobjc \
+            unitext_gpu.o unitext_gpu_metal.o \
+            -o libunitext_gpu.dylib
+
+          strip -x libunitext_gpu.dylib
+          codesign --force --sign - libunitext_gpu.dylib
+
+          lipo -info libunitext_gpu.dylib
+          nm -gU libunitext_gpu.dylib | grep "_ut_\|_UnityPlugin"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: libunitext_gpu.dylib
+
+  android:
+    if: inputs.android
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: [arm64-v8a, armeabi-v7a, x86_64, x86]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build libunitext_gpu.so (${{ matrix.abi }})
+        run: |
+          NDK=$ANDROID_NDK_HOME
+          TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64
+
+          case "${{ matrix.abi }}" in
+            arm64-v8a)   TARGET=aarch64-linux-android24 ;;
+            armeabi-v7a) TARGET=armv7a-linux-androideabi24 ;;
+            x86_64)      TARGET=x86_64-linux-android24 ;;
+            x86)         TARGET=i686-linux-android24 ;;
+          esac
+
+          $TOOLCHAIN/bin/clang++ \
+            -shared -fPIC -std=c++17 -O2 -I native \
+            --target=$TARGET \
+            --sysroot=$TOOLCHAIN/sysroot \
+            -Wl,--version-script=native/exports_gpu.map \
+            -Wl,--gc-sections \
+            -lGLESv3 \
+            native/unitext_gpu.cpp \
+            -o libunitext_gpu.so
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.abi }}
+          path: libunitext_gpu.so
+
+  ios:
+    if: inputs.ios
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build iOS device (arm64)
+        run: |
+          xcrun -sdk iphoneos clang++ -c -std=c++17 -O2 -fPIC -I native \
+            -arch arm64 -miphoneos-version-min=11.0 \
+            native/unitext_gpu.cpp -o gpu_device.o
+          xcrun -sdk iphoneos clang++ -c -std=c++17 -O2 -fPIC -I native \
+            -arch arm64 -miphoneos-version-min=11.0 \
+            -x objective-c++ \
+            native/unitext_gpu_metal.mm -o gpu_metal_device.o
+          ar rcs libunitext_gpu_device.a gpu_device.o gpu_metal_device.o
+
+      - name: Build iOS simulator (arm64)
+        run: |
+          xcrun -sdk iphonesimulator clang++ -c -std=c++17 -O2 -fPIC -I native \
+            -arch arm64 -miphonesimulator-version-min=11.0 \
+            native/unitext_gpu.cpp -o gpu_sim_arm64.o
+          xcrun -sdk iphonesimulator clang++ -c -std=c++17 -O2 -fPIC -I native \
+            -arch arm64 -miphonesimulator-version-min=11.0 \
+            -x objective-c++ \
+            native/unitext_gpu_metal.mm -o gpu_metal_sim_arm64.o
+          ar rcs libunitext_gpu_sim_arm64.a gpu_sim_arm64.o gpu_metal_sim_arm64.o
+
+      - name: Build iOS simulator (x86_64)
+        run: |
+          xcrun -sdk iphonesimulator clang++ -c -std=c++17 -O2 -fPIC -I native \
+            -arch x86_64 -miphonesimulator-version-min=11.0 \
+            native/unitext_gpu.cpp -o gpu_sim_x64.o
+          xcrun -sdk iphonesimulator clang++ -c -std=c++17 -O2 -fPIC -I native \
+            -arch x86_64 -miphonesimulator-version-min=11.0 \
+            -x objective-c++ \
+            native/unitext_gpu_metal.mm -o gpu_metal_sim_x64.o
+          ar rcs libunitext_gpu_sim_x64.a gpu_sim_x64.o gpu_metal_sim_x64.o
+
+      - name: Create xcframework
+        run: |
+          lipo -create libunitext_gpu_sim_arm64.a libunitext_gpu_sim_x64.a \
+            -output libunitext_gpu_sim.a
+
+          xcodebuild -create-xcframework \
+            -library libunitext_gpu_device.a \
+            -library libunitext_gpu_sim.a \
+            -output libunitext_gpu.xcframework
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-xcframework
+          path: libunitext_gpu.xcframework/
+
+  package:
+    needs: [windows, linux-x64, linux-arm64, macos, android, ios]
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Assemble plugin structure
+        run: |
+          mkdir -p out/Windows/x86_64 out/Windows/ARM64
+          mkdir -p out/Linux/x86_64 out/Linux/ARM64
+          mkdir -p out/macOS
+          mkdir -p out/Android/arm64-v8a out/Android/armeabi-v7a out/Android/x86_64 out/Android/x86
+
+          [ -d artifacts/win-x64 ] && cp artifacts/win-x64/unitext_gpu.dll out/Windows/x86_64/ || true
+          [ -d artifacts/win-arm64 ] && cp artifacts/win-arm64/unitext_gpu.dll out/Windows/ARM64/ || true
+          [ -d artifacts/linux-x64 ] && cp artifacts/linux-x64/libunitext_gpu.so out/Linux/x86_64/ || true
+          [ -d artifacts/linux-arm64 ] && cp artifacts/linux-arm64/libunitext_gpu.so out/Linux/ARM64/ || true
+          [ -d artifacts/macos ] && cp artifacts/macos/libunitext_gpu.dylib out/macOS/ || true
+          for abi in arm64-v8a armeabi-v7a x86_64 x86; do
+            [ -d artifacts/android-$abi ] && cp artifacts/android-$abi/libunitext_gpu.so out/Android/$abi/ || true
+          done
+
+          [ -d artifacts/ios-xcframework ] && cp -r artifacts/ios-xcframework out/iOS/libunitext_gpu.xcframework || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UniText-GPU-Plugins
+          path: out/
