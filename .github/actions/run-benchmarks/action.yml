@@ -1,0 +1,267 @@
+name: 'Run Benchmarks'
+description: 'Run UniText benchmarks for a specific platform and collect JSON results'
+
+inputs:
+  platform:
+    description: 'Target platform'
+    required: true
+  unity_version:
+    description: 'Unity version (used to separate Firebase results)'
+    required: false
+    default: 'unknown'
+  build_path:
+    description: 'Path to build directory'
+    required: false
+    default: 'build'
+  benchmark_timeout:
+    description: 'Benchmark timeout in seconds'
+    required: false
+    default: '600'
+
+runs:
+  using: 'composite'
+  steps:
+    # ----------------------------------------
+    # Windows
+    # ----------------------------------------
+    - name: Run Benchmarks (Windows)
+      if: inputs.platform == 'StandaloneWindows64'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+
+        $exe = Get-ChildItem -Path ${{ inputs.build_path }} -Filter *.exe -Recurse | Select-Object -First 1
+        if ($null -eq $exe) {
+          Write-Host "ERROR: No .exe found in ${{ inputs.build_path }}"
+          exit 1
+        }
+
+        Write-Host "Running benchmark: $($exe.FullName)"
+        Write-Host "Timeout: ${{ inputs.benchmark_timeout }} seconds"
+
+        $process = Start-Process -FilePath $exe.FullName -ArgumentList "-batchmode", "-logFile", "benchmark.log" -PassThru -NoNewWindow
+        $timeout = [int]"${{ inputs.benchmark_timeout }}"
+        if (-not $process.WaitForExit($timeout * 1000)) {
+          Write-Host "ERROR: Benchmark timed out after $timeout seconds"
+          $process.Kill()
+          $exitCode = 124
+        } else {
+          $exitCode = $process.ExitCode
+        }
+
+        Write-Host "Exit code: $exitCode"
+
+        if (Test-Path benchmark.log) {
+          Write-Host "=== benchmark.log (last 100 lines) ==="
+          Get-Content benchmark.log -Tail 100
+        }
+
+        Start-Sleep -Seconds 3
+
+        $searchPath = "$env:LOCALAPPDATA\..\LocalLow"
+        $resultsFile = $null
+        for ($i = 0; $i -lt 5; $i++) {
+          $resultsFile = Get-ChildItem -Path $searchPath -Filter "benchmarkResults.json" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($resultsFile) { break }
+          Write-Host "Attempt $($i+1): benchmarkResults.json not found, waiting..."
+          Start-Sleep -Seconds 2
+        }
+
+        if ($resultsFile) {
+          Copy-Item $resultsFile.FullName -Destination ./benchmarkResults.json
+          Write-Host "Copied results from: $($resultsFile.FullName)"
+        } else {
+          Write-Host "ERROR: benchmarkResults.json not found"
+          exit 1
+        }
+
+    # ----------------------------------------
+    # Linux
+    # ----------------------------------------
+    - name: Run Benchmarks (Linux)
+      if: inputs.platform == 'StandaloneLinux64'
+      shell: bash
+      run: |
+        set -uo pipefail
+
+        BUILD_DIR="${{ inputs.build_path }}/StandaloneLinux64"
+
+        if [ ! -d "$BUILD_DIR" ]; then
+          echo "ERROR: Build directory not found: $BUILD_DIR"
+          exit 1
+        fi
+
+        chmod +x "$BUILD_DIR"/* 2>/dev/null || true
+        EXE=$(find "$BUILD_DIR" -maxdepth 1 -type f -executable ! -name "*.so" | head -1)
+
+        if [ -z "$EXE" ]; then
+          echo "ERROR: No executable found in $BUILD_DIR"
+          exit 1
+        fi
+
+        echo "Running benchmark: $EXE"
+
+        # Xdummy for display
+        sudo apt-get update -qq && sudo apt-get install -y -qq xserver-xorg-video-dummy x11-xserver-utils
+
+        cat > /tmp/xorg-dummy.conf << 'XORGEOF'
+        Section "Device"
+            Identifier "DummyDevice"
+            Driver "dummy"
+            VideoRam 256000
+        EndSection
+        Section "Screen"
+            Identifier "DummyScreen"
+            Device "DummyDevice"
+            Monitor "DummyMonitor"
+            DefaultDepth 24
+            SubSection "Display"
+                Depth 24
+                Modes "1920x1080"
+            EndSubSection
+        EndSection
+        Section "Monitor"
+            Identifier "DummyMonitor"
+            HorizSync 30-80
+            VertRefresh 50-75
+            Modeline "1920x1080" 148.50 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync
+        EndSection
+        XORGEOF
+
+        sudo Xorg :99 -config /tmp/xorg-dummy.conf -noreset +extension GLX +extension RANDR &
+        XORG_PID=$!
+        sleep 3
+        export DISPLAY=:99
+
+        TIMEOUT=${{ inputs.benchmark_timeout }}
+        vblank_mode=0 timeout "$TIMEOUT" "$EXE" -batchmode -logFile benchmark.log || EXIT_CODE=$?
+
+        sudo kill $XORG_PID 2>/dev/null || true
+
+        echo "=== benchmark.log (last 100 lines) ==="
+        tail -100 benchmark.log 2>/dev/null || echo "benchmark.log not found"
+
+        RESULTS_FILE=$(find ~/.config/unity3d -name "benchmarkResults.json" 2>/dev/null | head -1)
+        if [ -n "$RESULTS_FILE" ]; then
+          cp "$RESULTS_FILE" ./benchmarkResults.json
+          echo "Copied results from: $RESULTS_FILE"
+        else
+          echo "ERROR: benchmarkResults.json not found"
+          exit 1
+        fi
+
+    # ----------------------------------------
+    # macOS
+    # ----------------------------------------
+    - name: Run Benchmarks (macOS)
+      if: inputs.platform == 'StandaloneOSX'
+      shell: bash
+      run: |
+        set -uo pipefail
+
+        brew install coreutils 2>/dev/null || true
+
+        APP=$(find ${{ inputs.build_path }} -name "*.app" -type d | head -1)
+
+        if [ -z "$APP" ]; then
+          echo "ERROR: No .app found in ${{ inputs.build_path }}"
+          exit 1
+        fi
+
+        EXE=$(find "$APP/Contents/MacOS" -type f ! -name "*.dylib" | head -1)
+
+        if [ -z "$EXE" ]; then
+          echo "ERROR: No executable found in $APP/Contents/MacOS"
+          exit 1
+        fi
+
+        echo "Running benchmark: $EXE"
+        chmod +x "$EXE"
+
+        TIMEOUT=${{ inputs.benchmark_timeout }}
+        gtimeout "$TIMEOUT" "$EXE" -batchmode -logFile benchmark.log || EXIT_CODE=$?
+
+        echo "=== benchmark.log (last 100 lines) ==="
+        tail -100 benchmark.log 2>/dev/null || echo "benchmark.log not found"
+
+        RESULTS_FILE=$(find ~/Library -name "benchmarkResults.json" 2>/dev/null | head -1)
+        if [ -n "$RESULTS_FILE" ]; then
+          cp "$RESULTS_FILE" ./benchmarkResults.json
+          echo "Copied results from: $RESULTS_FILE"
+        else
+          echo "ERROR: benchmarkResults.json not found"
+          exit 1
+        fi
+
+    # ----------------------------------------
+    # Android (Firebase Test Lab)
+    # ----------------------------------------
+    - name: Run Benchmarks (Android - Firebase Test Lab)
+      if: inputs.platform == 'Android'
+      shell: bash
+      env:
+        BENCHMARK_TIMEOUT: ${{ inputs.benchmark_timeout }}
+      run: |
+        set -uo pipefail
+
+        APK=$(find ${{ inputs.build_path }} -name "*.apk" | head -1)
+
+        if [ -z "$APK" ]; then
+          echo "ERROR: No .apk found in ${{ inputs.build_path }}"
+          exit 1
+        fi
+        echo "APK: $APK"
+
+        TIMEOUT_MINUTES=$((BENCHMARK_TIMEOUT / 60))
+        [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
+
+        # Fewer devices for benchmark stability
+        # - shiba (Pixel 8, API 34) — consistent Google hardware
+        # - dm3q (Galaxy S23 Ultra, API 34) — Samsung flagship
+        FIREBASE_EXIT=0
+        gcloud firebase test android run \
+          --type game-loop \
+          --app "$APK" \
+          --device model=shiba,version=34 \
+          --device model=dm3q,version=34 \
+          --scenario-numbers=1 \
+          --timeout "${TIMEOUT_MINUTES}m" \
+          --results-bucket="$FIREBASE_RESULTS_BUCKET" \
+          --results-dir=benchmark-${{ inputs.unity_version }}-${{ github.run_id }} || FIREBASE_EXIT=$?
+
+        echo "Firebase exit code: $FIREBASE_EXIT"
+
+        echo "=== Downloading Firebase results ==="
+        mkdir -p firebase-results
+        gsutil -m rsync -r "gs://$FIREBASE_RESULTS_BUCKET/benchmark-${{ inputs.unity_version }}-${{ github.run_id }}/" ./firebase-results/ 2>/dev/null || true
+
+        echo "=== Firebase results structure ==="
+        find ./firebase-results -type f 2>/dev/null | head -50
+
+        # Firebase game-loop stores output as results_scenario_N.json
+        # Content is our benchmark JSON (not JUnit XML like in tests)
+        RESULT_FILES=$(find ./firebase-results -name "results_scenario_*.json" -type f 2>/dev/null || true)
+
+        if [ -n "$RESULT_FILES" ]; then
+          echo "=== Found benchmark result files ==="
+          echo "$RESULT_FILES"
+
+          # Use the first valid result file as the primary result
+          FIRST_RESULT=$(echo "$RESULT_FILES" | head -1)
+          cp "$FIRST_RESULT" ./benchmarkResults.json
+          echo "Copied primary result from: $FIRST_RESULT"
+
+          # Copy all device results as separate artifacts
+          DEVICE_NUM=0
+          for RESULT in $RESULT_FILES; do
+            DEVICE_DIR=$(dirname "$RESULT")
+            DEVICE_NAME=$(basename "$DEVICE_DIR")
+            cp "$RESULT" "./benchmarkResults_${DEVICE_NAME}.json" 2>/dev/null || true
+            DEVICE_NUM=$((DEVICE_NUM + 1))
+          done
+          echo "Total device results: $DEVICE_NUM"
+        else
+          echo "ERROR: No results_scenario_*.json found in Firebase results"
+          find ./firebase-results -type f 2>/dev/null || true
+          exit 1
+        fi
