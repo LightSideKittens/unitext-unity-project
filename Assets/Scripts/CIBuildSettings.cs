@@ -66,9 +66,10 @@ public static class CIBuildSettings
         }
 
         SetHighStripping();
+        SetWebGLExceptions(debugArg == "true");
 
-        var isBenchmark = benchmarkArg == "true";
-
+        var isBenchmark = benchmarkArg == "true"
+;
         if (isBenchmark)
         {
             SetBuildScenes(BenchmarkScenePath, GlyphRasterizationBenchmarkScenePath);
@@ -180,6 +181,15 @@ public static class CIBuildSettings
         }
 
         Debug.Log($"[CIBuildSettings] {symbol} {(enabled ? "added to" : "removed from")} all platforms");
+    }
+
+    private static void SetWebGLExceptions(bool withStacktrace)
+    {
+        var level = withStacktrace
+            ? WebGLExceptionSupport.FullWithStacktrace
+            : WebGLExceptionSupport.FullWithoutStacktrace;
+        PlayerSettings.WebGL.exceptionSupport = level;
+        Debug.Log($"[CIBuildSettings] WebGL exceptions set to {level}");
     }
 
     private static void ConfigureIOSForSimulator()
