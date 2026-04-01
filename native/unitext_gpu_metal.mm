@@ -10,11 +10,14 @@ struct GpuUploadRequest
 {
     void* nativeTexPtr;
     void* pixelData;
-    int width;          // mip-level width (already downscaled)
-    int height;         // mip-level height
+    int width;
+    int height;
     int sliceIndex;
     int mipLevel;
     int bytesPerPixel;
+    int dstX;
+    int dstY;
+    int srcRowPitch;
 };
 #pragma pack(pop)
 
@@ -23,12 +26,13 @@ extern "C" void UploadMetal(const GpuUploadRequest& req)
     id<MTLTexture> tex = (__bridge id<MTLTexture>)req.nativeTexPtr;
     if (!tex) return;
 
-    MTLRegion region = MTLRegionMake2D(0, 0, req.width, req.height);
+    MTLRegion region = MTLRegionMake2D(req.dstX, req.dstY, req.width, req.height);
+    NSUInteger bytesPerRow = (NSUInteger)(req.srcRowPitch > 0 ? req.srcRowPitch : req.width * req.bytesPerPixel);
     [tex replaceRegion:region
            mipmapLevel:req.mipLevel
                  slice:req.sliceIndex
              withBytes:req.pixelData
-           bytesPerRow:(NSUInteger)(req.width * req.bytesPerPixel)
+           bytesPerRow:bytesPerRow
          bytesPerImage:0];
 }
 

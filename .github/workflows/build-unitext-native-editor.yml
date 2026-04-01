@@ -1,4 +1,4 @@
-name: Build UniText Native Editor
+name: Build UniText Native Editor 
 run-name: "Build UniText Native Editor"
 
 on:

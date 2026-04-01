@@ -1,4 +1,4 @@
-name: Setup iOS
+name: Setup iOS 
 
 on:
   workflow_dispatch:

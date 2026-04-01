@@ -1,4 +1,4 @@
-name: Build UniText GPU
+name: Build UniText GPU 
 run-name: "🔨 UniText GPU • ${{ (inputs.windows && inputs.linux && inputs.macos && inputs.android && inputs.ios) && '🌍 All platforms' || format('{0}{1}{2}{3}{4}', inputs.windows && '🪟 Win ' || '', inputs.linux && '🐧 Linux ' || '', inputs.macos && '🍎 macOS ' || '', inputs.android && '🤖 Android ' || '', inputs.ios && '📱 iOS ' || '') }}"
 
 on:

@@ -33,11 +33,14 @@ struct GpuUploadRequest
 {
     void* nativeTexPtr;     // 8 bytes (64-bit)
     void* pixelData;        // 8 bytes
-    int width;              // mip-level width
-    int height;             // mip-level height
+    int width;
+    int height;
     int sliceIndex;
     int mipLevel;
     int bytesPerPixel;
+    int dstX;               // destination offset within slice (0 = whole-slice legacy)
+    int dstY;
+    int srcRowPitch;        // source stride in bytes (0 = tightly packed = width * bytesPerPixel)
 };
 
 struct GpuUploadBatch
@@ -158,8 +161,16 @@ static void UploadD3D11(const GpuUploadRequest& r)
     tex->GetDesc(&desc);
 
     UINT subresource = D3D11CalcSubresource((UINT)r.mipLevel, (UINT)r.sliceIndex, desc.MipLevels);
-    s_d3d11Ctx->UpdateSubresource(tex, subresource, nullptr,
-        r.pixelData, (UINT)(r.width * r.bytesPerPixel), 0);
+    UINT rowPitch = (UINT)(r.srcRowPitch > 0 ? r.srcRowPitch : r.width * r.bytesPerPixel);
+
+    D3D11_BOX box;
+    box.left = (UINT)r.dstX;
+    box.top = (UINT)r.dstY;
+    box.front = 0;
+    box.right = (UINT)(r.dstX + r.width);
+    box.bottom = (UINT)(r.dstY + r.height);
+    box.back = 1;
+    s_d3d11Ctx->UpdateSubresource(tex, subresource, &box, r.pixelData, rowPitch, 0);
 }
 
 // ============================================================================
@@ -168,7 +179,7 @@ static void UploadD3D11(const GpuUploadRequest& r)
 
 #include "unity_plugin_api/IUnityGraphicsD3D12.h"
 
-static IUnityGraphicsD3D12v2* s_D3D12 = nullptr;
+static IUnityGraphicsD3D12v7* s_D3D12 = nullptr;
 static ID3D12Device* s_D3D12Device = nullptr;
 
 static const int D3D12_RING = 3;
@@ -181,10 +192,16 @@ static int s_D3D12Frame = 0;
 
 static void InitD3D12(IUnityInterfaces* interfaces)
 {
-    s_D3D12 = interfaces->Get<IUnityGraphicsD3D12v2>();
+    s_D3D12 = interfaces->Get<IUnityGraphicsD3D12v7>();
     if (!s_D3D12) return;
     s_D3D12Device = s_D3D12->GetDevice();
     if (!s_D3D12Device) { s_D3D12 = nullptr; return; }
+
+    UnityD3D12PluginEventConfig config = {};
+    config.graphicsQueueAccess = kUnityD3D12GraphicsQueueAccess_DontCare;
+    config.flags = kUnityD3D12EventConfigFlag_ModifiesCommandBuffersState;
+    config.ensureActiveRenderTextureIsBound = false;
+    s_D3D12->ConfigureEvent(0, &config);
 
     for (int i = 0; i < D3D12_RING; i++)
     {
@@ -282,16 +299,16 @@ static void UploadD3D12Batch(const GpuUploadRequest* requests, int count)
     EnsureD3D12UploadBuffer(slot, totalSize);
     if (!s_D3D12Upload[slot]) return;
 
-    // Map and copy pixel data with row padding
     void* mapped = nullptr;
     s_D3D12Upload[slot]->Map(0, nullptr, &mapped);
     for (int i = 0; i < n; i++)
     {
         int srcRow = requests[i].width * requests[i].bytesPerPixel;
+        int srcStride = requests[i].srcRowPitch > 0 ? requests[i].srcRowPitch : srcRow;
         for (int y = 0; y < requests[i].height; y++)
         {
             memcpy((char*)mapped + infos[i].offset + (size_t)y * infos[i].rowPitch,
-                   (char*)requests[i].pixelData + (size_t)y * srcRow,
+                   (char*)requests[i].pixelData + (size_t)y * srcStride,
                    srcRow);
         }
     }
@@ -338,7 +355,7 @@ static void UploadD3D12Batch(const GpuUploadRequest* requests, int count)
         dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
         dst.SubresourceIndex = sub;
 
-        s_D3D12CmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+        s_D3D12CmdList->CopyTextureRegion(&dst, (UINT)requests[i].dstX, (UINT)requests[i].dstY, 0, &src, nullptr);
 
         // Barrier: COPY_DEST -> COMMON
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
@@ -395,9 +412,15 @@ static void UploadOpenGL(const GpuUploadRequest& r)
     else if (r.bytesPerPixel == 8) { format = GL_RGBA; type = GL_HALF_FLOAT; }
     else return;
 
+    if (r.srcRowPitch > 0)
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, r.srcRowPitch / r.bytesPerPixel);
+
     glTexSubImage3D(GL_TEXTURE_2D_ARRAY, r.mipLevel,
-        0, 0, r.sliceIndex, r.width, r.height, 1,
+        r.dstX, r.dstY, r.sliceIndex, r.width, r.height, 1,
         format, type, r.pixelData);
+
+    if (r.srcRowPitch > 0)
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 #endif
 
@@ -571,13 +594,27 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
 
     if (!EnsureVkStagingBuffer(slot, totalSize)) return;
 
-    // Copy pixel data into staging buffer
     size_t offset = 0;
     for (int i = 0; i < count; i++)
     {
-        size_t sz = (size_t)requests[i].width * requests[i].height * requests[i].bytesPerPixel;
-        memcpy((char*)s_VkStaging[slot].mapped + offset, requests[i].pixelData, sz);
-        offset += sz;
+        int srcRow = requests[i].width * requests[i].bytesPerPixel;
+        int srcStride = requests[i].srcRowPitch > 0 ? requests[i].srcRowPitch : srcRow;
+        if (srcStride == srcRow)
+        {
+            size_t sz = (size_t)srcRow * requests[i].height;
+            memcpy((char*)s_VkStaging[slot].mapped + offset, requests[i].pixelData, sz);
+            offset += sz;
+        }
+        else
+        {
+            for (int y = 0; y < requests[i].height; y++)
+            {
+                memcpy((char*)s_VkStaging[slot].mapped + offset + (size_t)y * srcRow,
+                       (char*)requests[i].pixelData + (size_t)y * srcStride,
+                       srcRow);
+            }
+            offset += (size_t)srcRow * requests[i].height;
+        }
     }
 
     // Flush if not coherent
@@ -627,7 +664,7 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
         region.imageSubresource.mipLevel = requests[i].mipLevel;
         region.imageSubresource.baseArrayLayer = requests[i].sliceIndex;
         region.imageSubresource.layerCount = 1;
-        region.imageOffset = { 0, 0, 0 };
+        region.imageOffset = { requests[i].dstX, requests[i].dstY, 0 };
         region.imageExtent = { (uint32_t)requests[i].width, (uint32_t)requests[i].height, 1 };
 
         s_vkCmdCopyBufferToImage(state.commandBuffer,
@@ -717,5 +754,13 @@ static void UNITY_INTERFACE_API OnGpuUploadBatchEvent(int eventId, void* data)
 
 UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()
 {
+    if (!s_Graphics) return nullptr;
+    auto renderer = s_Graphics->GetRenderer();
+#ifdef _WIN32
+    if (renderer == kUnityGfxRendererD3D12 && !s_D3D12) return nullptr;
+#endif
+#if defined(__ANDROID__) || defined(__linux__)
+    if (renderer == kUnityGfxRendererVulkan && !s_Vulkan) return nullptr;
+#endif
     return OnGpuUploadBatchEvent;
 }

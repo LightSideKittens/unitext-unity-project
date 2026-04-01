@@ -1,4 +1,4 @@
-name: Test Only
+name: Test Only 
 run-name: "🧪 Tests for run #${{ inputs.run_id }}"
 
 on:
