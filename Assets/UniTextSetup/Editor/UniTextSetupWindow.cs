@@ -52,7 +52,12 @@ namespace LightSide
         private string installedVersion = "";
         private bool showPreRelease;
         private bool fetching;
+        private bool settingUp;
         private Vector2 scrollPos;
+
+        private List<VersionEntry> drawVersions = new();
+        private string drawInstalled = "";
+        private bool drawFetching;
 
         private struct VersionEntry
         {
@@ -95,6 +100,13 @@ namespace LightSide
 
         private void OnGUI()
         {
+            if (Event.current.type == EventType.Layout)
+            {
+                drawVersions = new List<VersionEntry>(versions);
+                drawInstalled = installedVersion;
+                drawFetching = fetching;
+            }
+
             GUILayout.Space(8);
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -126,8 +138,8 @@ namespace LightSide
 
             EditorGUILayout.Space(8);
 
-            GUI.enabled = TokenPattern.IsMatch(trimmed);
-            if (GUILayout.Button(IsSetupNeeded() ? "Set Up" : "Update Token", GUILayout.Height(28)))
+            GUI.enabled = TokenPattern.IsMatch(trimmed) && !settingUp;
+            if (GUILayout.Button(settingUp ? "Setting up…" : IsSetupNeeded() ? "Set Up" : "Update Token", GUILayout.Height(28)))
                 RunSetup(trimmed);
             GUI.enabled = true;
 
@@ -145,19 +157,80 @@ namespace LightSide
                 setupStatus = "";
                 UpmConfigWriter.SetAuth(RegistryUrl, token);
                 ManifestEditor.EnsureScopedRegistry(RegistryUrl, ScopeName, Scope);
-                UnityEditor.PackageManager.Client.Resolve();
-                setupStatus = "Setup complete!";
-                setupStatusType = MessageType.Info;
-                tab = 1;
                 DetectInstalledVersion();
-                FetchVersions();
+
+                if (!string.IsNullOrEmpty(installedVersion))
+                {
+                    UnityEditor.PackageManager.Client.Resolve();
+                    setupStatus = "Token updated!";
+                    setupStatusType = MessageType.Info;
+                    tab = 1;
+                    FetchVersions();
+                    return;
+                }
+
+                settingUp = true;
+                setupStatus = "Verifying token…";
+                setupStatusType = MessageType.Info;
+
+                var url = $"{RegistryUrl}/{PackageName}";
+                var request = UnityWebRequest.Get(url);
+                request.SetRequestHeader("Authorization", $"Bearer {token}");
+
+                request.SendWebRequest().completed += _ =>
+                {
+                    settingUp = false;
+
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        setupStatus = request.responseCode == 401
+                            ? "Invalid token"
+                            : $"Connection failed: {request.error}";
+                        setupStatusType = MessageType.Error;
+                        request.Dispose();
+                        Repaint();
+                        return;
+                    }
+
+                    try
+                    {
+                        var latest = ParseLatestVersion(request.downloadHandler.text);
+                        if (!string.IsNullOrEmpty(latest))
+                            InstallVersion(latest);
+                        else
+                            UnityEditor.PackageManager.Client.Resolve();
+
+                        setupStatus = "";
+                        tab = 1;
+                        FetchVersions();
+                    }
+                    catch (Exception e)
+                    {
+                        setupStatus = $"Setup failed: {e.Message}";
+                        setupStatusType = MessageType.Error;
+                        Debug.LogError($"[UniText] {e}");
+                    }
+
+                    request.Dispose();
+                    Repaint();
+                };
             }
             catch (Exception e)
             {
+                settingUp = false;
                 setupStatus = $"Setup failed: {e.Message}";
                 setupStatusType = MessageType.Error;
                 Debug.LogError($"[UniText] {e}");
             }
+        }
+
+        private static string ParseLatestVersion(string json)
+        {
+            var root = MiniJson.Parse(json) as Dictionary<string, object>;
+            if (root == null) return null;
+            var tags = root.TryGetValue("dist-tags", out var dt) ? dt as Dictionary<string, object> : null;
+            if (tags == null) return null;
+            return tags.TryGetValue("latest", out var v) && v is string s ? s : null;
         }
 
         private static readonly Color InstalledColor = new(0.3f, 0.8f, 0.45f);
@@ -168,46 +241,49 @@ namespace LightSide
         {
             GUILayout.Space(8);
 
-            var cardRect = EditorGUILayout.BeginHorizontal(GUILayout.Height(50));
-            EditorGUI.DrawRect(cardRect, new Color(0.15f, 0.15f, 0.15f, 0.5f));
-            EditorGUI.DrawRect(new Rect(cardRect.x, cardRect.y, 3, cardRect.height), InstalledColor);
+            if (!string.IsNullOrEmpty(drawInstalled))
+            {
+                var cardRect = EditorGUILayout.BeginHorizontal(GUILayout.Height(50));
+                EditorGUI.DrawRect(cardRect, new Color(0.15f, 0.15f, 0.15f, 0.5f));
+                EditorGUI.DrawRect(new Rect(cardRect.x, cardRect.y, 3, cardRect.height), InstalledColor);
 
-            GUILayout.Space(12);
+                GUILayout.Space(12);
 
-            EditorGUILayout.BeginVertical();
-            GUILayout.FlexibleSpace();
+                EditorGUILayout.BeginVertical();
+                GUILayout.FlexibleSpace();
 
-            EditorGUILayout.BeginHorizontal();
-            DrawIcon("d_GreenCheckmark@2x", "GreenCheckmark@2x", "GreenCheckmark");
-            GUILayout.Space(4);
-            var labelStyle = new GUIStyle(EditorStyles.label) { fontSize = 12, normal = { textColor = new Color(0.7f, 0.7f, 0.7f) } };
-            GUILayout.Label("Installed", labelStyle);
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                DrawIcon("d_GreenCheckmark@2x", "GreenCheckmark@2x", "GreenCheckmark");
+                GUILayout.Space(4);
+                var labelStyle = new GUIStyle(EditorStyles.label) { fontSize = 12, normal = { textColor = new Color(0.7f, 0.7f, 0.7f) } };
+                GUILayout.Label("Installed", labelStyle);
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
 
-            var vStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 20 };
-            GUILayout.Label(string.IsNullOrEmpty(installedVersion) ? "\u2014" : installedVersion, vStyle);
+                var vStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 20 };
+                GUILayout.Label(drawInstalled, vStyle);
 
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndVertical();
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndVertical();
 
-            GUILayout.Space(12);
-            EditorGUILayout.EndHorizontal();
+                GUILayout.Space(12);
+                EditorGUILayout.EndHorizontal();
 
-            GUILayout.Space(12);
+                GUILayout.Space(12);
+            }
 
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(22));
             var prev = showPreRelease;
             showPreRelease = GUILayout.Toggle(showPreRelease, " Pre-release", EditorStyles.toolbarButton, GUILayout.Width(100));
             if (prev != showPreRelease) FetchVersions();
             GUILayout.FlexibleSpace();
-            GUI.enabled = !fetching;
+            GUI.enabled = !drawFetching;
             if (GUILayout.Button(new GUIContent(" Refresh", EditorGUIUtility.IconContent("Refresh").image), EditorStyles.toolbarButton, GUILayout.Width(75)))
                 FetchVersions();
             GUI.enabled = true;
             EditorGUILayout.EndHorizontal();
 
-            if (fetching)
+            if (drawFetching)
             {
                 GUILayout.FlexibleSpace();
                 EditorGUILayout.LabelField("Loading...", EditorStyles.centeredGreyMiniLabel);
@@ -215,7 +291,7 @@ namespace LightSide
                 return;
             }
 
-            if (versions.Count == 0)
+            if (drawVersions.Count == 0)
             {
                 GUILayout.FlexibleSpace();
                 EditorGUILayout.LabelField("No versions found", EditorStyles.centeredGreyMiniLabel);
@@ -226,7 +302,7 @@ namespace LightSide
             GUILayout.Space(8);
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
-            foreach (var v in versions)
+            foreach (var v in drawVersions)
                 DrawVersionRow(v);
 
             EditorGUILayout.EndScrollView();
@@ -282,7 +358,7 @@ namespace LightSide
             }
             else
             {
-                var label = string.IsNullOrEmpty(installedVersion) ? "Install" : "Switch";
+                var label = string.IsNullOrEmpty(drawInstalled) ? "Install" : "Switch";
                 if (GUILayout.Button(label, GUILayout.Width(80), GUILayout.Height(28)))
                     InstallVersion(v.version);
             }
