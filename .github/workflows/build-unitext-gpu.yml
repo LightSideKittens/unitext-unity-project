@@ -34,12 +34,14 @@ jobs:
         arch: [x64, arm64]
     steps:
       - uses: actions/checkout@v4
+      - name: Get Vulkan Headers
+        run: git clone --depth 1 --branch v1.4.304 https://github.com/KhronosGroup/Vulkan-Headers.git vulkan-headers
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch == 'x64' && 'amd64' || 'amd64_arm64' }}
       - name: Build unitext_gpu.dll (${{ matrix.arch }})
         run: |
-          cl /c /O2 /MD /EHsc /std:c++17 /I native native/unitext_gpu.cpp /Fo:unitext_gpu.obj
+          cl /c /O2 /MD /EHsc /std:c++17 /I native /I vulkan-headers/include native/unitext_gpu.cpp /Fo:unitext_gpu.obj
           link /DLL /OUT:unitext_gpu.dll /DEF:native/unitext_gpu.def unitext_gpu.obj d3d11.lib d3d12.lib
           dumpbin //EXPORTS unitext_gpu.dll
       - uses: actions/upload-artifact@v4

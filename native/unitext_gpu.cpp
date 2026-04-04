@@ -24,6 +24,10 @@
 #define UTEXPORT extern "C" __attribute__((visibility("default")))
 #endif
 
+#if defined(_WIN32) || defined(__ANDROID__) || defined(__linux__)
+#define HAS_VULKAN_UPLOAD 1
+#endif
+
 // ============================================================================
 // Upload Request — must match C# struct layout exactly (Sequential, Pack=1)
 // ============================================================================
@@ -63,7 +67,7 @@ static void UploadD3D11(const GpuUploadRequest& r);
 static void UploadD3D12Batch(const GpuUploadRequest* requests, int count);
 #endif
 
-#if defined(__ANDROID__) || defined(__linux__)
+#ifdef HAS_VULKAN_UPLOAD
 static void InitVulkan(IUnityInterfaces* interfaces);
 static void ReleaseVulkanResources();
 static void UploadVulkanBatch(const GpuUploadRequest* requests, int count);
@@ -86,7 +90,7 @@ static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType ev
         if (renderer == kUnityGfxRendererD3D12)
             InitD3D12(s_UnityInterfaces);
 #endif
-#if defined(__ANDROID__) || defined(__linux__)
+#ifdef HAS_VULKAN_UPLOAD
         if (renderer == kUnityGfxRendererVulkan)
             InitVulkan(s_UnityInterfaces);
 #endif
@@ -97,7 +101,7 @@ static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType ev
         ReleaseD3D11Context();
         ReleaseD3D12Resources();
 #endif
-#if defined(__ANDROID__) || defined(__linux__)
+#ifdef HAS_VULKAN_UPLOAD
         ReleaseVulkanResources();
 #endif
     }
@@ -428,7 +432,7 @@ static void UploadOpenGL(const GpuUploadRequest& r)
 // Vulkan (Android + Linux)
 // ============================================================================
 
-#if defined(__ANDROID__) || defined(__linux__)
+#ifdef HAS_VULKAN_UPLOAD
 
 #include "unity_plugin_api/IUnityGraphicsVulkan.h"
 
@@ -676,7 +680,7 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
     }
 }
 
-#endif // __ANDROID__ || __linux__
+#endif // HAS_VULKAN_UPLOAD
 
 // ============================================================================
 // Metal (implemented in unitext_gpu_metal.mm)
@@ -730,7 +734,7 @@ static void UNITY_INTERFACE_API OnGpuUploadBatchEvent(int eventId, void* data)
         break;
 #endif
 
-#if defined(__ANDROID__) || defined(__linux__)
+#ifdef HAS_VULKAN_UPLOAD
     case kUnityGfxRendererVulkan:
         UploadVulkanBatch(requests, count);
         break;
@@ -759,7 +763,7 @@ UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()
 #ifdef _WIN32
     if (renderer == kUnityGfxRendererD3D12 && !s_D3D12) return nullptr;
 #endif
-#if defined(__ANDROID__) || defined(__linux__)
+#ifdef HAS_VULKAN_UPLOAD
     if (renderer == kUnityGfxRendererVulkan && !s_Vulkan) return nullptr;
 #endif
     return OnGpuUploadBatchEvent;
