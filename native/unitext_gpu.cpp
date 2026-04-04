@@ -127,19 +127,6 @@ UTEXPORT int ut_gpu_get_renderer()
     return s_Graphics ? (int)s_Graphics->GetRenderer() : -1;
 }
 
-static volatile int s_callbackCount = 0;
-static volatile int s_lastBatchCount = 0;
-
-UTEXPORT int ut_gpu_get_callback_count()
-{
-    return s_callbackCount;
-}
-
-UTEXPORT int ut_gpu_get_last_batch_count()
-{
-    return s_lastBatchCount;
-}
-
 // ============================================================================
 // D3D11 (Windows)
 // ============================================================================
@@ -712,9 +699,6 @@ static void UNITY_INTERFACE_API OnGpuUploadBatchEvent(int eventId, void* data)
     int count = batch->count;
     if (count <= 0) return;
 
-    s_callbackCount++;
-    s_lastBatchCount = count;
-
     auto renderer = s_Graphics->GetRenderer();
 
     switch (renderer)
@@ -766,11 +750,6 @@ static void UNITY_INTERFACE_API OnGpuUploadBatchEvent(int eventId, void* data)
     default:
         break;
     }
-}
-
-UTEXPORT void ut_gpu_upload_batch(void* data)
-{
-    OnGpuUploadBatchEvent(0, data);
 }
 
 UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()

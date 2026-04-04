@@ -222,7 +222,7 @@ jobs:
         run: |
           mkdir -p out/Windows/x86_64 out/Windows/ARM64
           mkdir -p out/Linux/x86_64 out/Linux/ARM64
-          mkdir -p out/macOS
+          mkdir -p out/macOS out/iOS
           mkdir -p out/Android/arm64-v8a out/Android/armeabi-v7a out/Android/x86_64 out/Android/x86
 
           [ -d artifacts/win-x64 ] && cp artifacts/win-x64/unitext_gpu.dll out/Windows/x86_64/ || true
