@@ -768,6 +768,11 @@ static void UNITY_INTERFACE_API OnGpuUploadBatchEvent(int eventId, void* data)
     }
 }
 
+UTEXPORT void ut_gpu_upload_batch(void* data)
+{
+    OnGpuUploadBatchEvent(0, data);
+}
+
 UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()
 {
     if (!s_Graphics) return nullptr;

@@ -3,6 +3,7 @@
 LIBRARY unitext_gpu
 EXPORTS
     ut_gpu_get_upload_batch_event
+    ut_gpu_upload_batch
     ut_gpu_get_renderer
     ut_gpu_get_callback_count
     ut_gpu_get_last_batch_count
