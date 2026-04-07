@@ -153,7 +153,8 @@ jobs:
             -Wl,--gc-sections \
             -lGLESv3 \
             native/unitext_gpu.cpp \
-            -o libunitext_gpu.so
+            -o libunitext_gpu.so \
+            -Wl,-z,max-page-size=16384
       - uses: actions/upload-artifact@v4
         with:
           name: android-${{ matrix.abi }}
