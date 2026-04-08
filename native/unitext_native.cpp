@@ -16,6 +16,8 @@
 #include FT_TRUETYPE_TABLES_H
 #include FT_MODULE_H
 #include FT_MULTIPLE_MASTERS_H
+#include FT_STROKER_H
+#include FT_GLYPH_H
 
 #include <hb.h>
 #include <hb-ot.h>
@@ -777,50 +779,11 @@ UNITEXT_EXPORT int ut_ft_get_outline_info(FT_Face face, int* outNumContours, int
 }
 
 // =============================================================================
-// Outline Decompose — manual FT_Outline walking (all-quadratic output)
-// =============================================================================
-//
-// Walks FT_Outline points/tags/contours directly, emitting ALL curves as
-// quadratic Béziers with float-precision implicit midpoints:
-// - On-curve lines → degenerate quadratic (control = midpoint)
-// - Conic (quadratic) → direct output
-// - Cubic (CFF/OTF) → split into two quadratics at midpoint
-//
-// This produces better SDF quality than FT_Outline_Decompose because:
-// - Float midpoints (a+b)*0.5f vs FreeType's integer (a+b)/2 truncation
-// - Consistent contour starting point (first on-curve by linear search)
-// - No degenerate segment skipping
-//
-// Output format per curve: 8 floats (p0.x, p0.y, ctrl.x, ctrl.y, p2.x, p2.y, 0, 0)
-// outTypes[i]: always 2 (quadratic)
-
-UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_index,
-                                            float* outCurves, int* outTypes,
-                                            int* outCurveCount, int maxCurves,
-                                            int* outContours, int* outContourCount, int maxContours,
-                                            int* outBearingX, int* outBearingY,
-                                            int* outAdvanceX, int* outWidth, int* outHeight)
+static int decompose_outline(FT_Outline* outline,
+                             float* outCurves, int* outTypes,
+                             int* outCurveCount, int maxCurves,
+                             int* outContours, int* outContourCount, int maxContours)
 {
-    if (!face || !outCurves || !outTypes || !outCurveCount || !outContours || !outContourCount)
-        return -1;
-
-    FT_Error err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP | FT_LOAD_NO_SCALE);
-    if (err) return (int)err;
-
-    if (face->glyph->format != FT_GLYPH_FORMAT_OUTLINE) {
-        *outCurveCount = 0;
-        *outContourCount = 0;
-        return 0;
-    }
-
-    FT_Glyph_Metrics* m = &face->glyph->metrics;
-    if (outBearingX) *outBearingX = (int)(m->horiBearingX);
-    if (outBearingY) *outBearingY = (int)(m->horiBearingY);
-    if (outAdvanceX) *outAdvanceX = (int)(m->horiAdvance);
-    if (outWidth)    *outWidth    = (int)(m->width);
-    if (outHeight)   *outHeight   = (int)(m->height);
-
-    FT_Outline* outline = &face->glyph->outline;
     if (outline->n_points <= 0 || outline->n_contours <= 0) {
         *outCurveCount = 0;
         *outContourCount = 0;
@@ -941,6 +904,97 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
     *outCurveCount = curveIdx;
     *outContourCount = contourIdx;
     return 0;
+}
+
+// =============================================================================
+// Outline Decompose — manual FT_Outline walking (all-quadratic output)
+// =============================================================================
+
+UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_index,
+                                            float* outCurves, int* outTypes,
+                                            int* outCurveCount, int maxCurves,
+                                            int* outContours, int* outContourCount, int maxContours,
+                                            int* outBearingX, int* outBearingY,
+                                            int* outAdvanceX, int* outWidth, int* outHeight)
+{
+    if (!face || !outCurves || !outTypes || !outCurveCount || !outContours || !outContourCount)
+        return -1;
+
+    FT_Error err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP | FT_LOAD_NO_SCALE);
+    if (err) return (int)err;
+
+    if (face->glyph->format != FT_GLYPH_FORMAT_OUTLINE) {
+        *outCurveCount = 0;
+        *outContourCount = 0;
+        return 0;
+    }
+
+    FT_Glyph_Metrics* m = &face->glyph->metrics;
+    if (outBearingX) *outBearingX = (int)(m->horiBearingX);
+    if (outBearingY) *outBearingY = (int)(m->horiBearingY);
+    if (outAdvanceX) *outAdvanceX = (int)(m->horiAdvance);
+    if (outWidth)    *outWidth    = (int)(m->width);
+    if (outHeight)   *outHeight   = (int)(m->height);
+
+    FT_Outline* outline = &face->glyph->outline;
+    return decompose_outline(outline, outCurves, outTypes, outCurveCount, maxCurves,
+                             outContours, outContourCount, maxContours);
+}
+
+// =============================================================================
+// Stroke Outline — stroked glyph decomposed to all-quadratic curves
+// =============================================================================
+
+UNITEXT_EXPORT int ut_ft_stroke_outline(
+    FT_Face face, unsigned int glyphIndex,
+    int radiusInFontUnits,
+    int lineJoin,
+    int miterLimit26_6,
+    float* outCurves,
+    int* outTypes,
+    int* outCurveCount,
+    int maxCurves,
+    int* outContours,
+    int* outContourCount,
+    int maxContours)
+{
+    if (!face || !outCurves || !outTypes || !outCurveCount || !outContours || !outContourCount)
+        return -1;
+
+    FT_Error err = FT_Load_Glyph(face, glyphIndex, FT_LOAD_NO_BITMAP | FT_LOAD_NO_SCALE);
+    if (err) return (int)err;
+
+    if (face->glyph->format != FT_GLYPH_FORMAT_OUTLINE) {
+        *outCurveCount = 0;
+        *outContourCount = 0;
+        return 0;
+    }
+
+    FT_Stroker stroker;
+    err = FT_Stroker_New(face->glyph->library, &stroker);
+    if (err) return (int)err;
+
+    FT_Stroker_Set(stroker, radiusInFontUnits,
+                   FT_STROKER_LINECAP_BUTT,
+                   (FT_Stroker_LineJoin)lineJoin,
+                   miterLimit26_6 > 0 ? miterLimit26_6 : 0x10000);
+
+    FT_Glyph glyph;
+    err = FT_Get_Glyph(face->glyph, &glyph);
+    if (err) { FT_Stroker_Done(stroker); return (int)err; }
+
+    err = FT_Glyph_Stroke(&glyph, stroker, 1);
+    if (err) { FT_Stroker_Done(stroker); return (int)err; }
+
+    FT_OutlineGlyph outlineGlyph = (FT_OutlineGlyph)glyph;
+    FT_Outline* outline = &outlineGlyph->outline;
+
+    int result = decompose_outline(outline, outCurves, outTypes, outCurveCount, maxCurves,
+                                   outContours, outContourCount, maxContours);
+
+    FT_Done_Glyph(glyph);
+    FT_Stroker_Done(stroker);
+    return result;
 }
 
 // =============================================================================

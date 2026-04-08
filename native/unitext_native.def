@@ -38,6 +38,7 @@ EXPORTS
     ut_ft_outline_to_blpath
     ut_ft_get_outline_info
     ut_ft_outline_decompose
+    ut_ft_stroke_outline
 
     ; === COLRv1 API ===
     ut_colr_get_glyph_paint
