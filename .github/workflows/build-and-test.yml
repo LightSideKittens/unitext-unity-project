@@ -1,4 +1,4 @@
-name: Build and Test (Reusable)❤️ 
+name: Build and Test (Reusable)❤️
 
 on:
   workflow_call:
@@ -82,10 +82,77 @@ jobs:
           path: build
           retention-days: 7
 
+  ipa:
+    name: ipa
+    if: inputs.platform == 'iOS'
+    needs: build
+    timeout-minutes: 30
+    runs-on: macos-14
+    steps:
+      - name: Download Xcode Project
+        uses: actions/download-artifact@v4
+        with:
+          name: Build-${{ inputs.unity_version }}-iOS
+          path: build
+
+      - name: Checkout ci-workflows
+        uses: actions/checkout@v4
+        with:
+          repository: LightSideKittens/ci-workflows
+          token: ${{ secrets.GH_PAT }}
+          sparse-checkout: fastlane
+          path: ci-workflows
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ci-workflows/fastlane
+
+      - name: Configure Git Credentials
+        run: |
+          git config --global credential.helper store
+          echo "https://x-access-token:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
+
+      - name: Build Signed IPA
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          set -euo pipefail
+          XCODEPROJ=$(find build -name "*.xcodeproj" | head -1)
+          [ -z "$XCODEPROJ" ] && { echo "ERROR: No .xcodeproj found"; exit 1; }
+          echo "Xcode project: $XCODEPROJ"
+          PROJECT_DIR=$(dirname "$XCODEPROJ")
+          find "$PROJECT_DIR" -name "*.sh" -exec chmod +x {} \;
+          find "$PROJECT_DIR" -name "usymtool*" -exec chmod +x {} \;
+          cd ci-workflows/fastlane
+          bundle install --quiet
+          bundle exec fastlane build_ipa \
+            xcode_project:"$GITHUB_WORKSPACE/$XCODEPROJ" \
+            output_name:"UniText.ipa" \
+            output_dir:"$GITHUB_WORKSPACE"
+          ls -lh "$GITHUB_WORKSPACE/UniText.ipa"
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: IPA-${{ inputs.unity_version }}
+          path: UniText.ipa
+          retention-days: 7
+
   test:
     name: test
-    if: inputs.run_tests && !(inputs.platform == 'StandaloneLinux64' && startsWith(inputs.unity_version, '2021'))
-    needs: build
+    if: |
+      !failure() && !cancelled() &&
+      inputs.run_tests && !(inputs.platform == 'StandaloneLinux64' && startsWith(inputs.unity_version, '2021'))
+    needs: [build, ipa]
     timeout-minutes: 30
     runs-on: ${{
       inputs.platform == 'StandaloneWindows64' && 'windows-latest' ||
@@ -106,10 +173,18 @@ jobs:
             Assets/UniText.Test
 
       - name: Download Build Artifact
+        if: inputs.platform != 'iOS'
         uses: actions/download-artifact@v4
         with:
           name: Build-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: build
+
+      - name: Download IPA
+        if: inputs.platform == 'iOS'
+        uses: actions/download-artifact@v4
+        with:
+          name: IPA-${{ inputs.unity_version }}
+          path: .
 
       - name: Authenticate to Google Cloud (Android/iOS)
         if: inputs.platform == 'Android' || inputs.platform == 'iOS'
@@ -131,14 +206,6 @@ jobs:
         uses: ./.github/actions/run-app
         env:
           FIREBASE_RESULTS_BUCKET: ${{ secrets.FIREBASE_RESULTS_BUCKET }}
-          GH_PAT: ${{ secrets.GH_PAT }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
-          TEAM_ID: ${{ secrets.TEAM_ID }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
         with:
           platform: ${{ inputs.platform }}
           mode: test
@@ -158,8 +225,10 @@ jobs:
           retention-days: 7
 
   benchmark:
-    if: inputs.benchmark && inputs.platform != 'StandaloneLinux64'
-    needs: build
+    if: |
+      !failure() && !cancelled() &&
+      inputs.benchmark && inputs.platform != 'StandaloneLinux64'
+    needs: [build, ipa]
     timeout-minutes: 30
     runs-on: ${{
       inputs.platform == 'StandaloneWindows64' && 'windows-latest' ||
@@ -179,10 +248,18 @@ jobs:
             Assets/server.js
 
       - name: Download Build Artifact
+        if: inputs.platform != 'iOS'
         uses: actions/download-artifact@v4
         with:
           name: Build-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: build
+
+      - name: Download IPA
+        if: inputs.platform == 'iOS'
+        uses: actions/download-artifact@v4
+        with:
+          name: IPA-${{ inputs.unity_version }}
+          path: .
 
       - name: Authenticate to Google Cloud (Android/iOS)
         if: inputs.platform == 'Android' || inputs.platform == 'iOS'
@@ -204,14 +281,6 @@ jobs:
         uses: ./.github/actions/run-app
         env:
           FIREBASE_RESULTS_BUCKET: ${{ secrets.FIREBASE_RESULTS_BUCKET }}
-          GH_PAT: ${{ secrets.GH_PAT }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
-          TEAM_ID: ${{ secrets.TEAM_ID }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
         with:
           platform: ${{ inputs.platform }}
           mode: benchmark

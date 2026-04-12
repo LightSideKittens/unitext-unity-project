@@ -274,63 +274,8 @@ runs:
         exit ${EXIT_CODE:-0}
 
     # ----------------------------------------
-    # iOS (Fastlane IPA + Firebase Test Lab)
+    # iOS (Firebase Test Lab)
     # ----------------------------------------
-    - name: Checkout ci-workflows (iOS)
-      if: inputs.platform == 'iOS'
-      uses: actions/checkout@v4
-      with:
-        repository: LightSideKittens/ci-workflows
-        token: ${{ env.GH_PAT }}
-        sparse-checkout: fastlane
-        path: ci-workflows
-
-    - name: Setup Ruby (iOS)
-      if: inputs.platform == 'iOS'
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.2'
-        bundler-cache: true
-        working-directory: ci-workflows/fastlane
-
-    - name: Configure Git Credentials (iOS)
-      if: inputs.platform == 'iOS'
-      shell: bash
-      run: |
-        git config --global credential.helper store
-        echo "https://x-access-token:${{ env.GH_PAT }}@github.com" > ~/.git-credentials
-
-    - name: Build Signed IPA (iOS)
-      if: inputs.platform == 'iOS'
-      shell: bash
-      env:
-        MATCH_PASSWORD: ${{ env.MATCH_PASSWORD }}
-        MATCH_GIT_URL: ${{ env.MATCH_GIT_URL }}
-        APP_IDENTIFIER: ${{ env.APP_IDENTIFIER }}
-        TEAM_ID: ${{ env.TEAM_ID }}
-        APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ env.APP_STORE_CONNECT_KEY_ID }}
-        APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ env.APP_STORE_CONNECT_ISSUER_ID }}
-        APP_STORE_CONNECT_API_KEY_KEY: ${{ env.APP_STORE_CONNECT_API_KEY }}
-      run: |
-        set -euo pipefail
-
-        XCODEPROJ=$(find ${{ inputs.build_path }} -name "*.xcodeproj" | head -1)
-        [ -z "$XCODEPROJ" ] && { echo "ERROR: No .xcodeproj found"; exit 1; }
-        echo "Xcode project: $XCODEPROJ"
-
-        PROJECT_DIR=$(dirname "$XCODEPROJ")
-        find "$PROJECT_DIR" -name "*.sh" -exec chmod +x {} \;
-        find "$PROJECT_DIR" -name "usymtool*" -exec chmod +x {} \;
-
-        cd ci-workflows/fastlane
-        bundle install --quiet
-        bundle exec fastlane build_ipa \
-          xcode_project:"$GITHUB_WORKSPACE/$XCODEPROJ" \
-          output_name:"UniText.ipa" \
-          output_dir:"$GITHUB_WORKSPACE"
-
-        ls -lh "$GITHUB_WORKSPACE/UniText.ipa"
-
     - name: Launch on Firebase (iOS)
       if: inputs.platform == 'iOS'
       shell: bash
