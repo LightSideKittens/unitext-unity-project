@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/UniText.Test/TestWorkshop/UniTextTest.unity
     guid: df7c5e1d0afa8fa418b13ce363e2cb85
   - enabled: 0
@@ -14,6 +14,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/UniText.Test/BenchmarkWorkshop/UniText_BenchmarkTest.unity
     guid: ba2b9027fa55cdd41b094f27e062c940
+  - enabled: 0
+    path: Assets/UniText.Test/New Scene.unity
+    guid: 5f57afe75d1fc414ead525150af02504
+  - enabled: 1
+    path: Assets/UniText/Samples/Layout/Layout.unity
+    guid: 96b5ee2fab82dbb4d9fc27d6d0b364d3
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
