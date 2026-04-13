@@ -81,16 +81,14 @@ public static class CIBuildSettings
         else
         {
             DisableBenchmark();
-            SetBuildScene(TestScenePath);
+
+            if (testsArg == "true")
+                SetBuildScene(TestScenePath);
 
             if (debugArg == "true")
-            {
                 EnableDebug();
-            }
             else
-            {
                 DisableDebug();
-            }
         }
 
         Debug.Log("[CIBuildSettings] Build configured successfully");
