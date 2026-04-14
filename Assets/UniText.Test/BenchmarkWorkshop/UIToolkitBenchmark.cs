@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using LightSide;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -643,7 +644,7 @@ public class UIToolkitBenchmark : MonoBehaviour
     [UnityEditor.MenuItem("UniText/Run UI Toolkit Benchmark")]
     private static void RunFromMenu()
     {
-        var test = FindObjectOfType<UIToolkitBenchmark>();
+        var test = ObjectUtils.FindFirst<UIToolkitBenchmark>();
         if (test != null)
             test.RunBenchmark();
         else

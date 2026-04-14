@@ -16,7 +16,7 @@ namespace LightSide
 
         private Texture2D texture;
         private Material material;
-        private COLRv1Renderer renderer;
+        private COLRv1Renderer colrRenderer;
         private IntPtr face;
 
         private void Start()
@@ -85,10 +85,10 @@ namespace LightSide
                 return;
             }
 
-            renderer = new COLRv1Renderer(face);
+            colrRenderer = new COLRv1Renderer(face);
 
             bool stillHasCOLRv1 = FT.HasColorGlyphPaint(face, glyphIndex);
-            Debug.Log($"[COLRv1Test] After renderer creation: hasCOLRv1={stillHasCOLRv1}");
+            Debug.Log($"[COLRv1Test] After colrRenderer creation: hasCOLRv1={stillHasCOLRv1}");
 
             bool gotPaint = FT.GetColorGlyphPaint(face, glyphIndex, true, out var testPaint);
             Debug.Log($"[COLRv1Test] Direct GetColorGlyphPaint: success={gotPaint}, p={testPaint.p}, insert={testPaint.insert_root_transform}");
@@ -112,7 +112,7 @@ namespace LightSide
         [ContextMenu("Test COLRv1 Rendering")]
         private void TestCOLRv1Rendering(uint glyphIndex)
         {
-            if (renderer == null)
+            if (colrRenderer == null)
             {
                 Debug.LogError("[COLRv1Test] Renderer not initialized");
                 return;
@@ -120,7 +120,7 @@ namespace LightSide
 
             var sw = Stopwatch.StartNew();
 
-            if (renderer.TryRenderGlyph(glyphIndex, emojiSize, out var pixels, out int width, out int height, out _, out _, out _))
+            if (colrRenderer.TryRenderGlyph(glyphIndex, emojiSize, out var pixels, out int width, out int height, out _, out _, out _))
             {
                 sw.Stop();
                 Debug.Log($"[COLRv1Test] Rendered glyph {glyphIndex} in {sw.ElapsedMilliseconds}ms ({width}x{height})");
@@ -204,7 +204,7 @@ namespace LightSide
         [ContextMenu("Test Batch Rendering")]
         private void TestBatchRendering()
         {
-            if (renderer == null) return;
+            if (colrRenderer == null) return;
 
             uint[] testCodepoints = {
                 0x1F600, 0x1F601, 0x1F602, 0x1F603, 0x1F604, 0x1F605, 0x1F606, 0x1F607, 0x1F608, 0x1F609, 0x2764, 0x1F496, 0x1F389,
@@ -218,7 +218,7 @@ namespace LightSide
                 uint glyph = FT.GetCharIndex(face, cp);
                 if (glyph == 0) continue;
 
-                if (renderer.TryRenderGlyph(glyph, emojiSize, out _, out _, out _, out _, out _, out _))
+                if (colrRenderer.TryRenderGlyph(glyph, emojiSize, out _, out _, out _, out _, out _, out _))
                 {
                     rendered++;
                 }
@@ -231,7 +231,7 @@ namespace LightSide
         
         private void OnDestroy()
         {
-            renderer?.Dispose();
+            colrRenderer?.Dispose();
 
             if (face != IntPtr.Zero)
             {

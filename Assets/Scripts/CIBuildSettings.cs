@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 [InitializeOnLoad]
@@ -131,9 +132,7 @@ public static class CIBuildSettings
     public static void SetHighStripping()
     {
         foreach (var target in AllTargets)
-        {
-            PlayerSettings.SetManagedStrippingLevel(target, ManagedStrippingLevel.High);
-        }
+            SetStrippingLevel(target, ManagedStrippingLevel.High);
 
         Debug.Log("[CIBuildSettings] Managed Stripping Level set to High for all platforms");
     }
@@ -160,14 +159,14 @@ public static class CIBuildSettings
     {
         foreach (var target in AllTargets)
         {
-            var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(target);
+            var defines = GetDefines(target);
 
             if (enabled)
             {
                 if (!defines.Contains(symbol))
                 {
                     defines = string.IsNullOrEmpty(defines) ? symbol : defines + ";" + symbol;
-                    PlayerSettings.SetScriptingDefineSymbolsForGroup(target, defines);
+                    SetDefines(target, defines);
                 }
             }
             else
@@ -175,12 +174,39 @@ public static class CIBuildSettings
                 if (defines.Contains(symbol))
                 {
                     defines = defines.Replace(";" + symbol, "").Replace(symbol + ";", "").Replace(symbol, "");
-                    PlayerSettings.SetScriptingDefineSymbolsForGroup(target, defines);
+                    SetDefines(target, defines);
                 }
             }
         }
 
         Debug.Log($"[CIBuildSettings] {symbol} {(enabled ? "added to" : "removed from")} all platforms");
+    }
+
+    private static void SetStrippingLevel(BuildTargetGroup target, ManagedStrippingLevel level)
+    {
+#if UNITY_2021_2_OR_NEWER
+        PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(target), level);
+#else
+        PlayerSettings.SetManagedStrippingLevel(target, level);
+#endif
+    }
+
+    private static string GetDefines(BuildTargetGroup target)
+    {
+#if UNITY_2021_2_OR_NEWER
+        return PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(target));
+#else
+        return PlayerSettings.GetScriptingDefineSymbolsForGroup(target);
+#endif
+    }
+
+    private static void SetDefines(BuildTargetGroup target, string defines)
+    {
+#if UNITY_2021_2_OR_NEWER
+        PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(target), defines);
+#else
+        PlayerSettings.SetScriptingDefineSymbolsForGroup(target, defines);
+#endif
     }
 
     private static void SetWebGLExceptions(bool withStacktrace)
@@ -190,18 +216,6 @@ public static class CIBuildSettings
             : WebGLExceptionSupport.FullWithoutStacktrace;
         PlayerSettings.WebGL.exceptionSupport = level;
         Debug.Log($"[CIBuildSettings] WebGL exceptions set to {level}");
-    }
-
-    private static void ConfigureIOSForSimulator()
-    {
-        PlayerSettings.iOS.sdkVersion = iOSSdkVersion.SimulatorSDK;
-
-#if UNITY_2022_1_OR_NEWER
-        PlayerSettings.iOS.simulatorSdkArchitecture = AppleMobileArchitectureSimulator.X86_64;
-        Debug.Log("[CIBuildSettings] iOS SDK set to SimulatorSDK (x86_64)");
-#else
-        Debug.Log("[CIBuildSettings] iOS SDK set to SimulatorSDK");
-#endif
     }
 
     private static void ConfigureIOSForDevice()

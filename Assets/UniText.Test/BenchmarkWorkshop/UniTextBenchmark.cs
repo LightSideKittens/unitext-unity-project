@@ -110,7 +110,7 @@ public class UniTextBenchmark : TextBenchmarkBase
     [UnityEditor.MenuItem("UniText/Run UniText Benchmark (Single-Threaded)")]
     private static void RunFromMenu()
     {
-        var test = FindObjectOfType<UniTextBenchmark>();
+        var test = ObjectUtils.FindFirst<UniTextBenchmark>();
         if (test != null)
         {
             test.parallelMode = false;
@@ -123,7 +123,7 @@ public class UniTextBenchmark : TextBenchmarkBase
     [UnityEditor.MenuItem("UniText/Run UniText Benchmark (Parallel)")]
     private static void RunFromMenuParallel()
     {
-        var test = FindObjectOfType<UniTextBenchmark>();
+        var test = ObjectUtils.FindFirst<UniTextBenchmark>();
         if (test != null)
             test.RunBenchmarkParallel();
         else

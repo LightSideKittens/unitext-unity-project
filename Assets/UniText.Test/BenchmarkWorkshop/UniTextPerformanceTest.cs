@@ -291,7 +291,7 @@ public class UniTextPerformanceTest : MonoBehaviour
     [UnityEditor.MenuItem("UniText/Run Performance Test")]
     private static void RunFromMenu()
     {
-        var test = FindObjectOfType<UniTextPerformanceTest>();
+        var test = ObjectUtils.FindFirst<UniTextPerformanceTest>();
         if (test != null)
             test.RunTest();
         else

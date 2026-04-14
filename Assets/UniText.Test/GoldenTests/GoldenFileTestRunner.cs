@@ -70,7 +70,7 @@ public class GoldenFileTestRunner : MonoBehaviour
             Debug.LogError($"[GoldenFileTestRunner] Failed to write marker: {e.Message}");
         }
 
-        var runner = FindObjectOfType<GoldenFileTestRunner>();
+        var runner = ObjectUtils.FindFirst<GoldenFileTestRunner>();
         if (runner == null)
         {
             Debug.LogError("[GoldenFileTestRunner] Runner not found on scene!");
@@ -98,10 +98,10 @@ public class GoldenFileTestRunner : MonoBehaviour
     {
 #if !UNITEXT_TESTS
         Debug.LogError("[GoldenFileTestRunner] UNITEXT_TESTS define is not set! Add it to Player Settings > Scripting Define Symbols");
-        return;
-#endif
-        if(!Application.isPlaying) return;
+#else
+        if (!Application.isPlaying) return;
         StartCoroutine(RunAllTests(mode));
+#endif
     }
 
     IEnumerator RunAllTests(TestMode mode)

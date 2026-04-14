@@ -1,3 +1,4 @@
+using LightSide;
 using TMPro;
 using UnityEngine;
 
@@ -37,7 +38,7 @@ public class TMPBenchmark : TextBenchmarkBase
 
     protected override void SetWordWrap(Component instance, bool enabled)
     {
-        ((TMP_Text)instance).enableWordWrapping = enabled;
+        ((TMP_Text)instance).textWrappingMode = enabled ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
     }
 
     protected override void SetAutoSize(Component instance, bool enabled)
@@ -56,7 +57,7 @@ public class TMPBenchmark : TextBenchmarkBase
     [UnityEditor.MenuItem("UniText/Run TMP Benchmark")]
     private static void RunFromMenu()
     {
-        var test = FindObjectOfType<TMPBenchmark>();
+        var test = ObjectUtils.FindFirst<TMPBenchmark>();
         if (test != null)
             test.RunBenchmark();
         else

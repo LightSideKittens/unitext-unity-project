@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Text;
+using LightSide;
 using UnityEngine;
 
 public class UniTextComparativeBenchmark : MonoBehaviour
@@ -273,7 +274,7 @@ public class UniTextComparativeBenchmark : MonoBehaviour
     [UnityEditor.MenuItem("UniText/Run Comparative Benchmark")]
     private static void RunFromMenu()
     {
-        var test = FindObjectOfType<UniTextComparativeBenchmark>();
+        var test = ObjectUtils.FindFirst<UniTextComparativeBenchmark>();
         if (test != null)
             test.RunAllBenchmarks();
         else

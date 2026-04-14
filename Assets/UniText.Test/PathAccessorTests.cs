@@ -1294,40 +1294,156 @@ public static class PathAccessorTests
     
     public static void TestNativeVsCached()
     {
-        Debug.Log("========== Native vs CachedAccessor Test ==========");
+        Debug.Log("========== Realistic field Read/Write benchmark (anim-style) ==========");
 
-        var c = new SimpleClass { publicInt = 12345 };
-        var cachedAcc = PathAccessor.GetCached<int>(c, "publicInt");
-        cachedAcc.Bind(c);
+        const int n = 1024;
+        const int mask = n - 1;
+        const int warmupIters = 2_000;
+        const int fastIters = 1_000_000;
+        const int reflIters = 100_000;
 
-        const int iterations = 10000000;
+        var targets = new SimpleClass[n];
+        for (var k = 0; k < n; k++)
+            targets[k] = new SimpleClass { publicInt = 12345 };
 
-        var swNative = Stopwatch.StartNew();
-        for (var i = 0; i < iterations; i++)
+        var cachedAccs = new CachedAccessor<int>[n];
+        for (var k = 0; k < n; k++)
+            cachedAccs[k] = PathAccessor.GetCached<int>(targets[k], "publicInt");
+
+        var field = typeof(SimpleClass).GetField("publicInt");
+
+        for (var i = 0; i < warmupIters; i++) targets[i & mask].publicInt = i;
+        for (var i = 0; i < warmupIters; i++) cachedAccs[i & mask].Set(i);
+        for (var i = 0; i < warmupIters; i++) cachedAccs[i & mask].GetRef() = i;
+        for (var i = 0; i < warmupIters; i++) field.SetValue(targets[i & mask], i);
+        for (var i = 0; i < warmupIters; i++) targets[i & mask].publicInt ^= i;
+        for (var i = 0; i < warmupIters; i++) { var a = cachedAccs[i & mask]; a.Set(a.Get() ^ i); }
+        for (var i = 0; i < warmupIters; i++) cachedAccs[i & mask].GetRef() ^= i;
+        for (var i = 0; i < warmupIters; i++) { var t = targets[i & mask]; field.SetValue(t, (int)field.GetValue(t) ^ i); }
+
+        for (var k = 0; k < n; k++) targets[k].publicInt = 12345;
+
+        var tickToNs = 1_000_000_000.0 / Stopwatch.Frequency;
+
+        Debug.Log($"    Setup: {n} scattered targets, bound once. Stopwatch: {Stopwatch.Frequency:N0} Hz ({tickToNs:F2} ns/tick)");
+        Debug.Log($"    Iters: fast={fastIters:N0}, reflection={reflIters:N0}, warmup={warmupIters:N0}");
+        Debug.Log("    --- Pattern A: Pure Set (curve overwrites field) ---");
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var swANative = Stopwatch.StartNew();
+        for (var i = 0; i < fastIters; i++)
+            targets[i & mask].publicInt = i;
+        swANative.Stop();
+        var sumANative = 0L;
+        for (var k = 0; k < n; k++) sumANative += targets[k].publicInt;
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var swACachedSet = Stopwatch.StartNew();
+        for (var i = 0; i < fastIters; i++)
+            cachedAccs[i & mask].Set(i);
+        swACachedSet.Stop();
+        var sumACachedSet = 0L;
+        for (var k = 0; k < n; k++) sumACachedSet += cachedAccs[k].Get();
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var swACachedRef = Stopwatch.StartNew();
+        for (var i = 0; i < fastIters; i++)
+            cachedAccs[i & mask].GetRef() = i;
+        swACachedRef.Stop();
+        var sumACachedRef = 0L;
+        for (var k = 0; k < n; k++) sumACachedRef += cachedAccs[k].Get();
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var gcA0Before = GC.CollectionCount(0);
+        var gcA1Before = GC.CollectionCount(1);
+        var gcA2Before = GC.CollectionCount(2);
+        var swARefl = Stopwatch.StartNew();
+        for (var i = 0; i < reflIters; i++)
+            field.SetValue(targets[i & mask], i);
+        swARefl.Stop();
+        var gcA0 = GC.CollectionCount(0) - gcA0Before;
+        var gcA1 = GC.CollectionCount(1) - gcA1Before;
+        var gcA2 = GC.CollectionCount(2) - gcA2Before;
+        var sumARefl = 0L;
+        for (var k = 0; k < n; k++) sumARefl += targets[k].publicInt;
+
+        var nsANative = swANative.ElapsedTicks * tickToNs / fastIters;
+        var nsACachedSet = swACachedSet.ElapsedTicks * tickToNs / fastIters;
+        var nsACachedRef = swACachedRef.ElapsedTicks * tickToNs / fastIters;
+        var nsARefl = swARefl.ElapsedTicks * tickToNs / reflIters;
+
+        Debug.Log($"        Native       target.field = value          : {nsANative,8:F2} ns/op                [sum={sumANative}]");
+        Debug.Log($"        Cached.Set   acc.Set(value)                 : {nsACachedSet,8:F2} ns/op  ({nsACachedSet / nsANative,6:F2}x)  [sum={sumACachedSet}]");
+        Debug.Log($"        Cached.Ref   acc.GetRef() = value           : {nsACachedRef,8:F2} ns/op  ({nsACachedRef / nsANative,6:F2}x)  [sum={sumACachedRef}]");
+        Debug.Log($"        Reflection   field.SetValue(target, value)  : {nsARefl,8:F2} ns/op  ({nsARefl / nsANative,6:F2}x)  [sum={sumARefl}]");
+        Debug.Log($"        Reflection GC during measurement: gen0={gcA0}, gen1={gcA1}, gen2={gcA2}");
+
+        for (var k = 0; k < n; k++) targets[k].publicInt = 12345;
+
+        Debug.Log("    --- Pattern B: Read-modify-write (blend/damping) ---");
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var swBNative = Stopwatch.StartNew();
+        for (var i = 0; i < fastIters; i++)
+            targets[i & mask].publicInt ^= i;
+        swBNative.Stop();
+        var sumBNative = 0L;
+        for (var k = 0; k < n; k++) sumBNative += targets[k].publicInt;
+
+        for (var k = 0; k < n; k++) targets[k].publicInt = 12345;
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var swBCachedSet = Stopwatch.StartNew();
+        for (var i = 0; i < fastIters; i++)
         {
-            c.publicInt ^= i;
+            var acc = cachedAccs[i & mask];
+            acc.Set(acc.Get() ^ i);
         }
-        swNative.Stop();
-        var nativeResult = c.publicInt;
+        swBCachedSet.Stop();
+        var sumBCachedSet = 0L;
+        for (var k = 0; k < n; k++) sumBCachedSet += cachedAccs[k].Get();
 
-        c.publicInt = 12345;
+        for (var k = 0; k < n; k++) targets[k].publicInt = 12345;
 
-        var swCached = Stopwatch.StartNew();
-        for (var i = 0; i < iterations; i++)
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var swBCachedRef = Stopwatch.StartNew();
+        for (var i = 0; i < fastIters; i++)
+            cachedAccs[i & mask].GetRef() ^= i;
+        swBCachedRef.Stop();
+        var sumBCachedRef = 0L;
+        for (var k = 0; k < n; k++) sumBCachedRef += cachedAccs[k].Get();
+
+        for (var k = 0; k < n; k++) targets[k].publicInt = 12345;
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+        var gcB0Before = GC.CollectionCount(0);
+        var gcB1Before = GC.CollectionCount(1);
+        var gcB2Before = GC.CollectionCount(2);
+        var swBRefl = Stopwatch.StartNew();
+        for (var i = 0; i < reflIters; i++)
         {
-            cachedAcc.Set(cachedAcc.Get() ^ i);
+            var t = targets[i & mask];
+            field.SetValue(t, (int)field.GetValue(t) ^ i);
         }
-        swCached.Stop();
-        var cachedResult = cachedAcc.Get();
+        swBRefl.Stop();
+        var gcB0 = GC.CollectionCount(0) - gcB0Before;
+        var gcB1 = GC.CollectionCount(1) - gcB1Before;
+        var gcB2 = GC.CollectionCount(2) - gcB2Before;
+        var sumBRefl = 0L;
+        for (var k = 0; k < n; k++) sumBRefl += targets[k].publicInt;
 
-        var native = swNative.ElapsedTicks;
-        var cached = swCached.ElapsedTicks;
-        var ratio = native > 0 ? (double)cached / native : 0;
+        var nsBNative = swBNative.ElapsedTicks * tickToNs / fastIters;
+        var nsBCachedSet = swBCachedSet.ElapsedTicks * tickToNs / fastIters;
+        var nsBCachedRef = swBCachedRef.ElapsedTicks * tickToNs / fastIters;
+        var nsBRefl = swBRefl.ElapsedTicks * tickToNs / reflIters;
 
-        Debug.Log($"    Native: {native} ticks [result={nativeResult}]");
-        Debug.Log($"    CachedAccessor: {cached} ticks [result={cachedResult}]");
-        Debug.Log($"    Ratio: {ratio:F2}x");
-        Debug.Log("====================================================");
+        Debug.Log($"        Native       target.field ^= value                  : {nsBNative,8:F2} ns/op                [sum={sumBNative}]");
+        Debug.Log($"        Cached.Set   acc.Set(acc.Get() ^ value)              : {nsBCachedSet,8:F2} ns/op  ({nsBCachedSet / nsBNative,6:F2}x)  [sum={sumBCachedSet}]");
+        Debug.Log($"        Cached.Ref   acc.GetRef() ^= value                   : {nsBCachedRef,8:F2} ns/op  ({nsBCachedRef / nsBNative,6:F2}x)  [sum={sumBCachedRef}]");
+        Debug.Log($"        Reflection   SetValue(t, (int)GetValue(t) ^ value)   : {nsBRefl,8:F2} ns/op  ({nsBRefl / nsBNative,6:F2}x)  [sum={sumBRefl}]");
+        Debug.Log($"        Reflection GC during measurement: gen0={gcB0}, gen1={gcB1}, gen2={gcB2}");
+
+        Debug.Log("======================================================================");
     }
 
     #endregion

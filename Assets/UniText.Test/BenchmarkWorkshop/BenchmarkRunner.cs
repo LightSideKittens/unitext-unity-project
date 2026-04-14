@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using LightSide;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -24,7 +25,7 @@ public class BenchmarkRunner : MonoBehaviour
     {
         Debug.Log("[BenchmarkRunner] OnRuntimeStart called");
 
-        var runner = FindObjectOfType<BenchmarkRunner>();
+        var runner = ObjectUtils.FindFirst<BenchmarkRunner>();
         if (runner == null)
         {
             Debug.LogError("[BenchmarkRunner] BenchmarkRunner not found on scene!");
@@ -79,7 +80,7 @@ public class BenchmarkRunner : MonoBehaviour
 
     IEnumerator RunTextBenchmarks()
     {
-        var uniTextBench = FindObjectOfType<UniTextBenchmark>();
+        var uniTextBench = ObjectUtils.FindFirst<UniTextBenchmark>();
         if (uniTextBench != null)
         {
             data.objectCount = uniTextBench.objectCount;
@@ -106,7 +107,7 @@ public class BenchmarkRunner : MonoBehaviour
             Debug.LogWarning("[BenchmarkRunner] UniTextBenchmark not found");
         }
 
-        var tmpBench = FindObjectOfType<TMPBenchmark>();
+        var tmpBench = ObjectUtils.FindFirst<TMPBenchmark>();
         if (tmpBench != null)
         {
             ApplyConfig(tmpBench);
@@ -123,7 +124,7 @@ public class BenchmarkRunner : MonoBehaviour
             Debug.LogWarning("[BenchmarkRunner] TMPBenchmark not found");
         }
 
-        var uitkBench = FindObjectOfType<UIToolkitBenchmark>();
+        var uitkBench = ObjectUtils.FindFirst<UIToolkitBenchmark>();
         if (uitkBench != null)
         {
             uitkBench.objectCount = data.objectCount;
@@ -145,7 +146,7 @@ public class BenchmarkRunner : MonoBehaviour
 
     IEnumerator RunGlyphRasterizationBenchmarks()
     {
-        var uniGlyph = FindObjectOfType<UniText_GlyphRasterizationBenchmark>();
+        var uniGlyph = ObjectUtils.FindFirst<UniText_GlyphRasterizationBenchmark>();
         if (uniGlyph != null)
         {
             Debug.Log("[BenchmarkRunner] Running UniText Glyph Rasterization (Single-Threaded)...");
@@ -168,7 +169,7 @@ public class BenchmarkRunner : MonoBehaviour
             Debug.LogWarning("[BenchmarkRunner] UniText_GlyphRasterizationBenchmark not found");
         }
 
-        var tmpGlyph = FindObjectOfType<TMP_GlyphRasterizationBenchmark>();
+        var tmpGlyph = ObjectUtils.FindFirst<TMP_GlyphRasterizationBenchmark>();
         if (tmpGlyph != null)
         {
             Debug.Log("[BenchmarkRunner] Running TMP Glyph Rasterization...");
