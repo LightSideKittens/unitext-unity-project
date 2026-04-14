@@ -38,7 +38,11 @@ public class TMPBenchmark : TextBenchmarkBase
 
     protected override void SetWordWrap(Component instance, bool enabled)
     {
+#if UNITY_2023_1_OR_NEWER
         ((TMP_Text)instance).textWrappingMode = enabled ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
+#else
+        ((TMP_Text)instance).enableWordWrapping = enabled;
+#endif
     }
 
     protected override void SetAutoSize(Component instance, bool enabled)
