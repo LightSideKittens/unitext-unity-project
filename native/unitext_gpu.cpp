@@ -17,6 +17,8 @@
 #include "unity_plugin_api/IUnityGraphics.h"
 
 #include <string.h> // memcpy
+#include <atomic>
+#include <stdint.h>
 
 #ifdef _WIN32
 #define UTEXPORT extern "C" __declspec(dllexport)
@@ -86,6 +88,12 @@ extern "C" bool IsMetalReady();
 
 static IUnityInterfaces* s_UnityInterfaces = nullptr;
 static IUnityGraphics* s_Graphics = nullptr;
+
+// Monotonic counter incremented at the END of each OnGpuUploadBatchEvent on
+// the render thread. C# reads it to decide when a batch buffer is no longer
+// in use and can be disposed safely. Closes the use-after-free window that
+// the previous frame-count heuristic left open under render-thread lag.
+static std::atomic<uint64_t> s_EventsProcessed{0};
 
 static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
 {
@@ -702,59 +710,64 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
 
 static void UNITY_INTERFACE_API OnGpuUploadBatchEvent(int eventId, void* data)
 {
-    if (!s_Graphics || !data) return;
-
-    auto* batch = static_cast<const GpuUploadBatch*>(data);
-    auto* requests = reinterpret_cast<const GpuUploadRequest*>(batch + 1);
-    int count = batch->count;
-    if (count <= 0) return;
-
-    auto renderer = s_Graphics->GetRenderer();
-
-    switch (renderer)
+    if (s_Graphics && data)
     {
-#ifdef _WIN32
-    case kUnityGfxRendererD3D11:
-        for (int i = 0; i < count; i++)
+        auto* batch = static_cast<const GpuUploadBatch*>(data);
+        auto* requests = reinterpret_cast<const GpuUploadRequest*>(batch + 1);
+        int count = batch->count;
+        if (count > 0)
         {
-            auto& r = requests[i];
-            if (!r.nativeTexPtr || !r.pixelData) continue;
-            UploadD3D11(r);
-        }
-        break;
+            auto renderer = s_Graphics->GetRenderer();
+            switch (renderer)
+            {
+#ifdef _WIN32
+            case kUnityGfxRendererD3D11:
+                for (int i = 0; i < count; i++)
+                {
+                    auto& r = requests[i];
+                    if (!r.nativeTexPtr || !r.pixelData) continue;
+                    UploadD3D11(r);
+                }
+                break;
 
-    case kUnityGfxRendererD3D12:
-        UploadD3D12Batch(requests, count);
-        break;
+            case kUnityGfxRendererD3D12:
+                UploadD3D12Batch(requests, count);
+                break;
 #endif
 
 #ifdef HAS_GL_UPLOAD
-    case kUnityGfxRendererOpenGLCore:
-    case kUnityGfxRendererOpenGLES30:
-        for (int i = 0; i < count; i++)
-        {
-            auto& r = requests[i];
-            if (!r.nativeTexPtr || !r.pixelData) continue;
-            UploadOpenGL(r);
-        }
-        break;
+            case kUnityGfxRendererOpenGLCore:
+            case kUnityGfxRendererOpenGLES30:
+                for (int i = 0; i < count; i++)
+                {
+                    auto& r = requests[i];
+                    if (!r.nativeTexPtr || !r.pixelData) continue;
+                    UploadOpenGL(r);
+                }
+                break;
 #endif
 
 #ifdef HAS_VULKAN_UPLOAD
-    case kUnityGfxRendererVulkan:
-        UploadVulkanBatch(requests, count);
-        break;
+            case kUnityGfxRendererVulkan:
+                UploadVulkanBatch(requests, count);
+                break;
 #endif
 
 #if defined(__APPLE__)
-    case kUnityGfxRendererMetal:
-        UploadMetalBatch(requests, count);
-        break;
+            case kUnityGfxRendererMetal:
+                UploadMetalBatch(requests, count);
+                break;
 #endif
 
-    default:
-        break;
+            default:
+                break;
+            }
+        }
     }
+
+    // Always publish — even on early-out paths — so C# never waits forever
+    // for a batch that the render thread decided to skip.
+    s_EventsProcessed.fetch_add(1, std::memory_order_release);
 }
 
 UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()
@@ -771,4 +784,9 @@ UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()
     if (renderer == kUnityGfxRendererMetal && !IsMetalReady()) return nullptr;
 #endif
     return OnGpuUploadBatchEvent;
+}
+
+UTEXPORT uint64_t ut_gpu_get_processed_count()
+{
+    return s_EventsProcessed.load(std::memory_order_acquire);
 }

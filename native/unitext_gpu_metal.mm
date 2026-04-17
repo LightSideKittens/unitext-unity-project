@@ -8,6 +8,7 @@
 
 #import <Metal/Metal.h>
 #import <Foundation/Foundation.h>
+#import <TargetConditionals.h>
 #include <dispatch/dispatch.h>
 #include <string.h>
 
@@ -53,10 +54,17 @@ extern "C" void InitMetal(IUnityInterfaces* interfaces)
     if (s_MetalQueue == nil) { s_MetalDevice = nil; s_Metal = nullptr; return; }
     s_MetalQueue.label = @"UniText GPU Upload Queue";
 
-    if ([s_MetalDevice respondsToSelector:@selector(hasUnifiedMemory)])
+#if TARGET_OS_OSX
+    // Intel Mac uses managed storage; Apple Silicon has unified memory.
+    // hasUnifiedMemory landed in macOS 10.15 — older macOS → assume managed.
+    if (@available(macOS 10.15, *))
         s_MetalUsesManagedStorage = !s_MetalDevice.hasUnifiedMemory;
     else
         s_MetalUsesManagedStorage = true;
+#else
+    // iOS / tvOS / visionOS / Mac Catalyst: unified memory, shared storage only.
+    s_MetalUsesManagedStorage = false;
+#endif
 
     s_MetalSemaphore = dispatch_semaphore_create(METAL_RING);
 }
@@ -85,9 +93,14 @@ static bool EnsureMetalStagingBuffer(int slot, size_t requiredSize)
     if (s_MetalStaging[slot] != nil && s_MetalStagingCap[slot] >= requiredSize)
         return true;
 
-    MTLResourceOptions options = s_MetalUsesManagedStorage
+    MTLResourceOptions options;
+#if TARGET_OS_OSX
+    options = s_MetalUsesManagedStorage
         ? MTLResourceStorageModeManaged
         : MTLResourceStorageModeShared;
+#else
+    options = MTLResourceStorageModeShared;
+#endif
 
     id<MTLBuffer> buf = [s_MetalDevice newBufferWithLength:requiredSize options:options];
     if (buf == nil) return false;
@@ -147,8 +160,10 @@ extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count)
         offset += dstRow * r.height;
     }
 
+#if TARGET_OS_OSX
     if (s_MetalUsesManagedStorage)
         [staging didModifyRange:NSMakeRange(0, totalSize)];
+#endif
 
     id<MTLCommandBuffer> cmdBuf = [s_MetalQueue commandBuffer];
     if (cmdBuf == nil)
@@ -158,6 +173,10 @@ extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count)
     }
     cmdBuf.label = @"UniText GPU Upload";
 
+    // Texture lifetime safety is the caller's responsibility: C# must
+    // GpuUpload.WaitForIdle() before DestroyImmediate on any referenced
+    // Texture2DArray, so nativeTexPtr is guaranteed live until the render
+    // thread processed counter catches up with the issued counter.
     id<MTLBlitCommandEncoder> blit = [cmdBuf blitCommandEncoder];
     blit.label = @"UniText GPU Upload";
 
