@@ -8,9 +8,9 @@
 // Platforms:
 // - Windows: unitext_gpu.dll (D3D11 via UpdateSubresource, D3D12 via CopyTextureRegion)
 // - Linux:   libunitext_gpu.so (OpenGL via glTexSubImage3D, Vulkan via vkCmdCopyBufferToImage)
-// - macOS:   libunitext_gpu.dylib (Metal via replaceRegion — see unitext_gpu_metal.mm)
+// - macOS:   libunitext_gpu.dylib (Metal via staging MTLBuffer + MTLBlitCommandEncoder — see unitext_gpu_metal.mm)
 // - Android: libunitext_gpu.so (GLES3 via glTexSubImage3D, Vulkan via vkCmdCopyBufferToImage)
-// - iOS:     libunitext_gpu.a (Metal — see unitext_gpu_metal.mm)
+// - iOS:     libunitext_gpu.a (Metal via staging MTLBuffer + MTLBlitCommandEncoder — see unitext_gpu_metal.mm)
 // - WebGL:   uses GpuUpload.jslib directly, this file is not compiled for WebGL
 
 #include "unity_plugin_api/IUnityInterface.h"
@@ -73,6 +73,13 @@ static void ReleaseVulkanResources();
 static void UploadVulkanBatch(const GpuUploadRequest* requests, int count);
 #endif
 
+#if defined(__APPLE__)
+extern "C" void InitMetal(IUnityInterfaces* interfaces);
+extern "C" void ReleaseMetalResources();
+extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count);
+extern "C" bool IsMetalReady();
+#endif
+
 // ============================================================================
 // Unity Plugin Lifecycle
 // ============================================================================
@@ -94,6 +101,10 @@ static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType ev
         if (renderer == kUnityGfxRendererVulkan)
             InitVulkan(s_UnityInterfaces);
 #endif
+#if defined(__APPLE__)
+        if (renderer == kUnityGfxRendererMetal)
+            InitMetal(s_UnityInterfaces);
+#endif
     }
     else if (eventType == kUnityGfxDeviceEventShutdown)
     {
@@ -103,6 +114,9 @@ static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType ev
 #endif
 #ifdef HAS_VULKAN_UPLOAD
         ReleaseVulkanResources();
+#endif
+#if defined(__APPLE__)
+        ReleaseMetalResources();
 #endif
     }
 }
@@ -683,14 +697,6 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
 #endif // HAS_VULKAN_UPLOAD
 
 // ============================================================================
-// Metal (implemented in unitext_gpu_metal.mm)
-// ============================================================================
-
-#if defined(__APPLE__)
-extern "C" void UploadMetal(const GpuUploadRequest& req);
-#endif
-
-// ============================================================================
 // Dispatch — processes entire batch from IssuePluginEventAndData
 // ============================================================================
 
@@ -742,12 +748,7 @@ static void UNITY_INTERFACE_API OnGpuUploadBatchEvent(int eventId, void* data)
 
 #if defined(__APPLE__)
     case kUnityGfxRendererMetal:
-        for (int i = 0; i < count; i++)
-        {
-            auto& r = requests[i];
-            if (!r.nativeTexPtr || !r.pixelData) continue;
-            UploadMetal(r);
-        }
+        UploadMetalBatch(requests, count);
         break;
 #endif
 
@@ -765,6 +766,9 @@ UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()
 #endif
 #ifdef HAS_VULKAN_UPLOAD
     if (renderer == kUnityGfxRendererVulkan && !s_Vulkan) return nullptr;
+#endif
+#if defined(__APPLE__)
+    if (renderer == kUnityGfxRendererMetal && !IsMetalReady()) return nullptr;
 #endif
     return OnGpuUploadBatchEvent;
 }

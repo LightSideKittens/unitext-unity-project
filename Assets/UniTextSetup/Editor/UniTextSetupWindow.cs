@@ -67,7 +67,7 @@ namespace LightSide
             public bool isLatest;
         }
 
-        [MenuItem("Light Side/UniText Setup", false, 0)]
+        [MenuItem("Tools/UniText/Setup", false, 0)]
         public static void Open()
         {
             var window = GetWindow<UniTextSetupWindow>("UniText");
