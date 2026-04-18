@@ -5,5 +5,9 @@ EXPORTS
     ut_gpu_get_upload_batch_event
     ut_gpu_get_renderer
     ut_gpu_get_processed_count
+    ut_gpu_get_completed_count
+    ut_gpu_get_skipped_requests
+    ut_gpu_get_skipped_batches
+    ut_gpu_d3d12_addref_texture
     UnityPluginLoad
     UnityPluginUnload

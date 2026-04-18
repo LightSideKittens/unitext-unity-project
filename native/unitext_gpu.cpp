@@ -15,10 +15,13 @@
 
 #include "unity_plugin_api/IUnityInterface.h"
 #include "unity_plugin_api/IUnityGraphics.h"
+#include "gpu_upload_common.h"
 
 #include <string.h> // memcpy
+#include <stdio.h>  // fprintf for device-lost diagnostics
 #include <atomic>
 #include <stdint.h>
+#include <vector>
 
 #ifdef _WIN32
 #define UTEXPORT extern "C" __declspec(dllexport)
@@ -31,33 +34,6 @@
 #endif
 
 // ============================================================================
-// Upload Request — must match C# struct layout exactly (Sequential, Pack=1)
-// ============================================================================
-
-#pragma pack(push, 1)
-struct GpuUploadRequest
-{
-    void* nativeTexPtr;     // 8 bytes (64-bit)
-    void* pixelData;        // 8 bytes
-    int width;
-    int height;
-    int sliceIndex;
-    int mipLevel;
-    int bytesPerPixel;
-    int dstX;               // destination offset within slice (0 = whole-slice legacy)
-    int dstY;
-    int srcRowPitch;        // source stride in bytes (0 = tightly packed = width * bytesPerPixel)
-};
-
-struct GpuUploadBatch
-{
-    int count;
-    int padding;            // align to 8 bytes
-    // GpuUploadRequest requests[count] follows immediately
-};
-#pragma pack(pop)
-
-// ============================================================================
 // Forward declarations for platform-specific init/cleanup
 // ============================================================================
 
@@ -66,13 +42,13 @@ static void InitD3D12(IUnityInterfaces* interfaces);
 static void ReleaseD3D11Context();
 static void ReleaseD3D12Resources();
 static void UploadD3D11(const GpuUploadRequest& r);
-static void UploadD3D12Batch(const GpuUploadRequest* requests, int count);
+static bool UploadD3D12Batch(const GpuUploadRequest* requests, int count);
 #endif
 
 #ifdef HAS_VULKAN_UPLOAD
 static void InitVulkan(IUnityInterfaces* interfaces);
 static void ReleaseVulkanResources();
-static void UploadVulkanBatch(const GpuUploadRequest* requests, int count);
+static bool UploadVulkanBatch(const GpuUploadRequest* requests, int count);
 #endif
 
 #if defined(__APPLE__)
@@ -93,7 +69,15 @@ static IUnityGraphics* s_Graphics = nullptr;
 // the render thread. C# reads it to decide when a batch buffer is no longer
 // in use and can be disposed safely. Closes the use-after-free window that
 // the previous frame-count heuristic left open under render-thread lag.
+//
+// Dualism: s_EventsProcessed ticks ALWAYS so C# WaitForIdle cannot hang even
+// when a batch is dropped (renderer unsupported, null data, platform skip).
+// s_EventsCompleted ticks only when the platform callback actually issued the
+// upload, giving user-facing metrics a realistic "did it happen" view.
 static std::atomic<uint64_t> s_EventsProcessed{0};
+static std::atomic<uint64_t> s_EventsCompleted{0};
+static std::atomic<uint64_t> s_SkippedRequests{0};
+static std::atomic<uint64_t> s_SkippedBatches{0};
 
 static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
 {
@@ -127,6 +111,11 @@ static void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType ev
         ReleaseMetalResources();
 #endif
     }
+    // kUnityGfxDeviceEventBeforeReset / kUnityGfxDeviceEventAfterReset are
+    // legacy D3D9 device-reset hooks. Modern backends (D3D11/D3D12/Vulkan/Metal)
+    // never fire them; device-lost recovery flows through a full
+    // Shutdown -> Initialize cycle instead. Unity's own NativeRenderingPlugin
+    // sample ignores them for the same reason.
 }
 
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API
@@ -208,13 +197,28 @@ static void UploadD3D11(const GpuUploadRequest& r)
 static IUnityGraphicsD3D12v7* s_D3D12 = nullptr;
 static ID3D12Device* s_D3D12Device = nullptr;
 
-static const int D3D12_RING = 3;
-static ID3D12CommandAllocator* s_D3D12Alloc[D3D12_RING] = {};
+static ID3D12CommandAllocator* s_D3D12Alloc[GPU_UPLOAD_STAGING_RING_SIZE] = {};
 static ID3D12GraphicsCommandList* s_D3D12CmdList = nullptr;
-static ID3D12Resource* s_D3D12Upload[D3D12_RING] = {};
-static size_t s_D3D12UploadCap[D3D12_RING] = {};
-static UINT64 s_D3D12Fence[D3D12_RING] = {};
+static ID3D12Resource* s_D3D12Upload[GPU_UPLOAD_STAGING_RING_SIZE] = {};
+static size_t s_D3D12UploadCap[GPU_UPLOAD_STAGING_RING_SIZE] = {};
+static UINT64 s_D3D12Fence[GPU_UPLOAD_STAGING_RING_SIZE] = {};
 static int s_D3D12Frame = 0;
+static HANDLE s_D3D12WaitEvent = nullptr;
+
+struct D3D12ReqInfo { size_t offset; UINT rowPitch; };
+static std::vector<D3D12ReqInfo> s_D3D12ReqInfos;
+static std::vector<ID3D12Resource*> s_D3D12UniqueRes;
+static std::vector<UnityGraphicsD3D12ResourceState> s_D3D12States;
+
+// Per-slot list of textures AddRef'd by the C# main thread before Issue.
+// Released when this slot's previous GPU work completes (fence wait), which
+// matches the AddRef lifetime without creating a separate bookkeeping thread.
+static std::vector<IUnknown*> s_D3D12Retained[GPU_UPLOAD_STAGING_RING_SIZE];
+
+UTEXPORT void ut_gpu_d3d12_addref_texture(void* ptr)
+{
+    if (ptr) static_cast<IUnknown*>(ptr)->AddRef();
+}
 
 static void InitD3D12(IUnityInterfaces* interfaces)
 {
@@ -229,7 +233,7 @@ static void InitD3D12(IUnityInterfaces* interfaces)
     config.ensureActiveRenderTextureIsBound = false;
     s_D3D12->ConfigureEvent(0, &config);
 
-    for (int i = 0; i < D3D12_RING; i++)
+    for (int i = 0; i < GPU_UPLOAD_STAGING_RING_SIZE; i++)
     {
         HRESULT hr = s_D3D12Device->CreateCommandAllocator(
             D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&s_D3D12Alloc[i]));
@@ -241,17 +245,30 @@ static void InitD3D12(IUnityInterfaces* interfaces)
         IID_PPV_ARGS(&s_D3D12CmdList));
     if (FAILED(hr)) { s_D3D12 = nullptr; return; }
     s_D3D12CmdList->Close();
+
+    s_D3D12WaitEvent = CreateEventExW(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
+    if (!s_D3D12WaitEvent) { s_D3D12 = nullptr; return; }
 }
 
 static void ReleaseD3D12Resources()
 {
     if (s_D3D12CmdList) { s_D3D12CmdList->Release(); s_D3D12CmdList = nullptr; }
-    for (int i = 0; i < D3D12_RING; i++)
+    for (int i = 0; i < GPU_UPLOAD_STAGING_RING_SIZE; i++)
     {
         if (s_D3D12Upload[i]) { s_D3D12Upload[i]->Release(); s_D3D12Upload[i] = nullptr; }
         if (s_D3D12Alloc[i]) { s_D3D12Alloc[i]->Release(); s_D3D12Alloc[i] = nullptr; }
         s_D3D12UploadCap[i] = 0;
         s_D3D12Fence[i] = 0;
+    }
+    if (s_D3D12WaitEvent) { CloseHandle(s_D3D12WaitEvent); s_D3D12WaitEvent = nullptr; }
+    s_D3D12ReqInfos.clear(); s_D3D12ReqInfos.shrink_to_fit();
+    s_D3D12UniqueRes.clear(); s_D3D12UniqueRes.shrink_to_fit();
+    s_D3D12States.clear(); s_D3D12States.shrink_to_fit();
+    for (int i = 0; i < GPU_UPLOAD_STAGING_RING_SIZE; i++)
+    {
+        for (IUnknown* r : s_D3D12Retained[i]) r->Release();
+        s_D3D12Retained[i].clear();
+        s_D3D12Retained[i].shrink_to_fit();
     }
     s_D3D12Device = nullptr;
     s_D3D12 = nullptr;
@@ -282,58 +299,73 @@ static void EnsureD3D12UploadBuffer(int slot, size_t requiredSize)
     s_D3D12UploadCap[slot] = requiredSize;
 }
 
-static void UploadD3D12Batch(const GpuUploadRequest* requests, int count)
+static bool UploadD3D12Batch(const GpuUploadRequest* requests, int count)
 {
-    if (!s_D3D12 || !s_D3D12Device || count == 0) return;
+    if (!s_D3D12 || !s_D3D12Device || count == 0) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
 
-    int slot = s_D3D12Frame % D3D12_RING;
+    int slot = s_D3D12Frame % GPU_UPLOAD_STAGING_RING_SIZE;
 
-    // Wait for this slot's previous GPU work to finish
     if (s_D3D12Fence[slot] > 0)
     {
         ID3D12Fence* fence = s_D3D12->GetFrameFence();
-        if (fence && fence->GetCompletedValue() < s_D3D12Fence[slot])
+        if (fence && fence->GetCompletedValue() < s_D3D12Fence[slot] && s_D3D12WaitEvent)
         {
-            HANDLE event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-            if (event)
+            fence->SetEventOnCompletion(s_D3D12Fence[slot], s_D3D12WaitEvent);
+            DWORD waitResult = WaitForSingleObject(s_D3D12WaitEvent, INFINITE);
+            if (waitResult != WAIT_OBJECT_0)
             {
-                fence->SetEventOnCompletion(s_D3D12Fence[slot], event);
-                WaitForSingleObject(event, 5000);
-                CloseHandle(event);
+                fprintf(stderr, "[UniText GPU] D3D12 fence wait failed (result=0x%08lx, fence=%llu); assuming device loss, disabling D3D12 path.\n",
+                    (unsigned long)waitResult, (unsigned long long)s_D3D12Fence[slot]);
+                s_D3D12 = nullptr;
+                s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
+                return false;
             }
         }
     }
 
-    // D3D12_TEXTURE_DATA_PITCH_ALIGNMENT = 256, PLACEMENT_ALIGNMENT = 512
+    // Slot GPU-idle: release textures AddRef'd for the previous cycle on this slot.
+    for (IUnknown* r : s_D3D12Retained[slot]) r->Release();
+    s_D3D12Retained[slot].clear();
+
     const UINT PITCH_ALIGN = 256;
     const size_t PLACE_ALIGN = 512;
 
-    // Calculate total upload buffer size and per-request info
-    struct ReqInfo { size_t offset; UINT rowPitch; };
-    ReqInfo infos[64];
-    size_t totalSize = 0;
-    int n = count < 64 ? count : 64;
+    s_D3D12ReqInfos.clear();
+    s_D3D12ReqInfos.reserve(count);
+    s_D3D12UniqueRes.clear();
+    s_D3D12UniqueRes.reserve(count);
+    s_D3D12States.clear();
 
-    for (int i = 0; i < n; i++)
+    size_t totalSize = 0;
+    for (int i = 0; i < count; i++)
     {
+        if (!requests[i].nativeTexPtr || !requests[i].pixelData)
+        {
+            s_SkippedRequests.fetch_add(1, std::memory_order_relaxed);
+            s_D3D12ReqInfos.push_back({ 0, 0 });
+            continue;
+        }
         UINT rowPitch = ((requests[i].width * requests[i].bytesPerPixel) + PITCH_ALIGN - 1) & ~(PITCH_ALIGN - 1);
         size_t reqSize = (size_t)rowPitch * requests[i].height;
-        infos[i] = { totalSize, rowPitch };
+        s_D3D12ReqInfos.push_back({ totalSize, rowPitch });
         totalSize += (reqSize + PLACE_ALIGN - 1) & ~(PLACE_ALIGN - 1);
     }
 
+    if (totalSize == 0) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
+
     EnsureD3D12UploadBuffer(slot, totalSize);
-    if (!s_D3D12Upload[slot]) return;
+    if (!s_D3D12Upload[slot]) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
 
     void* mapped = nullptr;
-    s_D3D12Upload[slot]->Map(0, nullptr, &mapped);
-    for (int i = 0; i < n; i++)
+    if (FAILED(s_D3D12Upload[slot]->Map(0, nullptr, &mapped)) || !mapped) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
+    for (int i = 0; i < count; i++)
     {
+        if (!requests[i].nativeTexPtr || !requests[i].pixelData) continue;
         int srcRow = requests[i].width * requests[i].bytesPerPixel;
         int srcStride = requests[i].srcRowPitch > 0 ? requests[i].srcRowPitch : srcRow;
         for (int y = 0; y < requests[i].height; y++)
         {
-            memcpy((char*)mapped + infos[i].offset + (size_t)y * infos[i].rowPitch,
+            memcpy((char*)mapped + s_D3D12ReqInfos[i].offset + (size_t)y * s_D3D12ReqInfos[i].rowPitch,
                    (char*)requests[i].pixelData + (size_t)y * srcStride,
                    srcRow);
         }
@@ -341,21 +373,17 @@ static void UploadD3D12Batch(const GpuUploadRequest* requests, int count)
     D3D12_RANGE written = { 0, totalSize };
     s_D3D12Upload[slot]->Unmap(0, &written);
 
-    // Record copy commands
     s_D3D12Alloc[slot]->Reset();
     s_D3D12CmdList->Reset(s_D3D12Alloc[slot], nullptr);
 
-    // Track unique textures for resource state declarations
-    void* uniqueRes[64] = {};
-    int numUnique = 0;
-
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < count; i++)
     {
+        if (!requests[i].nativeTexPtr || !requests[i].pixelData) continue;
+
         auto* resource = static_cast<ID3D12Resource*>(requests[i].nativeTexPtr);
         D3D12_RESOURCE_DESC texDesc = resource->GetDesc();
         UINT sub = requests[i].mipLevel + requests[i].sliceIndex * texDesc.MipLevels;
 
-        // Barrier: COMMON -> COPY_DEST
         D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         barrier.Transition.pResource = resource;
@@ -364,18 +392,16 @@ static void UploadD3D12Batch(const GpuUploadRequest* requests, int count)
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
         s_D3D12CmdList->ResourceBarrier(1, &barrier);
 
-        // Source: upload buffer
         D3D12_TEXTURE_COPY_LOCATION src = {};
         src.pResource = s_D3D12Upload[slot];
         src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-        src.PlacedFootprint.Offset = infos[i].offset;
+        src.PlacedFootprint.Offset = s_D3D12ReqInfos[i].offset;
         src.PlacedFootprint.Footprint.Format = texDesc.Format;
         src.PlacedFootprint.Footprint.Width = requests[i].width;
         src.PlacedFootprint.Footprint.Height = requests[i].height;
         src.PlacedFootprint.Footprint.Depth = 1;
-        src.PlacedFootprint.Footprint.RowPitch = infos[i].rowPitch;
+        src.PlacedFootprint.Footprint.RowPitch = s_D3D12ReqInfos[i].rowPitch;
 
-        // Dest: texture subresource
         D3D12_TEXTURE_COPY_LOCATION dst = {};
         dst.pResource = resource;
         dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -383,32 +409,35 @@ static void UploadD3D12Batch(const GpuUploadRequest* requests, int count)
 
         s_D3D12CmdList->CopyTextureRegion(&dst, (UINT)requests[i].dstX, (UINT)requests[i].dstY, 0, &src, nullptr);
 
-        // Barrier: COPY_DEST -> COMMON
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
         s_D3D12CmdList->ResourceBarrier(1, &barrier);
 
-        // Collect unique resources
         bool found = false;
-        for (int j = 0; j < numUnique; j++)
-            if (uniqueRes[j] == resource) { found = true; break; }
-        if (!found && numUnique < 64)
-            uniqueRes[numUnique++] = resource;
+        for (size_t j = 0; j < s_D3D12UniqueRes.size(); j++)
+            if (s_D3D12UniqueRes[j] == resource) { found = true; break; }
+        if (!found)
+        {
+            s_D3D12UniqueRes.push_back(resource);
+            s_D3D12Retained[slot].push_back(static_cast<IUnknown*>(resource));
+        }
     }
 
     s_D3D12CmdList->Close();
 
-    // Tell Unity what resource states we expect/leave
-    UnityGraphicsD3D12ResourceState states[64];
-    for (int i = 0; i < numUnique; i++)
+    s_D3D12States.resize(s_D3D12UniqueRes.size());
+    for (size_t i = 0; i < s_D3D12UniqueRes.size(); i++)
     {
-        states[i].resource = static_cast<ID3D12Resource*>(uniqueRes[i]);
-        states[i].expected = D3D12_RESOURCE_STATE_COMMON;
-        states[i].current = D3D12_RESOURCE_STATE_COMMON;
+        s_D3D12States[i].resource = s_D3D12UniqueRes[i];
+        s_D3D12States[i].expected = D3D12_RESOURCE_STATE_COMMON;
+        s_D3D12States[i].current = D3D12_RESOURCE_STATE_COMMON;
     }
 
-    s_D3D12Fence[slot] = s_D3D12->ExecuteCommandList(s_D3D12CmdList, numUnique, states);
+    s_D3D12Fence[slot] = s_D3D12->ExecuteCommandList(s_D3D12CmdList,
+        (int)s_D3D12States.size(),
+        s_D3D12States.empty() ? nullptr : s_D3D12States.data());
     s_D3D12Frame++;
+    return true;
 }
 
 #endif // _WIN32
@@ -433,10 +462,28 @@ static void UploadOpenGL(const GpuUploadRequest& r)
     glBindTexture(GL_TEXTURE_2D_ARRAY, texId);
 
     GLenum format, type;
-    if (r.bytesPerPixel == 4) { format = GL_RGBA; type = GL_UNSIGNED_BYTE; }
-    else if (r.bytesPerPixel == 2) { format = GL_RED; type = GL_HALF_FLOAT; }
-    else if (r.bytesPerPixel == 8) { format = GL_RGBA; type = GL_HALF_FLOAT; }
-    else return;
+    switch (r.format)
+    {
+        case GPU_UPLOAD_FMT_R8:       format = GL_RED;  type = GL_UNSIGNED_BYTE;  break;
+        case GPU_UPLOAD_FMT_R16:      format = GL_RED;  type = GL_UNSIGNED_SHORT; break;
+        case GPU_UPLOAD_FMT_RHALF:    format = GL_RED;  type = GL_HALF_FLOAT;     break;
+        case GPU_UPLOAD_FMT_RG8:      format = GL_RG;   type = GL_UNSIGNED_BYTE;  break;
+        case GPU_UPLOAD_FMT_RGBA32:   format = GL_RGBA; type = GL_UNSIGNED_BYTE;  break;
+        case GPU_UPLOAD_FMT_RGBAHALF: format = GL_RGBA; type = GL_HALF_FLOAT;     break;
+        default:
+            // Legacy caller without explicit format — bytesPerPixel alone is
+            // ambiguous (RG8 and RHalf share 2 bpp). Pick the historical
+            // interpretation for backcompat but log nothing; caller fault.
+            if (r.bytesPerPixel == 4)      { format = GL_RGBA; type = GL_UNSIGNED_BYTE; }
+            else if (r.bytesPerPixel == 2) { format = GL_RED;  type = GL_HALF_FLOAT; }
+            else if (r.bytesPerPixel == 8) { format = GL_RGBA; type = GL_HALF_FLOAT; }
+            else return;
+            break;
+    }
+
+    GLint prevAlign = 4;
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &prevAlign);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     if (r.srcRowPitch > 0)
         glPixelStorei(GL_UNPACK_ROW_LENGTH, r.srcRowPitch / r.bytesPerPixel);
@@ -447,6 +494,8 @@ static void UploadOpenGL(const GpuUploadRequest& r)
 
     if (r.srcRowPitch > 0)
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, prevAlign);
 }
 #endif
 
@@ -468,16 +517,17 @@ static PFN_vkGetBufferMemoryRequirements     s_vkGetBufferMemoryRequirements;
 static PFN_vkAllocateMemory                  s_vkAllocateMemory;
 static PFN_vkBindBufferMemory               s_vkBindBufferMemory;
 static PFN_vkMapMemory                       s_vkMapMemory;
+static PFN_vkUnmapMemory                     s_vkUnmapMemory;
 static PFN_vkDestroyBuffer                   s_vkDestroyBuffer;
 static PFN_vkFreeMemory                      s_vkFreeMemory;
 static PFN_vkCmdCopyBufferToImage           s_vkCmdCopyBufferToImage;
 static PFN_vkGetPhysicalDeviceMemoryProperties s_vkGetPhysicalDeviceMemoryProperties;
+static PFN_vkGetPhysicalDeviceProperties     s_vkGetPhysicalDeviceProperties;
 static PFN_vkFlushMappedMemoryRanges         s_vkFlushMappedMemoryRanges;
 
 static VkPhysicalDeviceMemoryProperties s_VkMemProps = {};
+static VkDeviceSize s_VkNonCoherentAtomSize = 1;
 
-// Triple-buffered staging to avoid GPU/CPU conflicts
-static const int VK_RING = 3;
 struct VkStagingSlot
 {
     VkBuffer buffer;
@@ -486,7 +536,8 @@ struct VkStagingSlot
     size_t capacity;
     bool coherent;
 };
-static VkStagingSlot s_VkStaging[VK_RING] = {};
+static VkStagingSlot s_VkStaging[GPU_UPLOAD_STAGING_RING_SIZE] = {};
+static uint64_t s_VkStagingFrameUsed[GPU_UPLOAD_STAGING_RING_SIZE] = {};
 static int s_VkFrame = 0;
 
 #define VK_LOAD(inst, fn) s_##fn = (PFN_##fn)(inst).getInstanceProcAddr((inst).instance, #fn)
@@ -506,10 +557,12 @@ static void InitVulkan(IUnityInterfaces* interfaces)
     VK_LOAD(inst, vkAllocateMemory);
     VK_LOAD(inst, vkBindBufferMemory);
     VK_LOAD(inst, vkMapMemory);
+    VK_LOAD(inst, vkUnmapMemory);
     VK_LOAD(inst, vkDestroyBuffer);
     VK_LOAD(inst, vkFreeMemory);
     VK_LOAD(inst, vkCmdCopyBufferToImage);
     VK_LOAD(inst, vkGetPhysicalDeviceMemoryProperties);
+    VK_LOAD(inst, vkGetPhysicalDeviceProperties);
     VK_LOAD(inst, vkFlushMappedMemoryRanges);
 
     if (!s_vkCreateBuffer || !s_vkCmdCopyBufferToImage)
@@ -519,6 +572,15 @@ static void InitVulkan(IUnityInterfaces* interfaces)
     }
 
     s_vkGetPhysicalDeviceMemoryProperties(s_VkPhysDevice, &s_VkMemProps);
+
+    if (s_vkGetPhysicalDeviceProperties)
+    {
+        VkPhysicalDeviceProperties props = {};
+        s_vkGetPhysicalDeviceProperties(s_VkPhysDevice, &props);
+        s_VkNonCoherentAtomSize = props.limits.nonCoherentAtomSize > 0
+            ? props.limits.nonCoherentAtomSize
+            : 1;
+    }
 
     // Configure our batch event to run outside render pass
     UnityVulkanPluginEventConfig config = {};
@@ -533,14 +595,17 @@ static void ReleaseVulkanResources()
 {
     if (s_VkDevice)
     {
-        for (int i = 0; i < VK_RING; i++)
+        for (int i = 0; i < GPU_UPLOAD_STAGING_RING_SIZE; i++)
         {
             if (s_VkStaging[i].buffer)
             {
+                if (s_VkStaging[i].mapped && s_vkUnmapMemory)
+                    s_vkUnmapMemory(s_VkDevice, s_VkStaging[i].memory);
                 s_vkDestroyBuffer(s_VkDevice, s_VkStaging[i].buffer, nullptr);
                 s_vkFreeMemory(s_VkDevice, s_VkStaging[i].memory, nullptr);
             }
             s_VkStaging[i] = {};
+            s_VkStagingFrameUsed[i] = 0;
         }
     }
     s_VkDevice = VK_NULL_HANDLE;
@@ -560,9 +625,10 @@ static bool EnsureVkStagingBuffer(int slot, size_t requiredSize)
 {
     if (s_VkStaging[slot].capacity >= requiredSize) return true;
 
-    // Destroy old
     if (s_VkStaging[slot].buffer)
     {
+        if (s_VkStaging[slot].mapped && s_vkUnmapMemory)
+            s_vkUnmapMemory(s_VkDevice, s_VkStaging[slot].memory);
         s_vkDestroyBuffer(s_VkDevice, s_VkStaging[slot].buffer, nullptr);
         s_vkFreeMemory(s_VkDevice, s_VkStaging[slot].memory, nullptr);
         s_VkStaging[slot] = {};
@@ -580,7 +646,6 @@ static bool EnsureVkStagingBuffer(int slot, size_t requiredSize)
     VkMemoryRequirements memReqs;
     s_vkGetBufferMemoryRequirements(s_VkDevice, s_VkStaging[slot].buffer, &memReqs);
 
-    // Prefer HOST_VISIBLE + HOST_COHERENT, fall back to just HOST_VISIBLE
     bool coherent = true;
     uint32_t memType = FindVkMemoryType(memReqs.memoryTypeBits,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -600,29 +665,55 @@ static bool EnsureVkStagingBuffer(int slot, size_t requiredSize)
         return false;
 
     s_vkBindBufferMemory(s_VkDevice, s_VkStaging[slot].buffer, s_VkStaging[slot].memory, 0);
-    s_vkMapMemory(s_VkDevice, s_VkStaging[slot].memory, 0, requiredSize, 0, &s_VkStaging[slot].mapped);
-    s_VkStaging[slot].capacity = requiredSize;
+    // Map the full allocation so vkFlushMappedMemoryRanges with VK_WHOLE_SIZE is
+    // always aligned to nonCoherentAtomSize (Vulkan spec 1.1, 12.4).
+    s_vkMapMemory(s_VkDevice, s_VkStaging[slot].memory, 0, memReqs.size, 0, &s_VkStaging[slot].mapped);
+    s_VkStaging[slot].capacity = (size_t)memReqs.size;
     s_VkStaging[slot].coherent = coherent;
     return true;
 }
 
-static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
+static bool UploadVulkanBatch(const GpuUploadRequest* requests, int count)
 {
-    if (!s_Vulkan || count == 0) return;
+    if (!s_Vulkan || count == 0) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
 
-    int slot = s_VkFrame % VK_RING;
-    s_VkFrame++;
+    // Fetch Unity's frame tracking BEFORE picking a slot so we can reject slots
+    // still in-flight on the GPU; without this, burst uploads overwrite a
+    // staging buffer while vkCmdCopyBufferToImage from a prior frame is still
+    // executing.
+    UnityVulkanRecordingState state;
+    if (!s_Vulkan->CommandRecordingState(&state, kUnityVulkanGraphicsQueueAccess_DontCare))
+    {
+        s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
+        return false;
+    }
 
-    // Calculate total staging size
+    int slot = s_VkFrame % GPU_UPLOAD_STAGING_RING_SIZE;
+    if (s_VkStagingFrameUsed[slot] > state.safeFrameNumber)
+    {
+        fprintf(stderr, "[UniText GPU] Vulkan staging slot %d still in flight (used@%llu > safe@%llu); dropping batch.\n",
+            slot,
+            (unsigned long long)s_VkStagingFrameUsed[slot],
+            (unsigned long long)state.safeFrameNumber);
+        s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
+        return false;
+    }
+
     size_t totalSize = 0;
     for (int i = 0; i < count; i++)
+    {
+        if (!requests[i].nativeTexPtr || !requests[i].pixelData) continue;
         totalSize += (size_t)requests[i].width * requests[i].height * requests[i].bytesPerPixel;
+    }
 
-    if (!EnsureVkStagingBuffer(slot, totalSize)) return;
+    if (totalSize == 0) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
+
+    if (!EnsureVkStagingBuffer(slot, totalSize)) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
 
     size_t offset = 0;
     for (int i = 0; i < count; i++)
     {
+        if (!requests[i].nativeTexPtr || !requests[i].pixelData) continue;
         int srcRow = requests[i].width * requests[i].bytesPerPixel;
         int srcStride = requests[i].srcRowPitch > 0 ? requests[i].srcRowPitch : srcRow;
         if (srcStride == srcRow)
@@ -643,9 +734,11 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
         }
     }
 
-    // Flush if not coherent
     if (!s_VkStaging[slot].coherent && s_vkFlushMappedMemoryRanges)
     {
+        // VK_WHOLE_SIZE is safe here: vkMapMemory covered the full allocation
+        // (memReqs.size), which the spec guarantees is a multiple of
+        // nonCoherentAtomSize.
         VkMappedMemoryRange range = {};
         range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
         range.memory = s_VkStaging[slot].memory;
@@ -654,11 +747,17 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
         s_vkFlushMappedMemoryRanges(s_VkDevice, 1, &range);
     }
 
-    // Record copy commands
     offset = 0;
     for (int i = 0; i < count; i++)
     {
-        // AccessTexture handles layout transition + pipeline barrier
+        if (!requests[i].nativeTexPtr || !requests[i].pixelData)
+        {
+            s_SkippedRequests.fetch_add(1, std::memory_order_relaxed);
+            continue;
+        }
+
+        size_t sz = (size_t)requests[i].width * requests[i].height * requests[i].bytesPerPixel;
+
         UnityVulkanImage image;
         if (!s_Vulkan->AccessTexture(
             requests[i].nativeTexPtr, UnityVulkanWholeImage,
@@ -668,24 +767,25 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
             kUnityVulkanResourceAccess_PipelineBarrier,
             &image))
         {
-            size_t sz = (size_t)requests[i].width * requests[i].height * requests[i].bytesPerPixel;
+            s_SkippedRequests.fetch_add(1, std::memory_order_relaxed);
             offset += sz;
             continue;
         }
 
-        // Must re-query after AccessTexture (it may record commands)
-        UnityVulkanRecordingState state;
-        if (!s_Vulkan->CommandRecordingState(&state, kUnityVulkanGraphicsQueueAccess_DontCare))
+        // Re-query after AccessTexture: barrier recording can split / reset
+        // the active command buffer, invalidating the handle we captured above.
+        UnityVulkanRecordingState perReq;
+        if (!s_Vulkan->CommandRecordingState(&perReq, kUnityVulkanGraphicsQueueAccess_DontCare))
         {
-            size_t sz = (size_t)requests[i].width * requests[i].height * requests[i].bytesPerPixel;
+            s_SkippedRequests.fetch_add(1, std::memory_order_relaxed);
             offset += sz;
             continue;
         }
 
         VkBufferImageCopy region = {};
         region.bufferOffset = offset;
-        region.bufferRowLength = 0;     // tightly packed
-        region.bufferImageHeight = 0;   // tightly packed
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
         region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         region.imageSubresource.mipLevel = requests[i].mipLevel;
         region.imageSubresource.baseArrayLayer = requests[i].sliceIndex;
@@ -693,13 +793,16 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
         region.imageOffset = { requests[i].dstX, requests[i].dstY, 0 };
         region.imageExtent = { (uint32_t)requests[i].width, (uint32_t)requests[i].height, 1 };
 
-        s_vkCmdCopyBufferToImage(state.commandBuffer,
+        s_vkCmdCopyBufferToImage(perReq.commandBuffer,
             s_VkStaging[slot].buffer, image.image,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-        size_t sz = (size_t)requests[i].width * requests[i].height * requests[i].bytesPerPixel;
         offset += sz;
     }
+
+    s_VkStagingFrameUsed[slot] = state.currentFrameNumber;
+    s_VkFrame++;
+    return true;
 }
 
 #endif // HAS_VULKAN_UPLOAD
@@ -710,63 +813,84 @@ static void UploadVulkanBatch(const GpuUploadRequest* requests, int count)
 
 static void UNITY_INTERFACE_API OnGpuUploadBatchEvent(int eventId, void* data)
 {
-    if (s_Graphics && data)
+    if (!s_Graphics || !data)
     {
-        auto* batch = static_cast<const GpuUploadBatch*>(data);
-        auto* requests = reinterpret_cast<const GpuUploadRequest*>(batch + 1);
-        int count = batch->count;
-        if (count > 0)
-        {
-            auto renderer = s_Graphics->GetRenderer();
-            switch (renderer)
-            {
-#ifdef _WIN32
-            case kUnityGfxRendererD3D11:
-                for (int i = 0; i < count; i++)
-                {
-                    auto& r = requests[i];
-                    if (!r.nativeTexPtr || !r.pixelData) continue;
-                    UploadD3D11(r);
-                }
-                break;
+        s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
+        s_EventsProcessed.fetch_add(1, std::memory_order_release);
+        return;
+    }
 
-            case kUnityGfxRendererD3D12:
-                UploadD3D12Batch(requests, count);
-                break;
+    auto* batch = static_cast<const GpuUploadBatch*>(data);
+    auto* requests = reinterpret_cast<const GpuUploadRequest*>(batch + 1);
+    int count = batch->count;
+    if (count <= 0)
+    {
+        s_EventsProcessed.fetch_add(1, std::memory_order_release);
+        return;
+    }
+
+    bool handled = false;
+    auto renderer = s_Graphics->GetRenderer();
+    switch (renderer)
+    {
+#ifdef _WIN32
+    case kUnityGfxRendererD3D11:
+        for (int i = 0; i < count; i++)
+        {
+            auto& r = requests[i];
+            if (!r.nativeTexPtr || !r.pixelData)
+            {
+                s_SkippedRequests.fetch_add(1, std::memory_order_relaxed);
+                continue;
+            }
+            UploadD3D11(r);
+        }
+        handled = true;
+        break;
+
+    case kUnityGfxRendererD3D12:
+        handled = UploadD3D12Batch(requests, count);
+        break;
 #endif
 
 #ifdef HAS_GL_UPLOAD
-            case kUnityGfxRendererOpenGLCore:
-            case kUnityGfxRendererOpenGLES30:
-                for (int i = 0; i < count; i++)
-                {
-                    auto& r = requests[i];
-                    if (!r.nativeTexPtr || !r.pixelData) continue;
-                    UploadOpenGL(r);
-                }
-                break;
+    case kUnityGfxRendererOpenGLCore:
+    case kUnityGfxRendererOpenGLES30:
+        for (int i = 0; i < count; i++)
+        {
+            auto& r = requests[i];
+            if (!r.nativeTexPtr || !r.pixelData)
+            {
+                s_SkippedRequests.fetch_add(1, std::memory_order_relaxed);
+                continue;
+            }
+            UploadOpenGL(r);
+        }
+        handled = true;
+        break;
 #endif
 
 #ifdef HAS_VULKAN_UPLOAD
-            case kUnityGfxRendererVulkan:
-                UploadVulkanBatch(requests, count);
-                break;
+    case kUnityGfxRendererVulkan:
+        handled = UploadVulkanBatch(requests, count);
+        break;
 #endif
 
 #if defined(__APPLE__)
-            case kUnityGfxRendererMetal:
-                UploadMetalBatch(requests, count);
-                break;
+    case kUnityGfxRendererMetal:
+        UploadMetalBatch(requests, count);
+        handled = true;
+        break;
 #endif
 
-            default:
-                break;
-            }
-        }
+    default:
+        s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
+        break;
     }
 
-    // Always publish — even on early-out paths — so C# never waits forever
-    // for a batch that the render thread decided to skip.
+    if (handled)
+        s_EventsCompleted.fetch_add(1, std::memory_order_relaxed);
+
     s_EventsProcessed.fetch_add(1, std::memory_order_release);
 }
 
@@ -789,4 +913,19 @@ UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()
 UTEXPORT uint64_t ut_gpu_get_processed_count()
 {
     return s_EventsProcessed.load(std::memory_order_acquire);
+}
+
+UTEXPORT uint64_t ut_gpu_get_completed_count()
+{
+    return s_EventsCompleted.load(std::memory_order_relaxed);
+}
+
+UTEXPORT uint64_t ut_gpu_get_skipped_requests()
+{
+    return s_SkippedRequests.load(std::memory_order_relaxed);
+}
+
+UTEXPORT uint64_t ut_gpu_get_skipped_batches()
+{
+    return s_SkippedBatches.load(std::memory_order_relaxed);
 }
