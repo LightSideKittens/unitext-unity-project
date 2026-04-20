@@ -36,7 +36,8 @@ namespace LightSide
         private const string ScopeName = "Light Side";
         private const string Scope = "media.lightside";
 
-        private static readonly Regex TokenPattern = new(@"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+        private static readonly Regex TokenPattern = new(
+            @"^(lst_[A-Za-z0-9]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$");
 
         private static string ManifestPath => Path.Combine(Application.dataPath, "..", "Packages", "manifest.json");
 
@@ -134,7 +135,7 @@ namespace LightSide
 
             var trimmed = token?.Trim() ?? "";
             if (trimmed.Length > 0 && !TokenPattern.IsMatch(trimmed))
-                EditorGUILayout.HelpBox("Token should be a UUID (e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890)", MessageType.Warning);
+                EditorGUILayout.HelpBox("Token format looks unexpected. Paste the token from your purchase email exactly as shown.", MessageType.Warning);
 
             EditorGUILayout.Space(8);
 

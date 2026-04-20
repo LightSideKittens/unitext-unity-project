@@ -55,23 +55,11 @@ public static class CIBuildSettings
             return;
         }
 
-        if (testsArg == "true")
-        {
-            EnableTests();
-            ConfigureIOSForDevice();
-        }
-        else
-        {
-            DisableTests();
-            ConfigureIOSForDevice();
-        }
-
+        ConfigureIOSForDevice();
         SetHighStripping();
         SetWebGLExceptions(debugArg == "true");
 
-        var isBenchmark = benchmarkArg == "true"
-;
-        if (isBenchmark)
+        if (benchmarkArg == "true")
         {
             SetBuildScenes(BenchmarkScenePath, GlyphRasterizationBenchmarkScenePath);
             EnableBenchmark();
@@ -82,16 +70,23 @@ public static class CIBuildSettings
         else
         {
             DisableBenchmark();
-            SetBuildScene(TestScenePath);
 
-            if (debugArg == "true")
+            if (testsArg == "true")
             {
-                EnableDebug();
+                SetBuildScene(TestScenePath);
+                EnableTests();
+                Debug.Log("[CIBuildSettings] Test build configured");
             }
             else
             {
-                DisableDebug();
+                DisableTests();
+                Debug.Log("[CIBuildSettings] Generic build — EditorBuildSettings.scenes left untouched");
             }
+
+            if (debugArg == "true")
+                EnableDebug();
+            else
+                DisableDebug();
         }
 
         Debug.Log("[CIBuildSettings] Build configured successfully");
