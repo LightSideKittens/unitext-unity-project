@@ -43,9 +43,6 @@ namespace LightSide.Samples
         private StylePreset oceanPreset;
         private StylePreset neonPreset;
 
-        // Last text value synchronized between Unity and the browser, in either direction.
-        // Used to break the JS↔Unity feedback loop: if the next outgoing/incoming value
-        // matches this one, the propagation stops here.
         private string lastSyncedText;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -55,15 +52,12 @@ namespace LightSide.Samples
 
         private void Awake()
         {
-            // Required so unityInstance.SendMessage("DemoController", ...) from React reaches us.
             if (!string.IsNullOrEmpty(browserBridgeObjectName) && gameObject.name != browserBridgeObjectName)
             {
                 gameObject.name = browserBridgeObjectName;
             }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-            // Don't steal keyboard from the host page: arrow keys etc. should reach
-            // the HTML textarea unless the WebGL canvas is the active element.
             WebGLInput.captureAllKeyboardInput = false;
 #endif
         }
@@ -93,22 +87,18 @@ namespace LightSide.Samples
         /// </summary>
         private void AddAllStyles()
         {
-            // Text styling
             AddStyle(new BoldModifier(), new TagRule("b"));
             AddStyle(new ItalicModifier(), new TagRule("i"));
             AddStyle(new UnderlineModifier(), new TagRule("u"));
             AddStyle(new StrikethroughModifier(), new TagRule("s"));
 
-            // Color, gradient, and size
             AddStyle(new ColorModifier(), new TagRule("color"));
             AddStyle(new GradientModifier(), new TagRule("gradient"));
             AddStyle(new SizeModifier(), new TagRule("size"));
 
-            // Spacing
             AddStyle(new LetterSpacingModifier(), new TagRule("cspace"));
             AddStyle(new LineHeightModifier(), new TagRule("line-height"));
 
-            // Links (clickable text)
             linkModifier = new LinkModifier();
             AddStyle(linkModifier, new TagRule("link"));
         }
@@ -141,7 +131,7 @@ namespace LightSide.Samples
             AddToPreset(neonPreset, "t2", "#8338EC", new ColorModifier(), new UppercaseModifier());
             AddToPreset(neonPreset, "accent", "#3A86FF;3,3,0.5", new ColorModifier(), new WobbleAnimationModifier());
 
-            demoText.AddStylePreset(firePreset);
+            demoText.AddStylePreset(neonPreset);
         }
 
         private static void AddToPreset(StylePreset preset, string tag, string param, params BaseModifier[] mods)
@@ -174,49 +164,20 @@ namespace LightSide.Samples
         {
             examples = new[]
             {
-                // 1. Welcome - first impression with emoji
                 "✨ <b><color=#FFD700>UniText</color></b> ✨\n<color=#888>Professional Unicode Text Rendering</color>\n\n👉 Press <b>Space</b> or ⬅️➡️ to explore",
-
-                // 2. Text styling showcase
-                "<b>Bold</b> • <i>Italic</i> • <u>Underline</u> • <s>Strike</s>\n<b><i>Bold Italic</i></b> • <b><u>Bold Underline</u></b>\n\n🎨 Mix styles: <b><i><color=#FF6B6B>Bold Italic Red</color></i></b>",
-
-                // 3. Color palette
-                "🌈 <color=#FF6B6B>Red</color> <color=#FFE66D>Yellow</color> <color=#4ECDC4>Teal</color> <color=#45B7D1>Blue</color> <color=#A06CD5>Purple</color>\n\n<color=#FF6B6B>⁜</color><color=#FF8E6B>⁜</color><color=#FFB06B>⁜</color><color=#FFD26B>⁜</color><color=#FFF46B>⁜</color><color=#D2FF6B>⁜</color><color=#6BFF6B>⁜</color><color=#6BFFD2>⁜</color><color=#6BD2FF>⁜</color><color=#6B8EFF>⁜</color><color=#8E6BFF>⁜</color>",
-
-                // 4. Gradients - Linear
-                "🎨 <b>Linear Gradients</b>\n\n<gradient=rainbow>Horizontal Rainbow</gradient>\n\n<gradient=ocean,linear,90>Vertical Ocean</gradient>\n\n<gradient=rainbow,linear,45>Diagonal\nRainbow</gradient>\n\n<gradient=fire>Fire</gradient> • <gradient=ocean>Ocean</gradient>",
-
-                // 5. Gradients - Radial & Angular
-                "🎨 <b>Radial & Angular</b>\n\n<gradient=rainbow,radial>Rainbow radiates\nfrom the center\nof this block</gradient>\n\n<gradient=rainbow,angular>Color wheel\nsweeps around\nthe center</gradient>",
-
-                // 6. Size variations
-                "<size=60%>tiny</size> <size=80%>small</size> normal <size=120%>large</size> <size=150%>huge</size>\n\n📏 Dynamic sizing for emphasis",
-
-                // 7. Arabic - full RTL showcase
-                "<b>العربية</b>\n\nمرحباً بالعالم! 👋\nهذا نص عربي مع <color=#4ECDC4>ألوان</color> و <b>تنسيق</b>.\n\nأرقام: ٠١٢٣٤٥٦٧٨٩ 🔢",
-
-                // 8. Hebrew
-                "<b>עברית</b>\n\nשלום עולם! 👋\nזהו טקסט עברי עם <color=#FF6B6B>צבעים</color> ו<b>עיצוב</b>.\n\nמספרים: 0123456789 🔢",
-
-                // 9. Bidirectional - the real magic
-                "🔀 <b>Bidirectional Text</b>\n\nThe word <color=#4ECDC4>مرحبا</color> means \"hello\" in Arabic\nUser <color=#FF6B6B>יוסי כהן</color> sent you a message\nFile: <color=#A06CD5>تقرير_٢٠٢٤.pdf</color> (15 MB)\n\nPrices: $99 | ٩٩ ريال | ₪199\nDate: 25 يناير 2024 | 25 בינואר 2024\n\n<color=#888>⬅️ Automatic direction detection ➡️</color>",
-
-                // 10. Emoji showcase
-                "😀 <b>Emoji Support</b> 🎉\n\nFaces: 😀 😃 😄 😁 😆 🥹 😅 😂\nGestures: 👋 👍 👎 👏 🙌 🤝 ✌️\nFlags: 🇺🇸 🇬🇧 🇯🇵 🇰🇷 🇩🇪 🇫🇷 🇮🇹 🇪🇸\nFamily: 👨‍👩‍👧‍👦 👨‍👨‍👧 👩‍👩‍👦",
-
-                // 11. Complex scripts (HarfBuzz)
-                "🔤 <b>Complex Scripts</b>\n\n<color=#4ECDC4>Arabic ligatures:</color> لا الله بسم الله\n<color=#FF6B6B>Hindi:</color> नमस्ते दुनिया 🙏\n<color=#A06CD5>Arabic joining:</color> ب‍ ‍ب‍ ‍ب (initial, medial, final)",
-
-                // 12. Interactive links
-                "🔗 <b>Interactive Links</b>\n\n📖 <link=https://unity.lightside.media/unitext/docs><color=#45B7D1><u>Documentation</u></color></link> - Full API reference\n🌐 <link=https://unity.lightside.media><color=#A06CD5><u>LightSide</u></color></link> - Our website\n\n<color=#888>Click links to open • Hover to preview</color>",
-
-                // 13. Spacing control
-                "<cspace=15>S P A C E D</cspace>\n<cspace=-2>Tight kerning</cspace>\n\n<line-height=150%>Line 1 with\nincreased height\nbetween lines</line-height>",
-
-                // 14. Style presets - interactive theme switcher
+                "🔀 <b>Bidirectional Text</b>\n\nThe word <color=#4ECDC4>مرحبا</color> means \"hello\" in Arabic\nUser <color=#FF6B6B>יוסי כהן</color> sent you a message\nFile: <color=#A06CD5>تقرير_٢٠٢٤.pdf</color> (15 MB)\n\nPrices: $99 | ٩٩ ريال | ₪199\nDate: 25 يناير 2024 | 25 בינואר 2024\n\n<color=#888>⬅️ Automatic direction detection ➡️</color>\n\nمرحباً يا صديقي! كيف حالك اليوم؟ 😊 أتمنى أن يكون يومك رائعاً. هل شاهدت المباراة أمس؟ كانت مثيرة جداً! الفريق لعب بشكل ممتاز وسجّل ثلاثة أهداف في الشوط الثاني. أنا سعيد جداً بالنتيجة. ما رأيك في أداء اللاعبين؟\n\nHey there! I'm doing great, thanks for asking! 🎉 Yes, I watched the game yesterday and it was absolutely incredible! The team played so well, especially in the second half. Those three goals were amazing — did you see that last one? The goalkeeper had no chance! By the way, are you free this weekend? We should hang out and watch the next match together. Let me know what you think!\n\nأنا موافق تماماً! 👍 The match was legendary — لم أرَ مثل هذا الأداء منذ سنوات! خاصة الهدف الثالث، it was pure magic! نعم، أنا متفرغ يوم السبت. Let's meet at the usual place around 7 PM? يمكننا مشاهدة المباراة القادمة معاً ونطلب بيتزا 🍕 — what do you think? أخبرني إذا كان الموعد مناسباً لك!",
+                "😀 <b>Emoji Support</b> 🎉\n\nFaces: 😀 😃 😄 😁 😆 🥹 😅 😂 🤣 😍 🥰 😎 🤔 🤩 🥳 😴 🤯 🤗 🥺 😇\nGestures: 👋 👍 👎 👏 🙌 🤝 ✌️ 🤘 🤟 🫶 🙏 💪 🫡 🤌 👌\nFlags: 🇺🇸 🇬🇧 🇯🇵 🇰🇷 🇩🇪 🇫🇷 🇮🇹 🇪🇸 🇷🇺 🇨🇳 🇧🇷 🇮🇳 🇨🇦 🇲🇽 🇦🇺\nFamily: 👨‍👩‍👧‍👦 👨‍👨‍👧 👩‍👩‍👦 👨‍👧‍👦 👩‍👧‍👧\nSkin tones: 👋🏻 👋🏼 👋🏽 👋🏾 👋🏿 • 👍🏻 👍🏽 👍🏿\nAnimals: 🐶 🐱 🦊 🐼 🦁 🐯 🐨 🐸 🦄 🐢 🦋 🐙 🦉 🦖 🐳 🦔\nFood: 🍕 🍔 🍟 🌮 🍣 🍜 🍩 🍰 🍓 🍇 🥑 ☕ 🍷 🍺 🥗 🍿\nNature: 🌸 🌻 🌈 🌊 🔥 ❄️ ⭐ 🌙 ☀️ ⛅ 🌋 🌎 🍂 🌴 ⛰️ 🌌\nSports: ⚽ 🏀 🏈 ⚾ 🎾 🏐 🏓 🎱 🏆 🎯 🥇 🎮 🎳 🏂 🏊 🚴\nVehicles: 🚗 🚕 🚙 🚌 🏎️ 🚓 🚑 🚒 ✈️ 🚀 🛸 🚂 🚢 🛵 🚁 🛴\nHearts: ❤️ 🧡 💛 💚 💙 💜 🤎 🖤 🤍 💔 ❣️ 💕 💖 💗 💘 💝\nObjects: 🎁 🎈 🎨 🎭 🎬 🎸 🎹 🎺 📱 💻 📷 🔑 💎 📚 🕹️ ⏰\nSymbols: ✨ 💫 ⚡ 💥 🔔 🎵 ♾️ ✅ ⛔ 🆕 🆒 🆗 ☯️ ♻️ 🔱 ⚛️",
                 "🎭 <b>Style Presets</b>\n\n<t>The quick brown fox</t> jumps over <t2>the lazy dog</t2>.\n<accent>Each theme brings its own personality</accent>.\n<t>Same markup</t>, <t2>different preset</t2> — <accent>instant transformation</accent>.\n\n<link=preset:fire>🔥 Fire</link>  <link=preset:ocean>🌊 Ocean</link>  <link=preset:neon>⚡ Neon</link>",
-
-                // 15. Everything combined - finale
+                "<b>Bold</b> • <i>Italic</i> • <u>Underline</u> • <s>Strike</s>\n<b><i>Bold Italic</i></b> • <b><u>Bold Underline</u></b>\n\n🎨 Mix styles: <b><i><color=#FF6B6B>Bold Italic Red</color></i></b>",
+                "🌈 <color=#FF6B6B>Red</color> <color=#FFE66D>Yellow</color> <color=#4ECDC4>Teal</color> <color=#45B7D1>Blue</color> <color=#A06CD5>Purple</color>\n\n<color=#FF6B6B>⁜</color><color=#FF8E6B>⁜</color><color=#FFB06B>⁜</color><color=#FFD26B>⁜</color><color=#FFF46B>⁜</color><color=#D2FF6B>⁜</color><color=#6BFF6B>⁜</color><color=#6BFFD2>⁜</color><color=#6BD2FF>⁜</color><color=#6B8EFF>⁜</color><color=#8E6BFF>⁜</color>",
+                "🎨 <b>Linear Gradients</b>\n\n<gradient=rainbow>Horizontal Rainbow</gradient>\n\n<gradient=ocean,linear,90>Vertical Ocean</gradient>\n\n<gradient=rainbow,linear,45>Diagonal\nRainbow</gradient>\n\n<gradient=fire>Fire</gradient> • <gradient=ocean>Ocean</gradient>",
+                "🎨 <b>Radial & Angular</b>\n\n<gradient=rainbow,radial>Rainbow radiates\nfrom the center\nof this block</gradient>\n\n<gradient=rainbow,angular>Color wheel\nsweeps around\nthe center</gradient>",
+                "<size=60%>tiny</size> <size=80%>small</size> normal <size=120%>large</size> <size=150%>huge</size>\n\n📏 Dynamic sizing for emphasis",
+                "<b>العربية</b>\n\nمرحباً بالعالم! 👋\nهذا نص عربي مع <color=#4ECDC4>ألوان</color> و <b>تنسيق</b>.\n\nأرقام: ٠١٢٣٤٥٦٧٨٩ 🔢",
+                "<b>עברית</b>\n\nשלום עולם! 👋\nזהו טקסט עברי עם <color=#FF6B6B>צבעים</color> ו<b>עיצוב</b>.\n\nמספרים: 0123456789 🔢",
+                "🔤 <b>Complex Scripts</b>\n\n<color=#4ECDC4>Arabic ligatures:</color> لا الله بسم الله\n<color=#FF6B6B>Hindi:</color> नमस्ते दुनिया 🙏\n<color=#A06CD5>Arabic joining:</color> ب‍ ‍ب‍ ‍ب (initial, medial, final)",
+                "🔗 <b>Interactive Links</b>\n\n📖 <link=https://unity.lightside.media/unitext/docs><color=#45B7D1><u>Documentation</u></color></link> - Full API reference\n🌐 <link=https://unity.lightside.media><color=#A06CD5><u>LightSide</u></color></link> - Our website\n\n<color=#888>Click links to open • Hover to preview</color>",
+                "<cspace=15>S P A C E D</cspace>\n<cspace=-2>Tight kerning</cspace>\n\n<line-height=150%>Line 1 with\nincreased height\nbetween lines</line-height>",
                 "🚀 <b><color=#FFD700>UniText</color></b> <size=80%>v1.0</size>\n\n✅ <color=#4ECDC4>Full Unicode</color> support\n✅ <color=#FF6B6B>RTL</color>: العربية עברית\n✅ <color=#A06CD5>Emoji</color>: 😀🎉👨‍👩‍👧‍👦🇺🇸\n✅ <color=#FFE66D>HarfBuzz</color> shaping\n✅ <color=#45B7D1>Markup</color> system\n✅ <gradient=rainbow>Gradients</gradient>\n\n<link=start><color=#4ECDC4>▶️ Start using UniText</color></link>"
             };
         }
@@ -225,7 +186,7 @@ namespace LightSide.Samples
         {
             if (linkModifier != null)
             {
-                linkModifier.AutoOpenUrl = false; // We handle URL opening ourselves
+                linkModifier.AutoOpenUrl = false;
                 linkModifier.LinkClicked += OnLinkClicked;
                 linkModifier.LinkEntered += OnLinkEnter;
                 linkModifier.LinkExited += OnLinkExit;
@@ -240,17 +201,16 @@ namespace LightSide.Samples
             var rightPressed = false;
 
 #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
-            // Только новая система
             var kb = Keyboard.current;
             if (kb != null)
             {
                 leftPressed = kb.leftArrowKey.isPressed || kb.aKey.isPressed;
-                rightPressed = kb.rightArrowKey.isPressed || kb.dKey.isPressed;
+                rightPressed = kb.rightArrowKey.isPressed || kb.dKey.isPressed || kb.spaceKey.isPressed;
             }
 
 #elif ENABLE_LEGACY_INPUT_MANAGER
             leftPressed = Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A);
-            rightPressed = Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D);
+            rightPressed = Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.Space);
 #endif
 
             if (leftPressed)
@@ -287,19 +247,17 @@ namespace LightSide.Samples
             ShowExample(currentExample);
         }
 
-        private readonly char[] setTextBuffer = new char[512];
+        private readonly char[] setTextBuffer = new char[2048];
 
         private void ShowExample(int index)
         {
             if (index % 2 == 0)
             {
-                // Even examples: use Text property (string path)
                 ApplyTextFromUnity(examples[index]);
                 Debug.Log($"[SetText Test] Text setter → Text = \"{demoText.Text}\"");
             }
             else
             {
-                // Odd examples: use SetText (char[] path, zero-alloc)
                 var src = examples[index];
                 src.CopyTo(0, setTextBuffer, 0, src.Length);
                 ApplyTextFromUnity(src, setTextBuffer, 0, src.Length);
@@ -309,8 +267,6 @@ namespace LightSide.Samples
             UpdateStatus($"Example {index + 1}/{examples.Length} ({(index % 2 == 0 ? "Text" : "SetText")}) - Press Arrow keys");
         }
 
-        // === Browser ↔ Unity text bridge ============================================
-
         /// <summary>
         /// JS → Unity. Invoked by React via <c>unityInstance.SendMessage("DemoController", "SetDemoText", text)</c>.
         /// Updates <see cref="demoText"/> with the value coming from the browser textarea.
@@ -319,13 +275,10 @@ namespace LightSide.Samples
         {
             if (demoText == null || text == null) return;
 
-            // Echo guard: text we just pushed to the browser may bounce back via the
-            // textarea's onChange. Drop it here to break the loop.
             if (text == lastSyncedText) return;
 
             lastSyncedText = text;
             demoText.Text = text;
-            // Do NOT push back to the browser — the textarea already has this value.
         }
 
         /// <summary>
@@ -367,8 +320,6 @@ namespace LightSide.Samples
             UniTextDemo_EmitTextChanged(text);
 #endif
         }
-
-        // ============================================================================
 
         private void OnLinkClicked(string url)
         {
