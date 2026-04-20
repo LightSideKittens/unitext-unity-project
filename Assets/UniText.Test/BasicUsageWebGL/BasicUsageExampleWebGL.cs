@@ -60,6 +60,12 @@ namespace LightSide.Samples
             {
                 gameObject.name = browserBridgeObjectName;
             }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // Don't steal keyboard from the host page: arrow keys etc. should reach
+            // the HTML textarea unless the WebGL canvas is the active element.
+            WebGLInput.captureAllKeyboardInput = false;
+#endif
         }
 
         private void Start()
