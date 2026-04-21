@@ -13,24 +13,56 @@ MonoBehaviour:
   m_Name: LanguagesFontWebGL
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFonts
   families:
-  - primary: {fileID: 11400000, guid: 7ca0d45f0a054bc439192de886348a39, type: 2}
+  - name: 
+    primary: {fileID: 11400000, guid: 7ca0d45f0a054bc439192de886348a39, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: a6d0ddb2a6ff6ae46989ec7de63143f4, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: a6d0ddb2a6ff6ae46989ec7de63143f4, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: 4bf10db904369414195f02f661007b5c, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: 4bf10db904369414195f02f661007b5c, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: 80606eb46c3342e438defbe3d3e5a938, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: 80606eb46c3342e438defbe3d3e5a938, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: 956e16400ff17c541972734f2548c35e, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: 956e16400ff17c541972734f2548c35e, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: ba7e21acdbc30db429c99cbea0a53f6b, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: ba7e21acdbc30db429c99cbea0a53f6b, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: c43fc1a9d4b493742954f9e3e8a00663, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: c43fc1a9d4b493742954f9e3e8a00663, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: 9f194bcdf6b582b4c8731cdfe455216c, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: 9f194bcdf6b582b4c8731cdfe455216c, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: ba7f77151d6fb404894958d3fe0b30c7, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: ba7f77151d6fb404894958d3fe0b30c7, type: 2}
     faces: []
-  - primary: {fileID: 11400000, guid: fa6a69a3b81441c4f93cffec1385d8b2, type: 2}
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: fa6a69a3b81441c4f93cffec1385d8b2, type: 2}
     faces: []
+    preferredLanguage: 
+  - name: 
+    primary: {fileID: 11400000, guid: aa5bebc2050a56245857bba395297cac, type: 2}
+    faces: []
+    preferredLanguage: 
+  - name: body
+    primary: {fileID: 11400000, guid: badbdb164725a424e9b06c9f0b61994b, type: 2}
+    faces: []
+    preferredLanguage: 
+  - name: mono
+    primary: {fileID: 11400000, guid: e9e38e7236fed16418ca31bc8ce4d8bf, type: 2}
+    faces: []
+    preferredLanguage: 
   fallbackStack: {fileID: 0}

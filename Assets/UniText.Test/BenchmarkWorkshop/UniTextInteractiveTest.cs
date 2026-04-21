@@ -472,7 +472,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyAll()
     {
         if (target == null) return;
-        target.SetDirty(UniText.DirtyFlags.All);
+        target.SetDirty(UniTextDirtyFlags.All);
         Log("SetDirty(All)");
     }
 
@@ -480,7 +480,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyText()
     {
         if (target == null) return;
-        target.SetDirty(UniText.DirtyFlags.Text);
+        target.SetDirty(UniTextDirtyFlags.Text);
         Log("SetDirty(Text)");
     }
 
@@ -488,7 +488,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyLayout()
     {
         if (target == null) return;
-        target.SetDirty(UniText.DirtyFlags.Layout);
+        target.SetDirty(UniTextDirtyFlags.Layout);
         Log("SetDirty(Layout)");
     }
 
@@ -496,7 +496,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyColor()
     {
         if (target == null) return;
-        target.SetDirty(UniText.DirtyFlags.Color);
+        target.SetDirty(UniTextDirtyFlags.Color);
         Log("SetDirty(Color)");
     }
 
@@ -504,7 +504,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyAlignment()
     {
         if (target == null) return;
-        target.SetDirty(UniText.DirtyFlags.Alignment);
+        target.SetDirty(UniTextDirtyFlags.Alignment);
         Log("SetDirty(Alignment)");
     }
 
@@ -512,7 +512,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyFont()
     {
         if (target == null) return;
-        target.SetDirty(UniText.DirtyFlags.Font);
+        target.SetDirty(UniTextDirtyFlags.Font);
         Log("SetDirty(Font)");
     }
 
@@ -520,7 +520,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyFontSize()
     {
         if (target == null) return;
-        target.SetDirty(UniText.DirtyFlags.FontSize);
+        target.SetDirty(UniTextDirtyFlags.FontSize);
         Log("SetDirty(FontSize)");
     }
 
