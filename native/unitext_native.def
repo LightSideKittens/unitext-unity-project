@@ -88,6 +88,9 @@ EXPORTS
     ut_hb_buffer_get_glyph_positions
     ut_hb_shape
     ut_hb_shape_run
+    ut_hb_language_from_string
+    ut_hb_buffer_set_language
+    ut_hb_shape_run_lang
 
     ; === Variable Font API ===
     ut_hb_ot_var_get_axis_count

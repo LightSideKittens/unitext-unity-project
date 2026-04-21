@@ -456,6 +456,37 @@ EXPORT int ut_hb_shape_run(
     return (int)count;
 }
 
+EXPORT hb_language_t ut_hb_language_from_string(const char* str, int len) {
+    if (!str) return HB_LANGUAGE_INVALID;
+    return hb_language_from_string(str, len);
+}
+
+EXPORT void ut_hb_buffer_set_language(hb_buffer_t* buffer, hb_language_t language) {
+    hb_buffer_set_language(buffer, language);
+}
+
+EXPORT int ut_hb_shape_run_lang(
+    hb_font_t* font, hb_buffer_t* buffer,
+    const unsigned int* codepoints, int text_length,
+    unsigned int item_offset, int item_length,
+    hb_direction_t direction, unsigned int script_tag, hb_language_t language, unsigned int flags,
+    const hb_feature_t* features, unsigned int num_features,
+    hb_glyph_info_t** out_infos, hb_glyph_position_t** out_positions)
+{
+    hb_buffer_clear_contents(buffer);
+    hb_buffer_set_direction(buffer, direction);
+    hb_buffer_set_script(buffer, (hb_script_t)script_tag);
+    if (language != HB_LANGUAGE_INVALID)
+        hb_buffer_set_language(buffer, language);
+    hb_buffer_set_flags(buffer, (hb_buffer_flags_t)flags);
+    hb_buffer_add_codepoints(buffer, codepoints, text_length, item_offset, item_length);
+    hb_shape(font, buffer, features, num_features);
+    unsigned int count = 0;
+    *out_infos = hb_buffer_get_glyph_infos(buffer, &count);
+    *out_positions = hb_buffer_get_glyph_positions(buffer, &count);
+    return (int)count;
+}
+
 // =============================================================================
 // HarfBuzz Variable Font API (ut_hb_*)
 // =============================================================================
