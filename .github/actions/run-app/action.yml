@@ -149,7 +149,7 @@ runs:
         sleep 3
         export DISPLAY=:99
 
-        vblank_mode=0 timeout "$APP_TIMEOUT" "$EXE" $EXTRA_ARGS -logFile "$LOG_FILE" || EXIT_CODE=$?
+        vblank_mode=0 timeout "$APP_TIMEOUT" "$EXE" $EXTRA_ARGS -force-glcore -logFile "$LOG_FILE" || EXIT_CODE=$?
 
         sudo kill $XORG_PID 2>/dev/null || true
 
