@@ -24,14 +24,12 @@ public class TMP_GlyphRasterizationBenchmark : MonoBehaviour
     public int iterations = 5;
     public int warmupIterations = 1;
 
-    [Tooltip("Font assets to clear before each run. Auto-detected if empty.")]
-    public TMP_FontAsset[] fontAssets;
-
     [Header("Status")]
     [SerializeField] bool isRunning;
     [SerializeField, TextArea(15, 30)] string lastResult = "";
 
     GameObject[] textObjects;
+    TMP_FontAsset[] fontAssets;
     readonly Stopwatch sw = new();
     readonly StringBuilder report = new();
 
@@ -68,7 +66,6 @@ public class TMP_GlyphRasterizationBenchmark : MonoBehaviour
         report.Clear();
 
         CollectChildren();
-        CollectFonts();
 
         if (textObjects.Length == 0)
         {
@@ -76,6 +73,8 @@ public class TMP_GlyphRasterizationBenchmark : MonoBehaviour
             isRunning = false;
             yield break;
         }
+
+        CollectFonts();
 
         report.AppendLine("═══════════════════════════════════════════════");
         report.AppendLine("         TMP GLYPH RASTERIZATION BENCHMARK");
@@ -163,15 +162,9 @@ public class TMP_GlyphRasterizationBenchmark : MonoBehaviour
 
     void CollectFonts()
     {
-        if (fontAssets != null && fontAssets.Length > 0) return;
-
-        var set = new HashSet<TMP_FontAsset>();
-        foreach (var tmp in GetComponentsInChildren<TMP_Text>(true))
-        {
-            if (tmp.font != null) set.Add(tmp.font);
-        }
-        fontAssets = new TMP_FontAsset[set.Count];
-        set.CopyTo(fontAssets);
+        var first = textObjects[0].GetComponent<TMP_Text>();
+        var font = first != null ? first.font : null;
+        fontAssets = font != null ? new[] { font } : System.Array.Empty<TMP_FontAsset>();
     }
 
     int CountGlyphs()

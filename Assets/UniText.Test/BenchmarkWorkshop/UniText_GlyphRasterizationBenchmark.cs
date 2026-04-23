@@ -23,14 +23,12 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
     public int iterations = 5;
     public int warmupIterations = 1;
 
-    [Tooltip("Font assets to clear before each run. Auto-detected if empty.")]
-    public UniTextFont[] fontAssets;
-
     [Header("Status")]
     [SerializeField] bool isRunning;
     [SerializeField, TextArea(15, 30)] string lastResult = "";
 
     GameObject[] textObjects;
+    UniTextFont[] fontAssets;
     readonly Stopwatch sw = new();
     readonly StringBuilder report = new();
 
@@ -96,7 +94,6 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         string mode = singleThreaded ? "SINGLE-THREADED" : "PARALLEL";
 
         CollectChildren();
-        CollectFonts();
 
         if (textObjects.Length == 0)
         {
@@ -104,6 +101,8 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
             isRunning = false;
             yield break;
         }
+
+        CollectFonts();
 
         report.AppendLine("═══════════════════════════════════════════════");
         report.AppendLine($"    UNITEXT GLYPH RASTERIZATION BENCHMARK ({mode})");
@@ -205,25 +204,12 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
 
     void CollectFonts()
     {
-        if (fontAssets != null && fontAssets.Length > 0) return;
-
-        var set = new HashSet<UniTextFont>();
-        foreach (var ut in GetComponentsInChildren<UniText>(true))
-        {
-            var font = ut.PrimaryFont;
-            if (font != null) set.Add(font);
-        }
-        fontAssets = new UniTextFont[set.Count];
-        set.CopyTo(fontAssets);
+        var first = textObjects[0].GetComponent<UniText>();
+        var font = first != null ? first.PrimaryFont : null;
+        fontAssets = font != null ? new[] { font } : System.Array.Empty<UniTextFont>();
     }
 
-    int CountGlyphs()
-    {
-        int total = 0;
-        for (int i = 0; i < fontAssets.Length; i++)
-            total += fontAssets[i].glyphTable.Count;
-        return total;
-    }
+    int CountGlyphs() => GlyphAtlas.GetInstance(UniTextRenderMode.SDF).EntryCount;
 
     string GetAtlasDiagnostics(string label)
     {
