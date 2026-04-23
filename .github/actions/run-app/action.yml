@@ -107,7 +107,7 @@ runs:
         [ ! -d "$BUILD_DIR" ] && { echo "ERROR: $BUILD_DIR not found"; exit 1; }
 
         chmod +x "$BUILD_DIR"/* 2>/dev/null || true
-        EXE=$(find "$BUILD_DIR" -maxdepth 1 -type f -executable ! -name "*.so" | head -1)
+        EXE=$(find "$BUILD_DIR" -maxdepth 1 -type f -executable ! -name "*.so*" | head -1)
         [ -z "$EXE" ] && { echo "ERROR: No executable found"; ls -la "$BUILD_DIR"; exit 1; }
 
         if [ "$MODE" = "benchmark" ]; then
