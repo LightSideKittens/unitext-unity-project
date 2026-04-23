@@ -40,9 +40,11 @@ WRAPPER_HARFBUZZ_SYMBOLS = {
     'hb_ot_var_get_axis_count', 'hb_ot_var_get_axis_infos',
     'hb_buffer_create', 'hb_buffer_destroy', 'hb_buffer_clear_contents',
     'hb_buffer_set_direction', 'hb_buffer_set_script',
+    'hb_buffer_set_language',
     'hb_buffer_set_content_type', 'hb_buffer_set_flags',
     'hb_buffer_add_codepoints', 'hb_buffer_get_length',
     'hb_buffer_get_glyph_infos', 'hb_buffer_get_glyph_positions',
+    'hb_language_from_string',
     'hb_shape',
 }
 
