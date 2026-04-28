@@ -68,6 +68,8 @@ namespace LightSide
             public bool isLatest;
         }
 
+        private enum SetupState { FreshInstall, NeedsToken, Authenticated }
+
         [MenuItem("Tools/UniText/Setup", false, 0)]
         public static void Open()
         {
@@ -76,9 +78,35 @@ namespace LightSide
             window.Show();
         }
 
-        public static bool IsSetupNeeded()
+        public static bool IsSetupNeeded() => GetSetupState() != SetupState.Authenticated;
+
+        private static SetupState GetSetupState()
         {
-            return !File.Exists(ManifestPath) || !File.ReadAllText(ManifestPath).Contains(RegistryUrl);
+            if (!File.Exists(ManifestPath)) return SetupState.FreshInstall;
+            if (!File.ReadAllText(ManifestPath).Contains(RegistryUrl)) return SetupState.FreshInstall;
+            return string.IsNullOrEmpty(ReadConfiguredToken()) ? SetupState.NeedsToken : SetupState.Authenticated;
+        }
+
+        private static string ReadConfiguredToken()
+        {
+            var configPath = UpmConfigWriter.GetConfigPath();
+            if (!File.Exists(configPath)) return null;
+
+            var lines = File.ReadAllLines(configPath);
+            var inSection = false;
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (trimmed.Contains(RegistryUrl)) { inSection = true; continue; }
+                if (inSection && trimmed.StartsWith("[")) break;
+                if (inSection && trimmed.StartsWith("token"))
+                {
+                    var eqIdx = trimmed.IndexOf('=');
+                    if (eqIdx < 0) continue;
+                    return trimmed.Substring(eqIdx + 1).Trim().Trim('"');
+                }
+            }
+            return null;
         }
 
         private void OnEnable()
@@ -125,11 +153,35 @@ namespace LightSide
 
         private void DrawSetupTab()
         {
+            var state = GetSetupState();
+
+            string title;
+            string description;
+            string buttonLabel;
+            switch (state)
+            {
+                case SetupState.NeedsToken:
+                    title = "Authenticate UniText";
+                    description = "This project uses UniText. Enter your personal access token to download the package.\n\nIf you don't have a token, ask your license owner or check the email from your purchase.";
+                    buttonLabel = "Authenticate";
+                    break;
+                case SetupState.Authenticated:
+                    title = "Update Access Token";
+                    description = "Paste a new token to replace the existing one:";
+                    buttonLabel = "Update Token";
+                    break;
+                default:
+                    title = "Configure Registry Access";
+                    description = "Paste your access token from the purchase email:";
+                    buttonLabel = "Set Up";
+                    break;
+            }
+
             EditorGUILayout.Space(8);
-            EditorGUILayout.LabelField("Configure Registry Access", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
             EditorGUILayout.Space(4);
 
-            EditorGUILayout.LabelField("Paste your access token from the purchase email:");
+            EditorGUILayout.LabelField(description, EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space(4);
             token = EditorGUILayout.TextField(token);
 
@@ -140,7 +192,7 @@ namespace LightSide
             EditorGUILayout.Space(8);
 
             GUI.enabled = TokenPattern.IsMatch(trimmed) && !settingUp;
-            if (GUILayout.Button(settingUp ? "Setting up…" : IsSetupNeeded() ? "Set Up" : "Update Token", GUILayout.Height(28)))
+            if (GUILayout.Button(settingUp ? "Setting up…" : buttonLabel, GUILayout.Height(28)))
                 RunSetup(trimmed);
             GUI.enabled = true;
 
@@ -155,21 +207,6 @@ namespace LightSide
         {
             try
             {
-                setupStatus = "";
-                UpmConfigWriter.SetAuth(RegistryUrl, token);
-                ManifestEditor.EnsureScopedRegistry(RegistryUrl, ScopeName, Scope);
-                DetectInstalledVersion();
-
-                if (!string.IsNullOrEmpty(installedVersion))
-                {
-                    UnityEditor.PackageManager.Client.Resolve();
-                    setupStatus = "Token updated!";
-                    setupStatusType = MessageType.Info;
-                    tab = 1;
-                    FetchVersions();
-                    return;
-                }
-
                 settingUp = true;
                 setupStatus = "Verifying token…";
                 setupStatusType = MessageType.Info;
@@ -195,11 +232,22 @@ namespace LightSide
 
                     try
                     {
-                        var latest = ParseLatestVersion(request.downloadHandler.text);
-                        if (!string.IsNullOrEmpty(latest))
-                            InstallVersion(latest);
+                        UpmConfigWriter.SetAuth(RegistryUrl, token);
+                        ManifestEditor.EnsureScopedRegistry(RegistryUrl, ScopeName, Scope);
+                        DetectInstalledVersion();
+
+                        if (string.IsNullOrEmpty(installedVersion))
+                        {
+                            var latest = ParseLatestVersion(request.downloadHandler.text);
+                            if (!string.IsNullOrEmpty(latest))
+                                InstallVersion(latest);
+                            else
+                                UnityEditor.PackageManager.Client.Resolve();
+                        }
                         else
+                        {
                             UnityEditor.PackageManager.Client.Resolve();
+                        }
 
                         setupStatus = "";
                         tab = 1;
@@ -391,7 +439,7 @@ namespace LightSide
             versions.Clear();
             versionsStatus = "";
 
-            var authToken = ReadTokenFromConfig();
+            var authToken = ReadConfiguredToken();
             if (string.IsNullOrEmpty(authToken))
             {
                 fetching = false;
@@ -475,28 +523,6 @@ namespace LightSide
             {
                 installedVersion = verStr;
             }
-        }
-
-        private string ReadTokenFromConfig()
-        {
-            var configPath = UpmConfigWriter.GetConfigPath();
-            if (!File.Exists(configPath)) return null;
-
-            var lines = File.ReadAllLines(configPath);
-            var inSection = false;
-            foreach (var line in lines)
-            {
-                var trimmed = line.Trim();
-                if (trimmed.Contains(RegistryUrl)) { inSection = true; continue; }
-                if (inSection && trimmed.StartsWith("[")) break;
-                if (inSection && trimmed.StartsWith("token"))
-                {
-                    var eqIdx = trimmed.IndexOf('=');
-                    if (eqIdx < 0) continue;
-                    return trimmed.Substring(eqIdx + 1).Trim().Trim('"');
-                }
-            }
-            return null;
         }
 
         private void InstallVersion(string version)

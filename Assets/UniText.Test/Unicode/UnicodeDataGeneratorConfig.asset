@@ -25,6 +25,7 @@ MonoBehaviour:
   graphemeBreakPropertyAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871074b28, type: 3}
   derivedCorePropertiesAsset: {fileID: 4900000, guid: 1a2afe8518d1e7243a899f3871075b27, type: 3}
   scriptExtensionsAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871175b27, type: 3}
+  unicodeDataAsset: {fileID: 4900000, guid: 95404f49457de4b4ba01ceabd3e1aef8, type: 3}
   outputFolder: {fileID: 102900000, guid: f560a9e02c2c3cd4f9d0597375b90f75, type: 3}
   outputFileName: UnicodeData.bytes
   testing:

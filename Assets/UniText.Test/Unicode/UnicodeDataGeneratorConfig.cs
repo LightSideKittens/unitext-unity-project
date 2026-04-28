@@ -21,6 +21,7 @@ public class UnicodeDataGeneratorConfig : ScriptableObject
     public TextAsset graphemeBreakPropertyAsset;
     public TextAsset derivedCorePropertiesAsset;
     public TextAsset scriptExtensionsAsset;
+    public TextAsset unicodeDataAsset;
 
     [Header("Output")] public DefaultAsset outputFolder;
     public string outputFileName = "UnicodeData.bytes";
@@ -75,6 +76,7 @@ public class UnicodeDataGeneratorConfig : ScriptableObject
         graphemeBreakPropertyAsset = (TextAsset)EditorGUILayout.ObjectField("GraphemeBreakProperty.txt", graphemeBreakPropertyAsset, typeof(TextAsset), false);
         derivedCorePropertiesAsset = (TextAsset)EditorGUILayout.ObjectField("DerivedCoreProperties.txt", derivedCorePropertiesAsset, typeof(TextAsset), false);
         scriptExtensionsAsset = (TextAsset)EditorGUILayout.ObjectField("ScriptExtensions.txt", scriptExtensionsAsset, typeof(TextAsset), false);
+        unicodeDataAsset = (TextAsset)EditorGUILayout.ObjectField("UnicodeData.txt", unicodeDataAsset, typeof(TextAsset), false);
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Output", EditorStyles.boldLabel);
@@ -92,7 +94,8 @@ public class UnicodeDataGeneratorConfig : ScriptableObject
                           lineBreakAsset != null && emojiDataAsset != null &&
                           generalCategoryAsset != null && eastAsianWidthAsset != null &&
                           graphemeBreakPropertyAsset != null && derivedCorePropertiesAsset != null &&
-                          scriptExtensionsAsset != null && outputFolder != null;
+                          scriptExtensionsAsset != null && unicodeDataAsset != null &&
+                          outputFolder != null;
 
         EditorGUI.BeginDisabledGroup(!canGenerate);
         if (GUILayout.Button("Generate Unicode Data", GUILayout.Height(30))) GenerateUnicodeData();
@@ -100,7 +103,7 @@ public class UnicodeDataGeneratorConfig : ScriptableObject
 
         if (!canGenerate)
             EditorGUILayout.HelpBox(
-                "Assign all required source files including GraphemeBreakProperty.txt and output folder to generate.",
+                "Assign all required source files (including UnicodeData.txt and GraphemeBreakProperty.txt) and an output folder to generate.",
                 MessageType.Warning);
 
         EditorGUILayout.Space();
@@ -131,6 +134,7 @@ public class UnicodeDataGeneratorConfig : ScriptableObject
             var graphemeBreakPath = SaveTempFile(tempDir, "GraphemeBreakProperty.txt", graphemeBreakPropertyAsset);
             var derivedCorePropertiesPath = SaveTempFile(tempDir, "DerivedCoreProperties.txt", derivedCorePropertiesAsset);
             var scriptExtensionsPath = SaveTempFile(tempDir, "ScriptExtensions.txt", scriptExtensionsAsset);
+            var unicodeDataPath = SaveTempFile(tempDir, "UnicodeData.txt", unicodeDataAsset);
 
             var builder = new UnicodeDataBuilder();
             builder.LoadDerivedBidiClass(derivedBidiPath);
@@ -145,6 +149,7 @@ public class UnicodeDataGeneratorConfig : ScriptableObject
             builder.LoadIndicConjunctBreak(derivedCorePropertiesPath);
             builder.LoadDefaultIgnorable(derivedCorePropertiesPath);
             builder.LoadScriptExtensions(scriptExtensionsPath);
+            builder.LoadUnicodeData(unicodeDataPath);
 
             var ranges = builder.BuildRangeEntries();
             var mirrors = UnicodeDataBuilder.BuildMirrorEntries(bidiMirroringPath);
@@ -160,13 +165,14 @@ public class UnicodeDataGeneratorConfig : ScriptableObject
             var defaultIgnorables = builder.BuildDefaultIgnorableRangeEntries();
             var emojiPresentations = builder.BuildEmojiPresentationRangeEntries();
             var emojiModifierBases = builder.BuildEmojiModifierBaseRangeEntries();
+            var caseMappings = builder.BuildCaseMappingEntries();
 
             UnicodeBinaryWriter.WriteBinary(outputPath, ranges, mirrors, brackets, scripts, lineBreaks,
                 extendedPictographics, generalCategories, eastAsianWidths, graphemeBreaks,
                 indicConjunctBreaks, scriptExtensions, defaultIgnorables,
-                emojiPresentations, emojiModifierBases);
+                emojiPresentations, emojiModifierBases, caseMappings);
 
-            Debug.Log($"Generated Unicode data (Format V9) with {ranges.Count} ranges, " +
+            Debug.Log($"Generated Unicode data (Format V10) with {ranges.Count} ranges, " +
                       $"{mirrors.Count} mirrors, {brackets.Count} brackets, " +
                       $"{scripts.Count} script ranges, {lineBreaks.Count} line break ranges, " +
                       $"{extendedPictographics.Count} Extended_Pictographic ranges, " +
@@ -177,7 +183,8 @@ public class UnicodeDataGeneratorConfig : ScriptableObject
                       $"{scriptExtensions.Count} ScriptExtension entries, " +
                       $"{defaultIgnorables.Count} Default_Ignorable ranges, " +
                       $"{emojiPresentations.Count} Emoji_Presentation ranges, " +
-                      $"{emojiModifierBases.Count} Emoji_Modifier_Base ranges.");
+                      $"{emojiModifierBases.Count} Emoji_Modifier_Base ranges, " +
+                      $"{caseMappings.Count} CaseMapping entries.");
 
             Directory.Delete(tempDir, true);
             AssetDatabase.Refresh();
