@@ -29,6 +29,12 @@ IMPORT_FUNC = 0
 IMPORT_TABLE = 1
 IMPORT_MEMORY = 2
 IMPORT_GLOBAL = 3
+# Tag (kind 4) is added by the WebAssembly Exception Handling proposal.
+# Emscripten emits tag imports in object files compiled with -sSUPPORT_LONGJMP=wasm
+# (or -fwasm-exceptions). Without this case, .o files containing setjmp lowering
+# raise "Unknown import descriptor kind: 4" and get skipped — leaving their
+# defined symbols un-prefixed, which causes asymmetric link failures.
+IMPORT_TAG = 4
 
 # Symbol kinds
 SYMTAB_FUNCTION = 0
@@ -310,6 +316,13 @@ def process_import_section(data: bytes, prefix: str) -> bytes:
             mut = data[offset + 1]
             offset += 2
             desc_data = bytes([desc_kind, val_type, mut])
+        elif desc_kind == IMPORT_TAG:
+            # Tag: attribute (1 byte, reserved, currently 0) + typeidx (LEB128)
+            attribute = data[offset]
+            offset += 1
+            type_idx, consumed = read_leb128_unsigned(data, offset)
+            offset += consumed
+            desc_data = bytes([desc_kind, attribute]) + encode_leb128_unsigned(type_idx)
         else:
             raise ValueError(f"Unknown import descriptor kind: {desc_kind}")
 
