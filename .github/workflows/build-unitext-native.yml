@@ -1770,8 +1770,15 @@ jobs:
         include:
           - variant: legacy
             emscripten: "3.1.38"
+            # Legacy uses default JS-based emscripten_longjmp (works on Unity ≤6.4).
+            extra_cflags: ""
           - variant: modern
             emscripten: "4.0.19"
+            # SUPPORT_LONGJMP=wasm makes setjmp lower to __wasm_longjmp instead of
+            # emscripten_longjmp. The wasm-native symbol is provided in both
+            # default and "Target WebAssembly 2023" link modes (Unity 6.6+),
+            # while emscripten_longjmp is missing in the wasm-2023 path.
+            extra_cflags: "-sSUPPORT_LONGJMP=wasm"
 
     steps:
       - name: Checkout repository
@@ -1848,6 +1855,7 @@ jobs:
             -DPNG_TESTS=OFF -DPNG_TOOLS=OFF \
             -DPNG_SHARED=OFF -DPNG_STATIC=ON \
             -DPNG_PREFIX=ut_ \
+            -DCMAKE_C_FLAGS="${{ matrix.extra_cflags }}" \
             -DZLIB_INCLUDE_DIR="${{ github.workspace }}/zlib-src" \
             -DZLIB_LIBRARY="${{ github.workspace }}/zlib-src/build/libz.a"
           emmake make -j$(nproc)
@@ -1865,6 +1873,7 @@ jobs:
             -DFT_DISABLE_PNG=OFF \
             -DFT_DISABLE_HARFBUZZ=ON \
             -DFT_DISABLE_BROTLI=ON \
+            -DCMAKE_C_FLAGS="${{ matrix.extra_cflags }}" \
             -DZLIB_INCLUDE_DIR="${{ github.workspace }}/zlib-src" \
             -DZLIB_LIBRARY="${{ github.workspace }}/zlib-src/build/libz.a" \
             -DPNG_PNG_INCLUDE_DIR="${{ github.workspace }}/libpng-src;${{ github.workspace }}/libpng-src/build" \
@@ -1878,8 +1887,8 @@ jobs:
           emcmake cmake .. \
             -DCMAKE_BUILD_TYPE=MinSizeRel \
             -DBUILD_SHARED_LIBS=OFF \
-            -DCMAKE_C_FLAGS="${{ env.HB_WEBGL_FLAGS }}" \
-            -DCMAKE_CXX_FLAGS="${{ env.HB_WEBGL_FLAGS }}" \
+            -DCMAKE_C_FLAGS="${{ env.HB_WEBGL_FLAGS }} ${{ matrix.extra_cflags }}" \
+            -DCMAKE_CXX_FLAGS="${{ env.HB_WEBGL_FLAGS }} ${{ matrix.extra_cflags }}" \
             -DHB_HAVE_FREETYPE=OFF \
             -DHB_BUILD_SUBSET=OFF \
             -DHB_HAVE_GLIB=OFF -DHB_HAVE_GOBJECT=OFF -DHB_HAVE_ICU=OFF -DHB_HAVE_GRAPHITE2=OFF
@@ -1900,7 +1909,7 @@ jobs:
             -DZSTD_BUILD_DEPRECATED=OFF \
             -DZSTD_LEGACY_SUPPORT=0 \
             -DZSTD_BUILD_COMPRESSION=OFF \
-            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY"
+            -DCMAKE_C_FLAGS="-DZSTD_LIB_MINIFY ${{ matrix.extra_cflags }}"
           emmake make -j$(nproc)
 
       - name: Rename symbols (post-processing)
@@ -1938,6 +1947,7 @@ jobs:
             -I"freetype-src/include" \
             -I"harfbuzz-src/src" \
             -I"zstd-src/lib" \
+            ${{ matrix.extra_cflags }} \
             -Oz -c -o wrapper.o
 
           # Link everything into single relocatable object, then archive
@@ -1947,7 +1957,7 @@ jobs:
           # - FreeType: __ut_* via wasm_symbol_renamer post-processing
           # - HarfBuzz: __ut_* via wasm_symbol_renamer post-processing
           # - Zstd: __ut_* via wasm_symbol_renamer post-processing
-          emcc -r -o unitext_combined.o wrapper.o \
+          emcc -r ${{ matrix.extra_cflags }} -o unitext_combined.o wrapper.o \
             freetype-src/build/libfreetype.a \
             harfbuzz-src/build/libharfbuzz.a \
             libpng-src/build/libpng.a \
