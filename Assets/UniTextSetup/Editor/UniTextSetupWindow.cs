@@ -83,8 +83,30 @@ namespace LightSide
         private static SetupState GetSetupState()
         {
             if (!File.Exists(ManifestPath)) return SetupState.FreshInstall;
-            if (!File.ReadAllText(ManifestPath).Contains(RegistryUrl)) return SetupState.FreshInstall;
+            var manifestText = File.ReadAllText(ManifestPath);
+            if (!manifestText.Contains(RegistryUrl)) return SetupState.FreshInstall;
+
+            if (!string.IsNullOrEmpty(ReadTokenFromManifest())) return SetupState.Authenticated;
+
             return string.IsNullOrEmpty(ReadConfiguredToken()) ? SetupState.NeedsToken : SetupState.Authenticated;
+        }
+
+        private static string ReadTokenFromManifest()
+        {
+            if (!File.Exists(ManifestPath)) return null;
+            var manifest = MiniJson.Parse(File.ReadAllText(ManifestPath)) as Dictionary<string, object>;
+            if (manifest == null) return null;
+            if (!manifest.TryGetValue("scopedRegistries", out var sr) || sr is not List<object> list) return null;
+            foreach (var entry in list)
+            {
+                if (entry is Dictionary<string, object> reg &&
+                    reg.TryGetValue("url", out var u) && u is string url)
+                {
+                    var match = Regex.Match(url, @"/t/([A-Za-z0-9_\-]+)$");
+                    if (match.Success) return match.Groups[1].Value;
+                }
+            }
+            return null;
         }
 
         private static string ReadConfiguredToken()
@@ -211,9 +233,9 @@ namespace LightSide
                 setupStatus = "Verifying token…";
                 setupStatusType = MessageType.Info;
 
-                var url = $"{RegistryUrl}/{PackageName}";
+                var registryUrl = $"{RegistryUrl}/t/{token}";
+                var url = $"{registryUrl}/{PackageName}";
                 var request = UnityWebRequest.Get(url);
-                request.SetRequestHeader("Authorization", $"Bearer {token}");
 
                 request.SendWebRequest().completed += _ =>
                 {
@@ -222,7 +244,7 @@ namespace LightSide
                     if (request.result != UnityWebRequest.Result.Success)
                     {
                         setupStatus = request.responseCode == 401
-                            ? "Invalid token"
+                            ? "Invalid or revoked token"
                             : $"Connection failed: {request.error}";
                         setupStatusType = MessageType.Error;
                         request.Dispose();
@@ -232,8 +254,7 @@ namespace LightSide
 
                     try
                     {
-                        UpmConfigWriter.SetAuth(RegistryUrl, token);
-                        ManifestEditor.EnsureScopedRegistry(RegistryUrl, ScopeName, Scope);
+                        ManifestEditor.EnsureScopedRegistry(registryUrl, ScopeName, Scope);
                         DetectInstalledVersion();
 
                         if (string.IsNullOrEmpty(installedVersion))
@@ -439,19 +460,31 @@ namespace LightSide
             versions.Clear();
             versionsStatus = "";
 
-            var authToken = ReadConfiguredToken();
-            if (string.IsNullOrEmpty(authToken))
+            var manifestToken = ReadTokenFromManifest();
+            string baseUrl;
+            string authToken = null;
+            if (!string.IsNullOrEmpty(manifestToken))
             {
-                fetching = false;
-                versionsStatus = "No token configured. Use the Setup tab first.";
-                versionsStatusType = MessageType.Warning;
-                tab = 0;
-                return;
+                baseUrl = $"{RegistryUrl}/t/{manifestToken}";
+            }
+            else
+            {
+                authToken = ReadConfiguredToken();
+                if (string.IsNullOrEmpty(authToken))
+                {
+                    fetching = false;
+                    versionsStatus = "No token configured. Use the Setup tab first.";
+                    versionsStatusType = MessageType.Warning;
+                    tab = 0;
+                    return;
+                }
+                baseUrl = RegistryUrl;
             }
 
-            var url = $"{RegistryUrl}/{PackageName}" + (showPreRelease ? "?prerelease=true" : "");
+            var url = $"{baseUrl}/{PackageName}" + (showPreRelease ? "?prerelease=true" : "");
             var request = UnityWebRequest.Get(url);
-            request.SetRequestHeader("Authorization", $"Bearer {authToken}");
+            if (authToken != null)
+                request.SetRequestHeader("Authorization", $"Bearer {authToken}");
 
             var op = request.SendWebRequest();
             op.completed += _ =>
@@ -692,24 +725,26 @@ namespace LightSide
             var registries = manifest.TryGetValue("scopedRegistries", out var ex) && ex is List<object> list
                 ? list : new List<object>();
 
-            var found = false;
+            var filtered = new List<object>();
             foreach (var entry in registries)
             {
                 if (entry is Dictionary<string, object> reg &&
-                    reg.TryGetValue("url", out var u) && u is string s && s == url)
+                    reg.TryGetValue("scopes", out var sc) && sc is List<object> scopes &&
+                    scopes.Any(s => s is string ss && ss == scope))
                 {
-                    reg["name"] = name;
-                    reg["scopes"] = new List<object> { scope };
-                    found = true;
-                    break;
+                    continue;
                 }
+                filtered.Add(entry);
             }
 
-            if (!found)
-                registries.Add(new Dictionary<string, object>
-                    { ["name"] = name, ["url"] = url, ["scopes"] = new List<object> { scope } });
+            filtered.Add(new Dictionary<string, object>
+            {
+                ["name"] = name,
+                ["url"] = url,
+                ["scopes"] = new List<object> { scope },
+            });
 
-            manifest["scopedRegistries"] = registries;
+            manifest["scopedRegistries"] = filtered;
             File.WriteAllText(path, MiniJson.Serialize(manifest, pretty: true) + "\n");
             Debug.Log("[UniText] Scoped registry configured in manifest.json");
         }
