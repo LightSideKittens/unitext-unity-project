@@ -1768,16 +1768,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - variant: legacy
+          # 2x2 matrix: (Emscripten version) × (longjmp ABI).
+          # Selector at runtime picks the right one based on Unity version
+          # (compile-time UNITY_6000_5_OR_NEWER) and PlayerSettings.WebGL.wasm2023
+          # (build-time, controls whether Unity links with -sSUPPORT_LONGJMP=wasm).
+          - variant: legacy-default
             emscripten: "3.1.38"
-            # Legacy uses default JS-based emscripten_longjmp (works on Unity ≤6.4).
             extra_cflags: ""
-          - variant: modern
+          - variant: legacy-wasm
+            emscripten: "3.1.38"
+            extra_cflags: "-sSUPPORT_LONGJMP=wasm"
+          - variant: modern-default
             emscripten: "4.0.19"
-            # SUPPORT_LONGJMP=wasm makes setjmp lower to __wasm_longjmp instead of
-            # emscripten_longjmp. The wasm-native symbol is provided in both
-            # default and "Target WebAssembly 2023" link modes (Unity 6.6+),
-            # while emscripten_longjmp is missing in the wasm-2023 path.
+            extra_cflags: ""
+          - variant: modern-wasm
+            emscripten: "4.0.19"
             extra_cflags: "-sSUPPORT_LONGJMP=wasm"
 
     steps:
@@ -2047,8 +2052,10 @@ jobs:
           mkdir -p pkg/Plugins/Android/x86
           mkdir -p pkg/Plugins/iOS
           mkdir -p pkg/Plugins/tvOS
-          mkdir -p pkg/Plugins/WebGL/Legacy
-          mkdir -p pkg/Plugins/WebGL/Modern
+          mkdir -p pkg/Plugins/WebGL/LegacyDefault
+          mkdir -p pkg/Plugins/WebGL/LegacyWasm
+          mkdir -p pkg/Plugins/WebGL/ModernDefault
+          mkdir -p pkg/Plugins/WebGL/ModernWasm
 
           # Windows
           cp artifacts/unitext-native-win-x64/unitext_native.dll pkg/Plugins/Windows/x86_64/ 2>/dev/null || true
@@ -2073,9 +2080,11 @@ jobs:
           # tvOS
           cp artifacts/unitext-native-tvos-arm64/libunitext_native.a pkg/Plugins/tvOS/ 2>/dev/null || true
 
-          # WebGL (dual ABI)
-          cp artifacts/unitext-native-webgl-legacy/libunitext_native.a pkg/Plugins/WebGL/Legacy/ 2>/dev/null || true
-          cp artifacts/unitext-native-webgl-modern/libunitext_native.a pkg/Plugins/WebGL/Modern/ 2>/dev/null || true
+          # WebGL (4 variants: Emscripten 3.1.38/4.0.19 × longjmp default/wasm)
+          cp artifacts/unitext-native-webgl-legacy-default/libunitext_native.a pkg/Plugins/WebGL/LegacyDefault/ 2>/dev/null || true
+          cp artifacts/unitext-native-webgl-legacy-wasm/libunitext_native.a pkg/Plugins/WebGL/LegacyWasm/ 2>/dev/null || true
+          cp artifacts/unitext-native-webgl-modern-default/libunitext_native.a pkg/Plugins/WebGL/ModernDefault/ 2>/dev/null || true
+          cp artifacts/unitext-native-webgl-modern-wasm/libunitext_native.a pkg/Plugins/WebGL/ModernWasm/ 2>/dev/null || true
 
           echo "=== Package structure ==="
           find pkg -type f | sort
