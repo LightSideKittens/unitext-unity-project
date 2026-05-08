@@ -77,7 +77,9 @@ jobs:
           FIRST_V=true
           ${{ inputs.unity_2021 }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"2021.3.45f1\""; FIRST_V=false; }
           ${{ inputs.unity_2022 }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"2022.3.62f2\""; FIRST_V=false; }
-          ${{ inputs.unity_6 }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"6000.3.11f1\""; FIRST_V=false; }
+          # GameCI publishes images only for final (fXX) Unity releases — no alpha/beta.
+          # Latest available 6000.x is tracked at https://hub.docker.com/r/unityci/editor/tags
+          ${{ inputs.unity_6 }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"6000.4.5f1\""; FIRST_V=false; }
           VERSIONS+="]"
 
           PLATFORMS="["

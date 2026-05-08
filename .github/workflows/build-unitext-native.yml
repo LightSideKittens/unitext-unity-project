@@ -47,7 +47,6 @@ env:
   HARFBUZZ_VERSION: "12.3.2"
   BLEND2D_VERSION: "master"
   ZSTD_VERSION: "1.5.6"
-  EMSCRIPTEN_VERSION: "3.1.38"
 
   # HarfBuzz flags: HB_LEAN expanded without HB_NO_VAR (variable font axes needed)
   # and without HB_NO_MT (thread-safety for UniText.UseParallel).
@@ -1756,11 +1755,23 @@ jobs:
           path: libunitext_native.a
 
   # ============================================================================
-  # WebGL (Emscripten) - with symbol prefixing
+  # WebGL (Emscripten) - dual ABI: legacy (Unity ≤6.4) + modern (Unity ≥6.5)
+  # Unity 6000.5.0a9+ ships Emscripten 4.0.19, which removed the JS-side
+  # saveSetjmp/testSetjmp/emscripten_longjmp helpers. A .a built with 3.1.38
+  # cannot link in 4.0+, and vice versa — so we ship two binaries and pick
+  # at build time via PluginImporter.SetIncludeInBuildDelegate.
   # ============================================================================
   webgl:
     if: inputs.webgl
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: legacy
+            emscripten: "3.1.38"
+          - variant: modern
+            emscripten: "4.0.19"
 
     steps:
       - name: Checkout repository
@@ -1776,17 +1787,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/emsdk
-          key: emsdk-${{ env.EMSCRIPTEN_VERSION }}-v1
+          key: emsdk-${{ matrix.emscripten }}-v1
 
       - name: Install Emscripten
         if: steps.cache-emsdk.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/emscripten-core/emsdk.git ~/emsdk
-          cd ~/emsdk && ./emsdk install ${{ env.EMSCRIPTEN_VERSION }} && ./emsdk activate ${{ env.EMSCRIPTEN_VERSION }}
+          cd ~/emsdk && ./emsdk install ${{ matrix.emscripten }} && ./emsdk activate ${{ matrix.emscripten }}
 
       - name: Setup Emscripten
         run: |
-          cd ~/emsdk && ./emsdk activate ${{ env.EMSCRIPTEN_VERSION }} && source emsdk_env.sh
+          cd ~/emsdk && ./emsdk activate ${{ matrix.emscripten }} && source emsdk_env.sh
           echo "EMSDK=$HOME/emsdk" >> $GITHUB_ENV
           echo "$HOME/emsdk" >> $GITHUB_PATH
           echo "$HOME/emsdk/upstream/emscripten" >> $GITHUB_PATH
@@ -1965,7 +1976,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: unitext-native-webgl
+          name: unitext-native-webgl-${{ matrix.variant }}
           path: libunitext_native.a
 
   # ============================================================================
@@ -1995,7 +2006,8 @@ jobs:
           mkdir -p pkg/Plugins/Android/x86
           mkdir -p pkg/Plugins/iOS
           mkdir -p pkg/Plugins/tvOS
-          mkdir -p pkg/Plugins/WebGL
+          mkdir -p pkg/Plugins/WebGL/Legacy
+          mkdir -p pkg/Plugins/WebGL/Modern
 
           # Windows
           cp artifacts/unitext-native-win-x64/unitext_native.dll pkg/Plugins/Windows/x86_64/ 2>/dev/null || true
@@ -2020,8 +2032,9 @@ jobs:
           # tvOS
           cp artifacts/unitext-native-tvos-arm64/libunitext_native.a pkg/Plugins/tvOS/ 2>/dev/null || true
 
-          # WebGL
-          cp artifacts/unitext-native-webgl/libunitext_native.a pkg/Plugins/WebGL/ 2>/dev/null || true
+          # WebGL (dual ABI)
+          cp artifacts/unitext-native-webgl-legacy/libunitext_native.a pkg/Plugins/WebGL/Legacy/ 2>/dev/null || true
+          cp artifacts/unitext-native-webgl-modern/libunitext_native.a pkg/Plugins/WebGL/Modern/ 2>/dev/null || true
 
           echo "=== Package structure ==="
           find pkg -type f | sort
