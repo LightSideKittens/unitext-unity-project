@@ -1941,13 +1941,16 @@ jobs:
         run: |
           LLVM_NM="$EMSDK/upstream/bin/llvm-nm"
 
-          # Compile wrapper with the prefix header (generated earlier)
+          # Compile wrapper with the prefix header (generated earlier).
+          # No -sSUPPORT_LONGJMP=wasm here: wrapper.c doesn't use setjmp, and
+          # passing it to emcc -r combine triggers DCE that drops symbols like
+          # __ut_sfnt_module_class. Setjmp ABI is set per-translation-unit at
+          # FreeType/libpng compile time only.
           emcc native/webgl_wrapper.c \
             -include ut_wrapper_prefix.h \
             -I"freetype-src/include" \
             -I"harfbuzz-src/src" \
             -I"zstd-src/lib" \
-            ${{ matrix.extra_cflags }} \
             -Oz -c -o wrapper.o
 
           # Link everything into single relocatable object, then archive
@@ -1957,7 +1960,7 @@ jobs:
           # - FreeType: __ut_* via wasm_symbol_renamer post-processing
           # - HarfBuzz: __ut_* via wasm_symbol_renamer post-processing
           # - Zstd: __ut_* via wasm_symbol_renamer post-processing
-          emcc -r ${{ matrix.extra_cflags }} -o unitext_combined.o wrapper.o \
+          emcc -r -o unitext_combined.o wrapper.o \
             freetype-src/build/libfreetype.a \
             harfbuzz-src/build/libharfbuzz.a \
             libpng-src/build/libpng.a \
