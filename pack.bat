@@ -3,10 +3,6 @@ setlocal
 
 cd /d "%~dp0Assets\UniText"
 
-for /f "delims=" %%b in ('git rev-parse --abbrev-ref HEAD') do set VERSION=%%b
-
-node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='%VERSION%';fs.writeFileSync('package.json',JSON.stringify(p,null,4)+'\n')"
-
 set BUILD_DIR=%~dp0Builds\Package
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
