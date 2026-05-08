@@ -1880,6 +1880,18 @@ jobs:
             -DPNG_LIBRARY="${{ github.workspace }}/libpng-src/build/libpng.a"
           emmake make -j$(nproc)
 
+      - name: Diag - libfreetype.a contents (POST-make, PRE-rename)
+        run: |
+          LLVM_NM="$EMSDK/upstream/bin/llvm-nm"
+          echo "=== libfreetype.a object members ==="
+          "$EMSDK/upstream/bin/llvm-ar" t freetype-src/build/libfreetype.a | sort | head -80
+          echo ""
+          echo "=== sfnt_module_class search (should be defined as 'D') ==="
+          "$LLVM_NM" -A freetype-src/build/libfreetype.a 2>/dev/null | grep -E "sfnt_module_class|sfdriver" | head -20 || echo "(not found at all)"
+          echo ""
+          echo "=== module_class symbols (any) ==="
+          "$LLVM_NM" freetype-src/build/libfreetype.a 2>/dev/null | grep -E " [DTU] .*module_class" || echo "(none)"
+
       - name: Build HarfBuzz
         run: |
           cd harfbuzz-src && mkdir -p build && cd build
@@ -1937,6 +1949,15 @@ jobs:
           echo "Zstd __ut_ symbols:"
           $LLVM_NM --defined-only zstd-src/build/cmake/build/lib/libzstd.a 2>/dev/null | grep ' [TtDd] __ut_' | head -5 || echo "(checking...)"
 
+      - name: Diag - libfreetype.a contents (POST-rename)
+        run: |
+          LLVM_NM="$EMSDK/upstream/bin/llvm-nm"
+          echo "=== module_class symbols POST-rename (should all be 'D __ut_*') ==="
+          "$LLVM_NM" freetype-src/build/libfreetype.a 2>/dev/null | grep -E " [DTU] .*module_class" || echo "(none)"
+          echo ""
+          echo "=== sfnt_module_class specifically ==="
+          "$LLVM_NM" -A freetype-src/build/libfreetype.a 2>/dev/null | grep -E "sfnt_module_class" | head -10 || echo "(MISSING)"
+
       - name: Build WebGL wrapper
         run: |
           LLVM_NM="$EMSDK/upstream/bin/llvm-nm"
@@ -1971,6 +1992,13 @@ jobs:
 
           echo "=== Built WebGL library ==="
           ls -lh libunitext_native.a
+
+          echo ""
+          echo "=== DIAG: module_class in final combined .o (should all be 'D __ut_*') ==="
+          $LLVM_NM unitext_combined.o 2>/dev/null | grep -E " [DTU] .*module_class" || echo "(none)"
+          echo ""
+          echo "=== DIAG: sfnt_module_class lookup ==="
+          $LLVM_NM unitext_combined.o 2>/dev/null | grep -E "sfnt_module_class" | head -5 || echo "(MISSING)"
 
           echo ""
           echo "=== Verify symbol prefixing ==="
