@@ -1,5 +1,5 @@
 name: Unity Build & Test 
-run-name: "🔨 ${{ (inputs.win64 && inputs.linux && inputs.macos && inputs.android && inputs.ios && inputs.webgl) && '🌍 All platforms ' || format('{0}{1}{2}{3}{4}{5}', inputs.win64 && '🪟 Win64 ' || '', inputs.linux && '🐧 Linux ' || '', inputs.macos && '🍎 macOS ' || '', inputs.android && '🤖 Android ' || '', inputs.ios && '📱 iOS ' || '', inputs.webgl && '🌐 WebGL ' || '') }}• ${{ (inputs.unity_2021 && inputs.unity_2022 && inputs.unity_6) && '🎮 All versions ' || format('{0}{1}{2}', inputs.unity_2021 && '🎮 2021 ' || '', inputs.unity_2022 && '🎮 2022 ' || '', inputs.unity_6 && '🎮 6000 ' || '') }}${{ inputs.run_tests && '• 🧪 Tests' || '' }}"
+run-name: "🔨 ${{ (inputs.win64 && inputs.linux && inputs.macos && inputs.android && inputs.ios && inputs.webgl) && '🌍 All platforms ' || format('{0}{1}{2}{3}{4}{5}', inputs.win64 && '🪟 Win64 ' || '', inputs.linux && '🐧 Linux ' || '', inputs.macos && '🍎 macOS ' || '', inputs.android && '🤖 Android ' || '', inputs.ios && '📱 iOS ' || '', inputs.webgl && '🌐 WebGL ' || '') }}• ${{ (inputs.unity_2021 && inputs.unity_2022 && inputs.unity_6 && inputs.unity_6_latest) && '🎮 All versions ' || format('{0}{1}{2}{3}', inputs.unity_2021 && '🎮 2021 ' || '', inputs.unity_2022 && '🎮 2022 ' || '', inputs.unity_6 && '🎮 6000 ' || '', inputs.unity_6_latest && '🎮 6000-latest ' || '') }}${{ inputs.run_tests && '• 🧪 Tests' || '' }}"
 
 on:
   workflow_dispatch:
@@ -15,6 +15,10 @@ on:
         default: true
       unity_6:
         description: '🎮 Unity 6000ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ'
+        type: boolean
+        default: false
+      unity_6_latest:
+        description: '🎮 Unity 6000 latest (GameCI: 6000.4.5f1)ㅤㅤㅤㅤㅤㅤㅤㅤ'
         type: boolean
         default: false
 
@@ -80,6 +84,7 @@ jobs:
           # GameCI publishes images only for final (fXX) Unity releases — no alpha/beta.
           # Latest available 6000.x is tracked at https://hub.docker.com/r/unityci/editor/tags
           ${{ inputs.unity_6 }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"6000.3.14f1\""; FIRST_V=false; }
+          ${{ inputs.unity_6_latest }} && { $FIRST_V || VERSIONS+=","; VERSIONS+="\"6000.4.5f1\""; FIRST_V=false; }
           VERSIONS+="]"
 
           PLATFORMS="["
