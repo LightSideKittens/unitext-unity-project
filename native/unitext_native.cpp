@@ -815,7 +815,10 @@ UNITEXT_EXPORT int ut_ft_get_outline_info(FT_Face face, int* outNumContours, int
 // quadratic Béziers with float-precision implicit midpoints:
 // - On-curve lines → degenerate quadratic (control = midpoint)
 // - Conic (quadratic) → direct output
-// - Cubic (CFF/OTF) → split into two quadratics at midpoint
+// - Cubic (CFF/OTF) → adaptive recursive subdivision (de Casteljau) until
+//   single-quad approximation error < tolerance; matches fontTools.cu2qu /
+//   Skia behaviour. Replaces former fixed split-at-midpoint that visibly
+//   distorted curves on CFF fonts with high curvature.
 //
 // This produces better SDF quality than FT_Outline_Decompose because:
 // - Float midpoints (a+b)*0.5f vs FreeType's integer (a+b)/2 truncation
@@ -824,6 +827,51 @@ UNITEXT_EXPORT int ut_ft_get_outline_info(FT_Face face, int* outNumContours, int
 //
 // Output format per curve: 8 floats (p0.x, p0.y, ctrl.x, ctrl.y, p2.x, p2.y, 0, 0)
 // outTypes[i]: always 2 (quadratic)
+
+// Adaptive cubic→quadratic via recursive de Casteljau.
+// For cubic [P0,P1,P2,P3] the single-quad approximation has control point
+//   Q1 = (3*P1 + 3*P2 - P0 - P3) / 4
+// and max deviation from the cubic of |P3 - 3*P2 + 3*P1 - P0| * sqrt(3) / 36
+// (standard bound; squared form avoids sqrt). Recurses with depth cap to
+// prevent runaway on pathological inputs.
+static bool emit_cubic_as_quads(
+    float p0x, float p0y, float p1x, float p1y,
+    float p2x, float p2y, float p3x, float p3y,
+    float tolerance_sq, int depth,
+    int* curveIdx, int maxCurves,
+    float* outCurves, int* outTypes)
+{
+    float ex = p3x - 3.0f * p2x + 3.0f * p1x - p0x;
+    float ey = p3y - 3.0f * p2y + 3.0f * p1y - p0y;
+    float err_sq = (ex * ex + ey * ey) * (1.0f / 432.0f);
+
+    if (err_sq <= tolerance_sq || depth >= 8) {
+        if (*curveIdx >= maxCurves) return false;
+        float q1x = (3.0f * p1x + 3.0f * p2x - p0x - p3x) * 0.25f;
+        float q1y = (3.0f * p1y + 3.0f * p2y - p0y - p3y) * 0.25f;
+        float* dst = outCurves + (*curveIdx) * 8;
+        dst[0] = p0x; dst[1] = p0y;
+        dst[2] = q1x; dst[3] = q1y;
+        dst[4] = p3x; dst[5] = p3y;
+        dst[6] = 0;   dst[7] = 0;
+        outTypes[*curveIdx] = 2;
+        (*curveIdx)++;
+        return true;
+    }
+
+    float m01x = (p0x + p1x) * 0.5f,   m01y = (p0y + p1y) * 0.5f;
+    float m12x = (p1x + p2x) * 0.5f,   m12y = (p1y + p2y) * 0.5f;
+    float m23x = (p2x + p3x) * 0.5f,   m23y = (p2y + p3y) * 0.5f;
+    float m012x = (m01x + m12x) * 0.5f, m012y = (m01y + m12y) * 0.5f;
+    float m123x = (m12x + m23x) * 0.5f, m123y = (m12y + m23y) * 0.5f;
+    float mx = (m012x + m123x) * 0.5f,  my = (m012y + m123y) * 0.5f;
+
+    if (!emit_cubic_as_quads(p0x, p0y, m01x, m01y, m012x, m012y, mx, my,
+                             tolerance_sq, depth + 1, curveIdx, maxCurves, outCurves, outTypes))
+        return false;
+    return emit_cubic_as_quads(mx, my, m123x, m123y, m23x, m23y, p3x, p3y,
+                               tolerance_sq, depth + 1, curveIdx, maxCurves, outCurves, outTypes);
+}
 
 UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_index,
                                             float* outCurves, int* outTypes,
@@ -857,6 +905,12 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
         *outContourCount = 0;
         return 0;
     }
+
+    // tolerance ≈ em / 1024 design units: sub-pixel even at 256-px SDF tiles
+    // (em/256 design units per pixel → tolerance is ~1/4 pixel of the tile).
+    float em = (float)(face->units_per_EM > 0 ? face->units_per_EM : 1000);
+    float tolerance = em * (1.0f / 1024.0f);
+    float tolerance_sq = tolerance * tolerance;
 
     int curveIdx = 0;
     int contourIdx = 0;
@@ -915,15 +969,10 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
                 float p2x = (float)outline->points[idx2].x, p2y = (float)outline->points[idx2].y;
                 float p3x = (float)outline->points[idx3].x, p3y = (float)outline->points[idx3].y;
 
-                float midX = (penX + 3*p1x + 3*p2x + p3x) * 0.125f;
-                float midY = (penY + 3*p1y + 3*p2y + p3y) * 0.125f;
-                float c1x = (penX + 3*p1x) * 0.25f;
-                float c1y = (penY + 3*p1y) * 0.25f;
-                float c2x = (3*p2x + p3x) * 0.25f;
-                float c2y = (3*p2y + p3y) * 0.25f;
-
-                EMIT_SEG(penX, penY, c1x, c1y, midX, midY);
-                EMIT_SEG(midX, midY, c2x, c2y, p3x, p3y);
+                if (!emit_cubic_as_quads(penX, penY, p1x, p1y, p2x, p2y, p3x, p3y,
+                                          tolerance_sq, 0, &curveIdx, maxCurves,
+                                          outCurves, outTypes))
+                    return -2;
 
                 penX = p3x; penY = p3y;
                 j += 2;
