@@ -33,9 +33,12 @@ WRAPPER_FREETYPE_SYMBOLS = {
 WRAPPER_HARFBUZZ_SYMBOLS = {
     'hb_blob_create', 'hb_blob_destroy',
     'hb_face_create', 'hb_face_destroy', 'hb_face_get_upem',
+    'hb_face_make_immutable',
     'hb_font_create', 'hb_font_destroy', 'hb_font_get_face',
     'hb_font_get_glyph', 'hb_font_get_glyph_h_advance',
     'hb_font_set_variations',
+    'hb_font_make_immutable',
+    'hb_font_create_sub_font',
     'hb_ot_font_set_funcs',
     'hb_ot_var_get_axis_count', 'hb_ot_var_get_axis_infos',
     'hb_buffer_create', 'hb_buffer_destroy', 'hb_buffer_clear_contents',

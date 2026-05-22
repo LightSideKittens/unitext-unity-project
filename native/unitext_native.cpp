@@ -347,6 +347,18 @@ UNITEXT_EXPORT void ut_hb_font_destroy(hb_font_t* font) {
     hb_font_destroy(font);
 }
 
+UNITEXT_EXPORT void ut_hb_face_make_immutable(hb_face_t* face) {
+    hb_face_make_immutable(face);
+}
+
+UNITEXT_EXPORT void ut_hb_font_make_immutable(hb_font_t* font) {
+    hb_font_make_immutable(font);
+}
+
+UNITEXT_EXPORT hb_font_t* ut_hb_font_create_sub_font(hb_font_t* parent) {
+    return hb_font_create_sub_font(parent);
+}
+
 UNITEXT_EXPORT void ut_hb_ot_font_set_funcs(hb_font_t* font) {
     hb_ot_font_set_funcs(font);
 }

@@ -71,6 +71,9 @@ EXPORTS
     ut_hb_face_get_upem
     ut_hb_font_create
     ut_hb_font_destroy
+    ut_hb_face_make_immutable
+    ut_hb_font_make_immutable
+    ut_hb_font_create_sub_font
     ut_hb_ot_font_set_funcs
     ut_hb_font_get_glyph_h_advance
     ut_hb_font_get_glyph
