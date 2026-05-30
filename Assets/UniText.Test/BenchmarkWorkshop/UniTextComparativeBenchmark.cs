@@ -274,7 +274,7 @@ public class UniTextComparativeBenchmark : MonoBehaviour
     [UnityEditor.MenuItem("UniText/Run Comparative Benchmark")]
     private static void RunFromMenu()
     {
-        var test = ObjectUtils.FindFirst<UniTextComparativeBenchmark>();
+        var test = ObjectUtils.FindAny<UniTextComparativeBenchmark>();
         if (test != null)
             test.RunAllBenchmarks();
         else

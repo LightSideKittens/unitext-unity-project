@@ -61,7 +61,7 @@ public class TMPBenchmark : TextBenchmarkBase
     [UnityEditor.MenuItem("UniText/Run TMP Benchmark")]
     private static void RunFromMenu()
     {
-        var test = ObjectUtils.FindFirst<TMPBenchmark>();
+        var test = ObjectUtils.FindAny<TMPBenchmark>();
         if (test != null)
             test.RunBenchmark();
         else

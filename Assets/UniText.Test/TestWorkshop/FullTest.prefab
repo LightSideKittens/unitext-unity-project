@@ -25,7 +25,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4600157662377765230}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -133,12 +133,16 @@ MonoBehaviour:
     [EN {\u05E2\u05D1\u05E8\u05D9\u05EA} 42]) + ZWNJ \u0645\u06CC\u200C\u0631\u0648\u0645
     + ZWJ \u200D\u0628\u200D + bidi controls  \u0639\u0631\u0628\u064A \u0645\u0639 
     EN  \u062F\u0627\u062E\u0644  done."
+  font: {fileID: 0}
   fontStack: {fileID: 11400000, guid: 72f6e3edfbc82804791ebe8e4814fa46, type: 2}
   fontSize: 28
   baseDirection: 2
   wordWrap: 1
+  padding: {x: 0, y: 0, z: 0, w: 0}
   horizontalAlignment: 0
   verticalAlignment: 0
+  textJustify: 0
+  lastLineAlignment: 0
   overEdge: 0
   underEdge: 0
   leadingDistribution: 0
@@ -151,46 +155,64 @@ MonoBehaviour:
         rid: 2031797866453532880
       rule:
         rid: 266425450751590462
+      defaultParameter: 
     - modifier:
         rid: 2031797866453532882
       rule:
         rid: 266425450751590463
+      defaultParameter: 
     - modifier:
         rid: 2031797866453532884
       rule:
         rid: 266425450751590464
+      defaultParameter: 
     - modifier:
         rid: 2031797866453532886
       rule:
         rid: 266425450751590465
+      defaultParameter: 
     - modifier:
         rid: 2031797866453532888
       rule:
         rid: 2031797866453532889
+      defaultParameter: 
     - modifier:
         rid: 2031797913714425946
       rule:
         rid: 2031797913714425947
+      defaultParameter: 
     - modifier:
         rid: 2935973566340137039
       rule:
         rid: 266425450751590467
+      defaultParameter: 
     - modifier:
         rid: 2935973566340137040
       rule:
         rid: 266425450751590474
+      defaultParameter: 
     - modifier:
         rid: 2935973566340137021
       rule:
         rid: 266425450751590468
+      defaultParameter: 
   stylePresets:
     items:
     - {fileID: 11400000, guid: c63bfb476d8131e49bfee56b80320ec3, type: 2}
+  useGlobalStylePreset: 1
+  renderMode: 0
   highlighter:
     rid: 266424891755987002
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 1000
+      type: {class: InlineObjProvider, ns: LightSide, asm: LightSide.UniText}
+      data:
+        entries:
+          items: []
     - rid: 266424891755987002
       type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -201,34 +223,42 @@ MonoBehaviour:
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: b
+        defaultParameter: 
     - rid: 266425450751590463
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: i
+        defaultParameter: 
     - rid: 266425450751590464
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: u
+        defaultParameter: 
     - rid: 266425450751590465
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: s
+        defaultParameter: 
     - rid: 266425450751590466
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: link
+        defaultParameter: 
     - rid: 266425450751590467
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: size
+        defaultParameter: 
     - rid: 266425450751590468
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: obj
+        defaultParameter: 
     - rid: 266425450751590474
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: cspace
+        defaultParameter: 
     - rid: 2031797866453532880
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
@@ -244,7 +274,7 @@ MonoBehaviour:
     - rid: 2031797866453532888
       type: {class: ListModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        indentPerLevel: 0.55
+        markerPlacement: 0
         bulletMarkers:
           items:
           - "\u2022"
@@ -259,6 +289,8 @@ MonoBehaviour:
     - rid: 2031797913714425946
       type: {class: LinkModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        highlighter:
+          rid: -2
         linkColor:
           serializedVersion: 2
           rgba: 4294214978
@@ -281,15 +313,8 @@ MonoBehaviour:
     - rid: 2935973566340137021
       type: {class: ObjModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        objects:
-          items:
-          - name: log
-            prefab: {fileID: 0}
-            width: 1
-            height: 1
-            bearingX: 0
-            bearingY: -0.1
-            advance: 1
+        provider:
+          rid: 1000
     - rid: 2935973566340137039
       type: {class: SizeModifier, ns: LightSide, asm: LightSide.UniText}
       data: 

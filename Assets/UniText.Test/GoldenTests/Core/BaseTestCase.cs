@@ -5,9 +5,15 @@ using UnityEngine;
 [Serializable]
 public abstract class BaseTestCase
 {
-        public abstract string TestName { get; }
+    public abstract string TestName { get; }
 
-        public abstract void ApplyTo(UniText uniText, RectTransform rectTransform);
+    public abstract void ApplyTo(UniText uniText, RectTransform rectTransform);
+
+    public virtual bool TryVerify(UniText uniText, out string error)
+    {
+        error = null;
+        return false;
+    }
 }
 
 [Serializable]

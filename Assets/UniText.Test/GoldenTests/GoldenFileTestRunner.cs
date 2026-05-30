@@ -70,13 +70,14 @@ public class GoldenFileTestRunner : MonoBehaviour
             Debug.LogError($"[GoldenFileTestRunner] Failed to write marker: {e.Message}");
         }
 
-        var runner = ObjectUtils.FindFirst<GoldenFileTestRunner>();
+        var runner = ObjectUtils.FindAny<GoldenFileTestRunner>();
         if (runner == null)
         {
             Debug.LogError("[GoldenFileTestRunner] Runner not found on scene!");
             Application.Quit(1);
             return;
         }
+        
         
 #if UNITY_EDITOR
         if (runner.disable)
@@ -348,6 +349,26 @@ public class GoldenFileTestRunner : MonoBehaviour
         testCase.ApplyTo(uniText, rectTransform);
 
         yield return null;
+
+        if (testCase.TryVerify(uniText, out var verifyError))
+        {
+            bool selfPassed = verifyError == null;
+            results.Add(new TestResult
+            {
+                ClassName = "GoldenTests",
+                MethodName = testName,
+                Passed = selfPassed,
+                StartTime = startTime,
+                EndTime = DateTime.Now,
+                ErrorMessage = selfPassed ? null : verifyError
+            });
+
+            if (selfPassed)
+                Debug.Log($"  ✓ {testName}");
+            else
+                Debug.LogWarning($"  <color=red>✗ {testName}</color>: {verifyError}");
+            yield break;
+        }
 
         var snapshot = CreateSnapshot(testName, uniText);
 

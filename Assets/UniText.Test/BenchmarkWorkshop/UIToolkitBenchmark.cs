@@ -644,7 +644,7 @@ public class UIToolkitBenchmark : MonoBehaviour
     [UnityEditor.MenuItem("UniText/Run UI Toolkit Benchmark")]
     private static void RunFromMenu()
     {
-        var test = ObjectUtils.FindFirst<UIToolkitBenchmark>();
+        var test = ObjectUtils.FindAny<UIToolkitBenchmark>();
         if (test != null)
             test.RunBenchmark();
         else

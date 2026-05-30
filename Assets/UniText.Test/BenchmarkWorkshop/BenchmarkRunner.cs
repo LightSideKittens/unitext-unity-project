@@ -80,7 +80,7 @@ public class BenchmarkRunner : MonoBehaviour
 
     IEnumerator RunTextBenchmarks()
     {
-        var uniTextBench = ObjectUtils.FindFirst<UniTextBenchmark>();
+        var uniTextBench = ObjectUtils.FindAny<UniTextBenchmark>();
         if (uniTextBench != null)
         {
             data.objectCount = uniTextBench.objectCount;
@@ -107,7 +107,7 @@ public class BenchmarkRunner : MonoBehaviour
             Debug.LogWarning("[BenchmarkRunner] UniTextBenchmark not found");
         }
 
-        var tmpBench = ObjectUtils.FindFirst<TMPBenchmark>();
+        var tmpBench = ObjectUtils.FindAny<TMPBenchmark>();
         if (tmpBench != null)
         {
             ApplyConfig(tmpBench);
@@ -124,7 +124,7 @@ public class BenchmarkRunner : MonoBehaviour
             Debug.LogWarning("[BenchmarkRunner] TMPBenchmark not found");
         }
 
-        var uitkBench = ObjectUtils.FindFirst<UIToolkitBenchmark>();
+        var uitkBench = ObjectUtils.FindAny<UIToolkitBenchmark>();
         if (uitkBench != null)
         {
             uitkBench.objectCount = data.objectCount;
@@ -146,7 +146,7 @@ public class BenchmarkRunner : MonoBehaviour
 
     IEnumerator RunGlyphRasterizationBenchmarks()
     {
-        var uniGlyph = ObjectUtils.FindFirst<UniText_GlyphRasterizationBenchmark>();
+        var uniGlyph = ObjectUtils.FindAny<UniText_GlyphRasterizationBenchmark>();
         if (uniGlyph != null)
         {
             Debug.Log("[BenchmarkRunner] Running UniText Glyph Rasterization (Single-Threaded)...");
@@ -169,7 +169,7 @@ public class BenchmarkRunner : MonoBehaviour
             Debug.LogWarning("[BenchmarkRunner] UniText_GlyphRasterizationBenchmark not found");
         }
 
-        var tmpGlyph = ObjectUtils.FindFirst<TMP_GlyphRasterizationBenchmark>();
+        var tmpGlyph = ObjectUtils.FindAny<TMP_GlyphRasterizationBenchmark>();
         if (tmpGlyph != null)
         {
             Debug.Log("[BenchmarkRunner] Running TMP Glyph Rasterization...");
