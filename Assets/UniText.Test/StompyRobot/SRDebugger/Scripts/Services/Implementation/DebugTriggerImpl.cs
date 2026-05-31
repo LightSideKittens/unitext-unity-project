@@ -73,6 +73,8 @@
         }
         private void OnError(IConsoleService console)
         {
+            if(_trigger == null) return;
+            
             _trigger.ErrorNotifier.ShowErrorWarning();
         }
         private void CreateTrigger()

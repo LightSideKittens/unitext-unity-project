@@ -111,6 +111,7 @@ public class GoldenFileTestRunner : MonoBehaviour
         Debug.Log($"[GoldenFileTestRunner] Starting tests in {mode} mode...");
 
         EmojiFont.Disabled = true;
+        SystemFont.Disabled = true;
 
         results = new TestResultCollection();
 
@@ -129,6 +130,7 @@ public class GoldenFileTestRunner : MonoBehaviour
         }
 
         EmojiFont.Disabled = false;
+        SystemFont.Disabled = false;
 
         yield return RunEmojiTests();
 

@@ -40,7 +40,8 @@ runs:
         $exe = Get-ChildItem -Path ${{ inputs.build_path }} -Filter *.exe -Recurse | Select-Object -First 1
         if ($null -eq $exe) { Write-Host "ERROR: No .exe found"; exit 1 }
 
-        $logFile = Join-Path (Get-Location).Path (if ($mode -eq "benchmark") { "benchmark.log" } else { "test.log" })
+        $logName = if ($mode -eq "benchmark") { "benchmark.log" } else { "test.log" }
+        $logFile = Join-Path (Get-Location).Path $logName
         $resultFile = if ($mode -eq "benchmark") { "benchmarkResults.json" } else { "testResults.xml" }
         $args = @("-logFile", $logFile)
         if ($mode -eq "test") { $args = @("-batchmode") + $args }
@@ -419,6 +420,9 @@ runs:
 
         mkdir -p screenshots
         find ./firebase-results -iname '*.png' -type f -exec cp -f {} ./screenshots/ \; 2>/dev/null || true
+
+        # Drop the per-device run videos from the artifact (they dominate its size and stay in the Firebase console).
+        find ./firebase-results -type f \( -iname '*.mp4' -o -iname '*.mov' \) -delete 2>/dev/null || true
 
         RESULT_FILES=$(find ./firebase-results \( -name "benchmarkResults.json" -o -name "results_scenario_*.json" -o -name "testResults.xml" \) -type f 2>/dev/null || true)
 

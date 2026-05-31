@@ -1818,8 +1818,10 @@ MonoBehaviour:
           items:
           - rid: 5414327984566829224
           - rid: 5414327984566829225
+          - rid: 5414327984566829261
         after:
           items:
+          - rid: 5414327984566829262
           - rid: 5414327984566829226
           - rid: 5414327984566829227
         testName: Smoke_GlyphCount
@@ -1842,6 +1844,14 @@ MonoBehaviour:
       data:
         target: {fileID: 2040662659}
         position: {x: 0, y: 0, z: 0}
+    - rid: 5414327984566829261
+      type: {class: SetActiveSystemFont, ns: , asm: UniText.Test}
+      data:
+        disabled: 0
+    - rid: 5414327984566829262
+      type: {class: SetActiveSystemFont, ns: , asm: UniText.Test}
+      data:
+        disabled: 1
 --- !u!1 &2040662658
 GameObject:
   m_ObjectHideFlags: 0
