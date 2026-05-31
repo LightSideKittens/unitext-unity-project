@@ -95,6 +95,9 @@ public static class TestScreenshot
         var path = Path.Combine(dir, $"{name}.png");
         File.WriteAllBytes(path, pngBytes);
         Debug.Log($"[TestScreenshot] Saved: {path}");
+#if UNITY_IOS
+        FirebaseTestLabiOS.WriteResults($"{name}.png", pngBytes);
+#endif
 #endif
     }
 

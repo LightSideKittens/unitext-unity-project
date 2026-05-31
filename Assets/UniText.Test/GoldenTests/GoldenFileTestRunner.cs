@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using LightSide;
 using UnityEngine;
 
@@ -813,7 +814,7 @@ public class GoldenFileTestRunner : MonoBehaviour
 
         System.Threading.Thread.Sleep(500);
 #elif UNITY_ANDROID && !UNITY_EDITOR
-        FirebaseTestLabAndroid.WriteResults("testResults.xml", xml);
+        FirebaseTestLabAndroid.WriteResultsArchive(BuildResultsArchive(xml), "results.zip");
 
         FirebaseTestLabAndroid.NotifyTestComplete();
 #endif
@@ -826,6 +827,26 @@ public class GoldenFileTestRunner : MonoBehaviour
             Application.Quit(results.AllPassed ? 0 : 1);
         }
 #endif
+    }
+
+    static byte[] BuildResultsArchive(string xml)
+    {
+        using var ms = new MemoryStream();
+        using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, true))
+        {
+            using (var w = new StreamWriter(zip.CreateEntry("testResults.xml").Open()))
+                w.Write(xml);
+
+            var dir = Path.Combine(Application.persistentDataPath, "Screenshots");
+            if (Directory.Exists(dir))
+                foreach (var png in Directory.GetFiles(dir, "*.png"))
+                {
+                    using var es = zip.CreateEntry("screenshots/" + Path.GetFileName(png)).Open();
+                    using var fs = File.OpenRead(png);
+                    fs.CopyTo(es);
+                }
+        }
+        return ms.ToArray();
     }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
