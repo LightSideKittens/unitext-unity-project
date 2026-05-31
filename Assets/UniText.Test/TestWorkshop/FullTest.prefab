@@ -133,7 +133,7 @@ MonoBehaviour:
     [EN {\u05E2\u05D1\u05E8\u05D9\u05EA} 42]) + ZWNJ \u0645\u06CC\u200C\u0631\u0648\u0645
     + ZWJ \u200D\u0628\u200D + bidi controls  \u0639\u0631\u0628\u064A \u0645\u0639 
     EN  \u062F\u0627\u062E\u0644  done."
-  font: {fileID: 0}
+  font: {fileID: 11400000, guid: 70054910cd0838c4494072715e941a64, type: 2}
   fontStack: {fileID: 11400000, guid: 72f6e3edfbc82804791ebe8e4814fa46, type: 2}
   fontSize: 28
   baseDirection: 2
@@ -212,7 +212,14 @@ MonoBehaviour:
       type: {class: InlineObjProvider, ns: LightSide, asm: LightSide.UniText}
       data:
         entries:
-          items: []
+          items:
+          - name: log
+            width: 1
+            height: 1
+            bearingX: 0
+            bearingY: 0
+            advance: 1
+            prefab: {fileID: 0}
     - rid: 266424891755987002
       type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:

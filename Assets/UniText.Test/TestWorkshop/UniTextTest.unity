@@ -1911,33 +1911,9 @@ PrefabInstance:
       value: FullTest
       objectReference: {fileID: 0}
     - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: font
-      value: 
-      objectReference: {fileID: 11400000, guid: 70054910cd0838c4494072715e941a64, type: 2}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[1000].entries.items.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[1000].entries.items.Array.data[0].name
-      value: log
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[1000].entries.items.Array.data[0].width
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[1000].entries.items.Array.data[0].height
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
       propertyPath: managedReferences[1000].entries.items.Array.data[0].prefab
       value: 
       objectReference: {fileID: 1061559364}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[1000].entries.items.Array.data[0].advance
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 9001780787298192370, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
       propertyPath: m_Pivot.x
       value: 0.79593015
