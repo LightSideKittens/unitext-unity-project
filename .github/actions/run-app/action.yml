@@ -77,14 +77,16 @@ runs:
           Write-Host "WARNING: $resultFile not found"
         }
 
-        if ($mode -eq "test" -and (Test-Path ./$resultFile)) {
-          $failureCount = ([regex]::Matches((Get-Content ./$resultFile -Raw), '<failure')).Count
-          if ($failureCount -gt 0) { Write-Host "ERROR: $failureCount test failure(s)"; exit 1 }
-
+        if ($mode -eq "test") {
           $screenshotsDir = Get-ChildItem -Path $searchPath -Directory -Filter "Screenshots" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($screenshotsDir) {
             New-Item -ItemType Directory -Force -Path ./screenshots | Out-Null
             Copy-Item "$($screenshotsDir.FullName)\*.png" -Destination ./screenshots/ -ErrorAction SilentlyContinue
+          }
+
+          if (Test-Path ./$resultFile) {
+            $failureCount = ([regex]::Matches((Get-Content ./$resultFile -Raw), '<failure')).Count
+            if ($failureCount -gt 0) { Write-Host "ERROR: $failureCount test failure(s)"; exit 1 }
           }
         }
 
@@ -159,14 +161,16 @@ runs:
         FOUND=$(find ~/.config/unity3d -name "$RESULT_FILE" 2>/dev/null | head -1)
         [ -n "$FOUND" ] && cp "$FOUND" "./$RESULT_FILE" && echo "Copied: $FOUND" || echo "WARNING: $RESULT_FILE not found"
 
-        if [ "$MODE" = "test" ] && [ -f "./$RESULT_FILE" ]; then
-          FAILURE_COUNT=$(grep -c '<failure' "./$RESULT_FILE" 2>/dev/null || echo "0")
-          [ "$FAILURE_COUNT" -gt 0 ] && { echo "ERROR: $FAILURE_COUNT test failure(s)"; exit 1; }
-
+        if [ "$MODE" = "test" ]; then
           SCREENSHOTS_DIR=$(find ~/.config/unity3d -name "Screenshots" -type d 2>/dev/null | head -1)
           if [ -n "$SCREENSHOTS_DIR" ]; then
             mkdir -p ./screenshots
             cp "$SCREENSHOTS_DIR"/*.png ./screenshots/ 2>/dev/null || true
+          fi
+
+          if [ -f "./$RESULT_FILE" ]; then
+            FAILURE_COUNT=$(grep -c '<failure' "./$RESULT_FILE" 2>/dev/null || echo "0")
+            [ "$FAILURE_COUNT" -gt 0 ] && { echo "ERROR: $FAILURE_COUNT test failure(s)"; exit 1; }
           fi
         fi
 
@@ -209,14 +213,16 @@ runs:
         FOUND=$(find ~/Library -name "$RESULT_FILE" 2>/dev/null | head -1)
         [ -n "$FOUND" ] && cp "$FOUND" "./$RESULT_FILE" && echo "Copied: $FOUND" || echo "WARNING: $RESULT_FILE not found"
 
-        if [ "$MODE" = "test" ] && [ -f "./$RESULT_FILE" ]; then
-          FAILURE_COUNT=$(grep -c '<failure' "./$RESULT_FILE" 2>/dev/null || echo "0")
-          [ "$FAILURE_COUNT" -gt 0 ] && { echo "ERROR: $FAILURE_COUNT test failure(s)"; exit 1; }
-
+        if [ "$MODE" = "test" ]; then
           SCREENSHOTS_DIR=$(find ~/Library -name "Screenshots" -type d 2>/dev/null | head -1)
           if [ -n "$SCREENSHOTS_DIR" ]; then
             mkdir -p ./screenshots
             cp "$SCREENSHOTS_DIR"/*.png ./screenshots/ 2>/dev/null || true
+          fi
+
+          if [ -f "./$RESULT_FILE" ]; then
+            FAILURE_COUNT=$(grep -c '<failure' "./$RESULT_FILE" 2>/dev/null || echo "0")
+            [ "$FAILURE_COUNT" -gt 0 ] && { echo "ERROR: $FAILURE_COUNT test failure(s)"; exit 1; }
           fi
         fi
 

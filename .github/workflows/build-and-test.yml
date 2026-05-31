@@ -157,6 +157,25 @@ jobs:
             screenshots/
           retention-days: 7
 
+      - name: Test Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "### 🧪 Test Results: ${{ inputs.platform }} (${{ inputs.unity_version }})" >> $GITHUB_STEP_SUMMARY
+          if [ ! -f testResults.xml ]; then
+            echo "❌ No test results found" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          TOTAL=$(grep -c '<testcase' testResults.xml || true)
+          FAILED=$(grep -c '<failure' testResults.xml || true)
+          PASSED=$((TOTAL - FAILED))
+          if [ "$FAILED" -gt 0 ]; then ICON="❌"; else ICON="✅"; fi
+          echo "$ICON Passed: $PASSED / $TOTAL" >> $GITHUB_STEP_SUMMARY
+          if [ "$FAILED" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Failed: $FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+
   benchmark:
     if: inputs.benchmark && inputs.platform != 'StandaloneLinux64'
     needs: build
