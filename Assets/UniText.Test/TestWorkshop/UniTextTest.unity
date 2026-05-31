@@ -1787,23 +1787,61 @@ MonoBehaviour:
     - rid: 2935973624021778493
       type: {class: FontColorTest, ns: , asm: UniText.Test}
       data:
+        before:
+          items: []
+        after:
+          items: []
         testName: Font_Color
         color: {r: 0.2807049, g: 0.7169812, b: 0.37280536, a: 1}
     - rid: 2935973732210966585
       type: {class: FontColorTest, ns: , asm: UniText.Test}
       data:
+        before:
+          items: []
+        after:
+          items: []
         testName: EllipsisTest
         color: {r: 0, g: 1, b: 0.7765689, a: 1}
     - rid: 2935973732210966586
       type: {class: FontColorTest, ns: , asm: UniText.Test}
       data:
+        before:
+          items: []
+        after:
+          items: []
         testName: Layout_EllipsisTest
         color: {r: 0, g: 0.54709077, b: 1, a: 1}
     - rid: 5414327984566829214
       type: {class: GlyphCountTest, ns: , asm: UniText.Test}
       data:
+        before:
+          items:
+          - rid: 5414327984566829224
+          - rid: 5414327984566829225
+        after:
+          items:
+          - rid: 5414327984566829226
+          - rid: 5414327984566829227
         testName: Smoke_GlyphCount
         minGlyphCount: 3000
+    - rid: 5414327984566829224
+      type: {class: MoveTransform, ns: , asm: UniText.Test}
+      data:
+        target: {fileID: 2040662659}
+        position: {x: 1994, y: 0, z: 0}
+    - rid: 5414327984566829225
+      type: {class: WaitFrames, ns: , asm: UniText.Test}
+      data:
+        frames: 1
+    - rid: 5414327984566829226
+      type: {class: TakeScreenshot, ns: , asm: UniText.Test}
+      data:
+        screenshotName: Smoke_GlyphCount
+    - rid: 5414327984566829227
+      type: {class: MoveTransform, ns: , asm: UniText.Test}
+      data:
+        target: {fileID: 2040662659}
+        position: {x: 0, y: 0, z: 0}
 --- !u!1 &2040662658
 GameObject:
   m_ObjectHideFlags: 0

@@ -346,6 +346,9 @@ public class GoldenFileTestRunner : MonoBehaviour
 
         var startTime = DateTime.Now;
 
+        foreach (var action in testCase.before)
+            if (action != null) yield return action.Do(uniText, rectTransform);
+
         testCase.ApplyTo(uniText, rectTransform);
 
         yield return null;
@@ -367,12 +370,15 @@ public class GoldenFileTestRunner : MonoBehaviour
                 Debug.Log($"  ✓ {testName}");
             else
                 Debug.LogWarning($"  <color=red>✗ {testName}</color>: {verifyError}");
-            yield break;
+        }
+        else
+        {
+            var snapshot = CreateSnapshot(testName, uniText);
+            ProcessSnapshot(testName, snapshot, mode, startTime, uniText);
         }
 
-        var snapshot = CreateSnapshot(testName, uniText);
-
-        ProcessSnapshot(testName, snapshot, mode, startTime, uniText);
+        foreach (var action in testCase.after)
+            if (action != null) yield return action.Do(uniText, rectTransform);
     }
 
     void ProcessSnapshot(string testName, MeshDataSnapshot snapshot, TestMode mode, DateTime startTime, UniText uniText)
