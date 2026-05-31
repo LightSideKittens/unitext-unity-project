@@ -40,7 +40,7 @@ runs:
         $exe = Get-ChildItem -Path ${{ inputs.build_path }} -Filter *.exe -Recurse | Select-Object -First 1
         if ($null -eq $exe) { Write-Host "ERROR: No .exe found"; exit 1 }
 
-        $logFile = if ($mode -eq "benchmark") { "benchmark.log" } else { "test.log" }
+        $logFile = Join-Path (Get-Location).Path (if ($mode -eq "benchmark") { "benchmark.log" } else { "test.log" })
         $resultFile = if ($mode -eq "benchmark") { "benchmarkResults.json" } else { "testResults.xml" }
         $args = @("-logFile", $logFile)
         if ($mode -eq "test") { $args = @("-batchmode") + $args }
@@ -55,8 +55,8 @@ runs:
         } else { $exitCode = $process.ExitCode }
 
         if (Test-Path $logFile) {
-          Write-Host "=== $logFile (last 100 lines) ==="
-          Get-Content $logFile -Tail 100
+          Write-Host "=== $logFile (full) ==="
+          Get-Content $logFile
         }
 
         Start-Sleep -Seconds 3
@@ -113,9 +113,9 @@ runs:
         [ -z "$EXE" ] && { echo "ERROR: No executable found"; ls -la "$BUILD_DIR"; exit 1; }
 
         if [ "$MODE" = "benchmark" ]; then
-          LOG_FILE="benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS=""
+          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS=""
         else
-          LOG_FILE="test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
+          LOG_FILE="$PWD/test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
         fi
 
         echo "Running ($MODE): $EXE"
@@ -198,17 +198,17 @@ runs:
         [ -z "$EXE" ] && { echo "ERROR: No executable found"; exit 1; }
 
         if [ "$MODE" = "benchmark" ]; then
-          LOG_FILE="benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS=""
+          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS=""
         else
-          LOG_FILE="test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
+          LOG_FILE="$PWD/test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
         fi
 
         echo "Running ($MODE): $EXE"
         chmod +x "$EXE"
         gtimeout "$APP_TIMEOUT" "$EXE" $EXTRA_ARGS -logFile "$LOG_FILE" || EXIT_CODE=$?
 
-        echo "=== $LOG_FILE (last 100 lines) ==="
-        tail -100 "$LOG_FILE" 2>/dev/null || echo "$LOG_FILE not found"
+        echo "=== $LOG_FILE (full) ==="
+        cat "$LOG_FILE" 2>/dev/null || echo "$LOG_FILE not found"
 
         FOUND=$(find ~/Library -name "$RESULT_FILE" 2>/dev/null | head -1)
         [ -n "$FOUND" ] && cp "$FOUND" "./$RESULT_FILE" && echo "Copied: $FOUND" || echo "WARNING: $RESULT_FILE not found"
@@ -403,6 +403,21 @@ runs:
 
         echo "=== Firebase results ==="
         find ./firebase-results -type f 2>/dev/null | head -50
+
+        echo "=== Firebase device logs (full) ==="
+        find ./firebase-results \( -name "logcat" -o -name "*.txt" -o -name "*.log" -o -name "syslog*" \) -type f 2>/dev/null | while read -r f; do
+          echo "----- $f -----"; cat "$f" 2>/dev/null || true
+        done
+
+        find ./firebase-results -type f 2>/dev/null | while read -r f; do
+          if unzip -tqq "$f" >/dev/null 2>&1; then
+            echo "Unpacking bundle: $f"
+            unzip -o "$f" -d ./firebase-results/unpacked >/dev/null 2>&1 || true
+          fi
+        done
+
+        mkdir -p screenshots
+        find ./firebase-results -iname '*.png' -type f -exec cp -f {} ./screenshots/ \; 2>/dev/null || true
 
         RESULT_FILES=$(find ./firebase-results \( -name "benchmarkResults.json" -o -name "results_scenario_*.json" -o -name "testResults.xml" \) -type f 2>/dev/null || true)
 

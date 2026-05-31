@@ -152,9 +152,9 @@ jobs:
           name: TestResults-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: |
             testResults.xml
-            test.log
-            xcodebuild.log
+            *.log
             screenshots/
+            firebase-results/
           retention-days: 7
 
       - name: Test Summary
