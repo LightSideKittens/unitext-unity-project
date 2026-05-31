@@ -15,10 +15,10 @@ public class GlyphCountTest : BaseTestCase
 
     public override bool TryVerify(UniText uniText, out string error)
     {
+        error = null;
 #if UNITY_WEBGL
         return true;
 #endif
-        error = null;
 #if UNITEXT_TESTS
         var rendered = uniText.TestRenderedGlyphCount;
         if (rendered < minGlyphCount)
