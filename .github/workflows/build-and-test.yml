@@ -25,14 +25,10 @@ on:
         required: false
         type: number
         default: 300
-      build_runner:
-        required: false
-        type: string
-        default: 'unity-runner'
 
 jobs:
   build:
-    runs-on: ${{ inputs.build_runner }}
+    runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
       - name: Checkout

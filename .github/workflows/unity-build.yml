@@ -61,13 +61,6 @@ on:
         description: '🧪 Run tests'
         type: boolean
         default: true
-      build_runner:
-        description: '🖥️ Build runner'
-        type: choice
-        options:
-          - 'unity-runner'
-          - 'ubuntu-latest'
-        default: 'unity-runner'
 
 jobs:
   setup:
@@ -116,5 +109,4 @@ jobs:
       debug: ${{ inputs.debug == true }}
       benchmark: ${{ inputs.benchmark == true }}
       run_tests: ${{ inputs.run_tests == true }}
-      build_runner: ${{ inputs.build_runner }}
     secrets: inherit

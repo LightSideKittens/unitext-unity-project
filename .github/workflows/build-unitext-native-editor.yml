@@ -261,7 +261,7 @@ jobs:
 
   package:
     needs: [windows, macos, linux]
-    runs-on: unity-runner
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
