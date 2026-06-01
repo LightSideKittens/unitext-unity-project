@@ -1047,16 +1047,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  text: "MIXED SCRIPTS, ONE LINE\nHello \u041F\u0440\u0438\u0432\u0435\u0442 \u4F60\u597D
-    \u3053\u3093\u306B\u3061\u306F \uC548\uB155 \u05E9\u05DC\u05D5\u05DD \u0645\u0631\u062D\u0628\u0627
-    \u0928\u092E\u0938\u094D\u0924\u0947 \u0E2A\u0E27\u0E31\u0E2A\u0E14\u0E35 \u2D59\u2D4D\u2D30\u2D4E
-    \u13A3\u13CF\u13F2 \u1403\u14C4\u1483\u144E\u1450\u1466\n\nCJK RARE (Extension
-    B / C / D, U+20000+)\n\U0002000B \U000210C1 \U00022458 \U000235CB \U00024D13
-    \U000252DD \U00026AFF \U00027312 \U000282E2 \U00029E3D \U0002A708 \U0002A6C7
-    \U0002B746 \U0002B820\nVariants: \u9F8D/\u9F99 \u99AC/\u9A6C \u9AD4/\u4F53 \u9B31
-    \u6182 \u863F \u8514 \u7C60 \u7C6C\n\nANCIENT / HISTORIC SCRIPTS (supplementary
-    plane)\nEgyptian Hieroglyphs: \U00013080 \U000131A3 \U000132AA \U000133CF \U0001339B
-    \U000131CB \U00013153\U000132B5 \U000133CF\U000132AA \U00013187\U00013191\nCuneiform:
+  text: "<b=r>MIXED</b> <i=r>SCRIPTS</i>, ONE LINE\nHello \u041F\u0440\u0438\u0432\u0435\u0442
+    \u4F60\u597D \u3053\u3093\u306B\u3061\u306F \uC548\uB155 \u05E9\u05DC\u05D5\u05DD
+    \u0645\u0631\u062D\u0628\u0627 \u0928\u092E\u0938\u094D\u0924\u0947 \u0E2A\u0E27\u0E31\u0E2A\u0E14\u0E35
+    \u2D59\u2D4D\u2D30\u2D4E \u13A3\u13CF\u13F2 \u1403\u14C4\u1483\u144E\u1450\u1466\n\nCJK
+    RARE (Extension B / C / D, U+20000+)\n\U0002000B \U000210C1 \U00022458 \U000235CB
+    \U00024D13 \U000252DD \U00026AFF \U00027312 \U000282E2 \U00029E3D \U0002A708
+    \U0002A6C7 \U0002B746 \U0002B820\nVariants: <var=900>\u9F8D/\u9F99 \u99AC/\u9A6C
+    \u9AD4/\u4F53 \u9B31 \u6182 \u863F \u8514 \u7C60 \u7C6C</var>\n\nANCIENT / HISTORIC
+    SCRIPTS (supplementary plane)\nEgyptian Hieroglyphs: \U00013080 \U000131A3 \U000132AA
+    \U000133CF \U0001339B \U000131CB \U00013153\U000132B5 \U000133CF\U000132AA \U00013187\U00013191\nCuneiform:
     \U00012000 \U00012072 \U00012097 \U000120F6 \U00012157 \U00012226 \U000122D7
     \U00012362 \U0001235D \U000122D7\U00012049\U00012156\nLinear B (Mycenaean): \U00010000
     \U00010001 \U00010002 \U00010003 \U00010004 \U00010005 \U00010006 \U00010007
@@ -1211,7 +1211,22 @@ MonoBehaviour:
   minFontSize: 10
   maxFontSize: 72
   styles:
-    items: []
+    items:
+    - modifier:
+        rid: 7750513568556253269
+      rule:
+        rid: 7750513568556253270
+      defaultParameter: 
+    - modifier:
+        rid: 7750513568556253271
+      rule:
+        rid: 7750513568556253272
+      defaultParameter: 
+    - modifier:
+        rid: 7750513568556253273
+      rule:
+        rid: 7750513568556253274
+      defaultParameter: 
   stylePresets:
     items: []
   useGlobalStylePreset: 1
@@ -1227,6 +1242,30 @@ MonoBehaviour:
         clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
         fadeDuration: 0.25
         hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
+    - rid: 7750513568556253269
+      type: {class: ItalicModifier, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 7750513568556253270
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tagName: i
+        defaultParameter: 
+    - rid: 7750513568556253271
+      type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 7750513568556253272
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tagName: b
+        defaultParameter: 
+    - rid: 7750513568556253273
+      type: {class: VariationModifier, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 7750513568556253274
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tagName: var
+        defaultParameter: 
 --- !u!222 &1553998144
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1758,7 +1797,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   disable: 0
-  mode: 1
+  mode: 0
   testEntries:
     items:
     - targetUniText: {fileID: 2081125548}
