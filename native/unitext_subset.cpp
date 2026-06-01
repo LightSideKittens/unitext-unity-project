@@ -18,7 +18,7 @@
 // Returns subset font size, or 0 on failure
 // Pass outData=null to query required size first
 EXPORT unsigned int subset_font(
-    const void* fontData, unsigned int fontDataSize,
+    const void* fontData, unsigned int fontDataSize, unsigned int faceIndex,
     const unsigned int* codepoints, unsigned int codepointCount,
     void* outData, unsigned int outDataCapacity)
 {
@@ -29,7 +29,7 @@ EXPORT unsigned int subset_font(
                                       HB_MEMORY_MODE_READONLY, nullptr, nullptr);
     if (!blob) return 0;
 
-    hb_face_t* face = hb_face_create(blob, 0);
+    hb_face_t* face = hb_face_create(blob, faceIndex);
     hb_blob_destroy(blob);
     if (!face) return 0;
 
@@ -69,7 +69,7 @@ EXPORT unsigned int subset_font(
 // Returns subset font size, or 0 on failure.
 // Pass outData=null to query required size first.
 EXPORT unsigned int subset_font_remove_codepoints(
-    const void* fontData, unsigned int fontDataSize,
+    const void* fontData, unsigned int fontDataSize, unsigned int faceIndex,
     const unsigned int* codepoints, unsigned int codepointCount,
     void* outData, unsigned int outDataCapacity)
 {
@@ -80,7 +80,7 @@ EXPORT unsigned int subset_font_remove_codepoints(
                                       HB_MEMORY_MODE_READONLY, nullptr, nullptr);
     if (!blob) return 0;
 
-    hb_face_t* face = hb_face_create(blob, 0);
+    hb_face_t* face = hb_face_create(blob, faceIndex);
     hb_blob_destroy(blob);
     if (!face) return 0;
 
@@ -119,7 +119,7 @@ EXPORT unsigned int subset_font_remove_codepoints(
 
 // Returns total glyph count in the font (from maxp table)
 EXPORT unsigned int get_glyph_count(
-    const void* fontData, unsigned int fontDataSize)
+    const void* fontData, unsigned int fontDataSize, unsigned int faceIndex)
 {
     if (!fontData || !fontDataSize)
         return 0;
@@ -128,7 +128,7 @@ EXPORT unsigned int get_glyph_count(
                                       HB_MEMORY_MODE_READONLY, nullptr, nullptr);
     if (!blob) return 0;
 
-    hb_face_t* face = hb_face_create(blob, 0);
+    hb_face_t* face = hb_face_create(blob, faceIndex);
     hb_blob_destroy(blob);
     if (!face) return 0;
 
@@ -143,7 +143,7 @@ EXPORT unsigned int get_glyph_count(
 // Returns subset font size, or 0 on failure.
 // Pass outData=null to query required size first.
 EXPORT unsigned int subset_font_remove_glyphs(
-    const void* fontData, unsigned int fontDataSize,
+    const void* fontData, unsigned int fontDataSize, unsigned int faceIndex,
     const unsigned int* glyphIds, unsigned int glyphCount,
     void* outData, unsigned int outDataCapacity)
 {
@@ -154,7 +154,7 @@ EXPORT unsigned int subset_font_remove_glyphs(
                                       HB_MEMORY_MODE_READONLY, nullptr, nullptr);
     if (!blob) return 0;
 
-    hb_face_t* face = hb_face_create(blob, 0);
+    hb_face_t* face = hb_face_create(blob, faceIndex);
     hb_blob_destroy(blob);
     if (!face) return 0;
 
@@ -205,7 +205,7 @@ EXPORT unsigned int subset_font_remove_glyphs(
 // Returns number of output glyphs, or 0 on failure.
 // Pass outGlyphIds=null to query required count first.
 EXPORT unsigned int shape_text(
-    const void* fontData, unsigned int fontDataSize,
+    const void* fontData, unsigned int fontDataSize, unsigned int faceIndex,
     const unsigned int* codepoints, unsigned int codepointCount,
     unsigned int* outGlyphIds, unsigned int outCapacity)
 {
@@ -216,7 +216,7 @@ EXPORT unsigned int shape_text(
                                       HB_MEMORY_MODE_READONLY, nullptr, nullptr);
     if (!blob) return 0;
 
-    hb_face_t* face = hb_face_create(blob, 0);
+    hb_face_t* face = hb_face_create(blob, faceIndex);
     hb_blob_destroy(blob);
     if (!face) return 0;
 
@@ -250,7 +250,7 @@ EXPORT unsigned int shape_text(
 // Returns codepoint count, or 0 on failure.
 // Pass outCodepoints=null to query required count first.
 EXPORT unsigned int get_font_codepoints(
-    const void* fontData, unsigned int fontDataSize,
+    const void* fontData, unsigned int fontDataSize, unsigned int faceIndex,
     unsigned int* outCodepoints, unsigned int outCapacity)
 {
     if (!fontData || !fontDataSize)
@@ -260,7 +260,7 @@ EXPORT unsigned int get_font_codepoints(
                                       HB_MEMORY_MODE_READONLY, nullptr, nullptr);
     if (!blob) return 0;
 
-    hb_face_t* face = hb_face_create(blob, 0);
+    hb_face_t* face = hb_face_create(blob, faceIndex);
     hb_blob_destroy(blob);
     if (!face) return 0;
 
