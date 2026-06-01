@@ -411,6 +411,11 @@ runs:
           echo "----- $f -----"; cat "$f" 2>/dev/null || true
         done
 
+        # Strip heavy non-diagnostic outputs before unpacking/upload: the app package (a zip, so it would
+        # otherwise also be expanded into unpacked/) and per-device videos. Both stay in the Firebase console.
+        find ./firebase-results -type f \( -iname '*.ipa' -o -iname '*.apk' -o -iname '*.aab' -o -iname '*.mp4' -o -iname '*.mov' \) -delete 2>/dev/null || true
+        rm -rf ./firebase-results/*.app 2>/dev/null || true
+
         find ./firebase-results -type f 2>/dev/null | while read -r f; do
           if unzip -tqq "$f" >/dev/null 2>&1; then
             echo "Unpacking bundle: $f"
@@ -420,9 +425,6 @@ runs:
 
         mkdir -p screenshots
         find ./firebase-results -iname '*.png' -type f -exec cp -f {} ./screenshots/ \; 2>/dev/null || true
-
-        # Drop the per-device run videos from the artifact (they dominate its size and stay in the Firebase console).
-        find ./firebase-results -type f \( -iname '*.mp4' -o -iname '*.mov' \) -delete 2>/dev/null || true
 
         RESULT_FILES=$(find ./firebase-results \( -name "benchmarkResults.json" -o -name "results_scenario_*.json" -o -name "testResults.xml" \) -type f 2>/dev/null || true)
 

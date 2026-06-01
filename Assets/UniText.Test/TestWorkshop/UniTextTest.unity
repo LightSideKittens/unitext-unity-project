@@ -1797,7 +1797,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   disable: 0
-  mode: 0
+  mode: 1
   testEntries:
     items:
     - targetUniText: {fileID: 2081125548}
