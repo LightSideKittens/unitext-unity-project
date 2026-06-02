@@ -57,13 +57,13 @@
                 return;
             }
 
-            if (_numbers.Count > 0 && (Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.Delete)))
+            if (_numbers.Count > 0 && (LightSide.InputUtils.GetKeyDown(KeyCode.Backspace) || LightSide.InputUtils.GetKeyDown(KeyCode.Delete)))
             {
                 _numbers.PopLast();
                 RefreshState();
             }
 
-            var input = Input.inputString;
+            var input = LightSide.InputUtils.InputString;
 
             for (var i = 0; i < input.Length; i++)
             {

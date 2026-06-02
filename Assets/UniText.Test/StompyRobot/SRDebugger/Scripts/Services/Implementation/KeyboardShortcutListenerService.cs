@@ -123,14 +123,14 @@
         {
             base.Update();
 
-            if (Settings.Instance.KeyboardEscapeClose && Input.GetKeyDown(KeyCode.Escape) && Service.Panel.IsVisible)
+            if (Settings.Instance.KeyboardEscapeClose && LightSide.InputUtils.GetKeyDown(KeyCode.Escape) && Service.Panel.IsVisible)
             {
                 SRDebug.Instance.HideDebugPanel();
             }
 
-            var ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-            var alt = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
-            var shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            var ctrl = LightSide.InputUtils.GetKey(KeyCode.LeftControl) || LightSide.InputUtils.GetKey(KeyCode.RightControl);
+            var alt = LightSide.InputUtils.GetKey(KeyCode.LeftAlt) || LightSide.InputUtils.GetKey(KeyCode.RightAlt);
+            var shift = LightSide.InputUtils.GetKey(KeyCode.LeftShift) || LightSide.InputUtils.GetKey(KeyCode.RightShift);
 
             for (var i = 0; i < _shortcuts.Count; i++)
             {
@@ -151,7 +151,7 @@
                     continue;
                 }
 
-                if (Input.GetKeyDown(s.Key))
+                if (LightSide.InputUtils.GetKeyDown(s.Key))
                 {
                     ExecuteShortcut(s);
                     break;

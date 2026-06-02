@@ -49,7 +49,7 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && !isRunning)
+        if (InputUtils.GetKeyDown(KeyCode.Space) && !isRunning)
             RunBenchmark();
     }
 

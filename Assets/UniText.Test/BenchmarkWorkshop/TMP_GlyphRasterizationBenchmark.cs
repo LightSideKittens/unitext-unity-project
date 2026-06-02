@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using TMPro;
+using LightSide;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -49,7 +50,7 @@ public class TMP_GlyphRasterizationBenchmark : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && !isRunning)
+        if (InputUtils.GetKeyDown(KeyCode.Space) && !isRunning)
             RunBenchmark();
     }
 

@@ -2,7 +2,8 @@
     "name": "LSCore.Debugger",
     "rootNamespace": "",
     "references": [
-        "GUID:05dbf8cd246c9274c8a78a65142e5f8a"
+        "GUID:05dbf8cd246c9274c8a78a65142e5f8a",
+        "LightSide.UniText"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
