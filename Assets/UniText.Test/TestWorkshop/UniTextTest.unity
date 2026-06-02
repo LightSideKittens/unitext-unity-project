@@ -1194,7 +1194,7 @@ MonoBehaviour:
     \u21D9 \u21DA \u21DB \u21DC \u21DD \u21DE \u21DF \u21EA \u21EB \u21EC \u21ED
     \u21EE \u21EF\n\u2AF7 \u2AF8 \u2AF9 \u2AFA \u2AFB \u2AFD \u2AFE \u2AFF \u2B00
     \u2B01 \u2B02 \u2B03 \u2B04 \u2B05\uFE0E \u2B06\uFE0E \u2B07\uFE0E"
-  font: {fileID: 0}
+  font: {fileID: 11400000, guid: 275b85994bbd50741981c7d29bd31aa6, type: 2}
   fontStack: {fileID: 0}
   fontSize: 32
   baseDirection: 2
@@ -1861,6 +1861,7 @@ MonoBehaviour:
         after:
           items:
           - rid: 5414327984566829262
+          - rid: 7750513577452896317
           - rid: 5414327984566829226
           - rid: 5414327984566829227
         testName: Smoke_GlyphCount
@@ -1891,6 +1892,10 @@ MonoBehaviour:
       type: {class: SetActiveSystemFont, ns: , asm: UniText.Test}
       data:
         disabled: 1
+    - rid: 7750513577452896317
+      type: {class: WaitFrames, ns: , asm: UniText.Test}
+      data:
+        frames: 10
 --- !u!1 &2040662658
 GameObject:
   m_ObjectHideFlags: 0
