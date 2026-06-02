@@ -121,8 +121,10 @@ runs:
 
         echo "Running ($MODE): $EXE"
 
+        # Beyond Noto: Liberation (Times/Arial/Courier metrics), Hanazono (CJK Ext B outlines), Unifont (SMP catch-all: Ext C/D/E + rare symbols), DejaVu (system baseline)
         sudo apt-get update -qq && sudo apt-get install -y -qq xserver-xorg-video-dummy x11-xserver-utils \
-          fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji fonts-noto-extra fonts-noto-unhinted
+          fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji fonts-noto-extra fonts-noto-unhinted \
+          fonts-liberation fonts-dejavu fonts-hanazono fonts-unifont
 
         cat > /tmp/xorg-dummy.conf << 'XORGEOF'
         Section "Device"
