@@ -113,7 +113,10 @@ EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     short* out_y_strikeout_position, short* out_y_strikeout_size,
     short* out_underline_position, short* out_underline_thickness,
     const char** out_family_name, const char** out_style_name,
-    short* out_weight_class, int* out_style_flags)
+    short* out_weight_class, int* out_style_flags,
+    short* out_typo_ascender, short* out_typo_descender, short* out_typo_line_gap,
+    unsigned short* out_win_ascent, unsigned short* out_win_descent,
+    unsigned short* out_fs_selection)
 {
     if (!face) return 0;
 
@@ -136,6 +139,13 @@ EXPORT int ut_ft_get_extended_face_info(FT_Face face,
     if (out_y_strikeout_position) *out_y_strikeout_position = os2->yStrikeoutPosition;
     if (out_y_strikeout_size) *out_y_strikeout_size = os2->yStrikeoutSize;
     if (out_weight_class) *out_weight_class = (short)os2->usWeightClass;
+
+    if (out_typo_ascender) *out_typo_ascender = os2->sTypoAscender;
+    if (out_typo_descender) *out_typo_descender = os2->sTypoDescender;
+    if (out_typo_line_gap) *out_typo_line_gap = os2->sTypoLineGap;
+    if (out_win_ascent) *out_win_ascent = os2->usWinAscent;
+    if (out_win_descent) *out_win_descent = os2->usWinDescent;
+    if (out_fs_selection) *out_fs_selection = os2->fsSelection;
 
     return 1;
 }
