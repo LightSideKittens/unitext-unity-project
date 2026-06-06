@@ -12,6 +12,6 @@ public class DirectionTest : BaseTestCase
 
     public override void ApplyTo(UniText uniText, RectTransform rectTransform)
     {
-        uniText.BaseDirection = direction;
+        uniText.SetWholeText<DirectionModifier>(direction.ToString());
     }
 }

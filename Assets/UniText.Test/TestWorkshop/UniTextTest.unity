@@ -425,16 +425,10 @@ MonoBehaviour:
   font: {fileID: 0}
   fontStack: {fileID: 11400000, guid: 72f6e3edfbc82804791ebe8e4814fa46, type: 2}
   fontSize: 28
-  baseDirection: 2
   wordWrap: 0
   padding: {x: 0, y: 0, z: 0, w: 0}
   horizontalAlignment: 0
   verticalAlignment: 0
-  textJustify: 0
-  lastLineAlignment: 0
-  overEdge: 0
-  underEdge: 0
-  leadingDistribution: 0
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
@@ -1197,16 +1191,10 @@ MonoBehaviour:
   font: {fileID: 0}
   fontStack: {fileID: 0}
   fontSize: 32
-  baseDirection: 2
   wordWrap: 1
   padding: {x: 0, y: 0, z: 0, w: 0}
   horizontalAlignment: 0
   verticalAlignment: 0
-  textJustify: 0
-  lastLineAlignment: 0
-  overEdge: 0
-  underEdge: 0
-  leadingDistribution: 0
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
@@ -1398,16 +1386,10 @@ MonoBehaviour:
   font: {fileID: 0}
   fontStack: {fileID: 11400000, guid: 72f6e3edfbc82804791ebe8e4814fa46, type: 2}
   fontSize: 28
-  baseDirection: 2
   wordWrap: 1
   padding: {x: 0, y: 0, z: 0, w: 0}
   horizontalAlignment: 0
   verticalAlignment: 0
-  textJustify: 0
-  lastLineAlignment: 0
-  overEdge: 0
-  underEdge: 0
-  leadingDistribution: 0
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
@@ -1524,16 +1506,10 @@ MonoBehaviour:
   font: {fileID: 0}
   fontStack: {fileID: 11400000, guid: 72f6e3edfbc82804791ebe8e4814fa46, type: 2}
   fontSize: 28
-  baseDirection: 2
   wordWrap: 1
   padding: {x: 0, y: 0, z: 0, w: 0}
   horizontalAlignment: 0
   verticalAlignment: 0
-  textJustify: 0
-  lastLineAlignment: 0
-  overEdge: 0
-  underEdge: 0
-  leadingDistribution: 0
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
@@ -2168,16 +2144,10 @@ MonoBehaviour:
   font: {fileID: 0}
   fontStack: {fileID: 11400000, guid: e110b60a0033cd24a848a4601818b9fc, type: 2}
   fontSize: 36
-  baseDirection: 2
   wordWrap: 1
   padding: {x: 0, y: 0, z: 0, w: 0}
   horizontalAlignment: 0
   verticalAlignment: 0
-  textJustify: 0
-  lastLineAlignment: 0
-  overEdge: 0
-  underEdge: 0
-  leadingDistribution: 0
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
