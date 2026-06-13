@@ -93,6 +93,14 @@ namespace LightSide
 
         private static string ReadTokenFromManifest()
         {
+            var url = ReadRegistryUrl();
+            if (url == null) return null;
+            var match = Regex.Match(url, @"/t/([A-Za-z0-9_\-]+)(?:/pre)?$");
+            return match.Success ? match.Groups[1].Value : null;
+        }
+
+        private static string ReadRegistryUrl()
+        {
             if (!File.Exists(ManifestPath)) return null;
             var manifest = MiniJson.Parse(File.ReadAllText(ManifestPath)) as Dictionary<string, object>;
             if (manifest == null) return null;
@@ -100,10 +108,11 @@ namespace LightSide
             foreach (var entry in list)
             {
                 if (entry is Dictionary<string, object> reg &&
+                    reg.TryGetValue("scopes", out var sc) && sc is List<object> scopes &&
+                    scopes.Any(s => s is string ss && ss == Scope) &&
                     reg.TryGetValue("url", out var u) && u is string url)
                 {
-                    var match = Regex.Match(url, @"/t/([A-Za-z0-9_\-]+)$");
-                    if (match.Success) return match.Groups[1].Value;
+                    return url;
                 }
             }
             return null;
@@ -137,6 +146,8 @@ namespace LightSide
             if (tab == 1)
             {
                 DetectInstalledVersion();
+                if (installedVersion.Contains("-") && EnsureChannel(true))
+                    UnityEditor.PackageManager.Client.Resolve();
                 FetchVersions();
             }
         }
@@ -254,8 +265,10 @@ namespace LightSide
 
                     try
                     {
-                        ManifestEditor.EnsureScopedRegistry(registryUrl, ScopeName, Scope);
                         DetectInstalledVersion();
+                        ManifestEditor.EnsureScopedRegistry(
+                            installedVersion.Contains("-") ? $"{registryUrl}/pre" : registryUrl,
+                            ScopeName, Scope);
 
                         if (string.IsNullOrEmpty(installedVersion))
                         {
@@ -558,10 +571,22 @@ namespace LightSide
             }
         }
 
+        private static bool EnsureChannel(bool preRelease)
+        {
+            var token = ReadTokenFromManifest();
+            if (token == null && preRelease) token = ReadConfiguredToken();
+            if (string.IsNullOrEmpty(token)) return false;
+            var url = $"{RegistryUrl}/t/{token}" + (preRelease ? "/pre" : "");
+            if (ReadRegistryUrl() == url) return false;
+            ManifestEditor.EnsureScopedRegistry(url, ScopeName, Scope);
+            return true;
+        }
+
         private void InstallVersion(string version)
         {
             try
             {
+                EnsureChannel(version.Contains("-"));
                 var manifest = MiniJson.Parse(File.ReadAllText(ManifestPath)) as Dictionary<string, object>;
                 if (manifest == null) return;
 
@@ -592,6 +617,7 @@ namespace LightSide
 
             try
             {
+                EnsureChannel(false);
                 var manifest = MiniJson.Parse(File.ReadAllText(ManifestPath)) as Dictionary<string, object>;
                 if (manifest == null) return;
 

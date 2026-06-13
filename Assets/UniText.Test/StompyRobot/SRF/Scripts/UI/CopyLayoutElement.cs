@@ -83,6 +83,18 @@
             get { return -1; }
         }
 
+#if UNITEXT_UGUI_2_6
+        public float maxWidth
+        {
+            get { return -1f; }
+        }
+
+        public float maxHeight
+        {
+            get { return -1f; }
+        }
+#endif
+
         public void CalculateLayoutInputHorizontal() {}
         public void CalculateLayoutInputVertical() {}
     }

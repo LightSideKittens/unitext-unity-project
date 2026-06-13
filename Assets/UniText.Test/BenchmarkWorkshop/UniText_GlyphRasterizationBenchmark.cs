@@ -24,6 +24,7 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
     public int warmupIterations = 1;
 
     [Header("Status")]
+    [SerializeField] bool forceCPURasterization;
     [SerializeField] bool isRunning;
     [SerializeField, TextArea(15, 30)] string lastResult = "";
 
@@ -45,12 +46,6 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
     public IEnumerator RunBenchmarkCoroutine(bool singleThreaded)
     {
         yield return RunCore(singleThreaded);
-    }
-
-    void Update()
-    {
-        if (InputUtils.GetKeyDown(KeyCode.Space) && !isRunning)
-            RunBenchmark();
     }
 
     [ContextMenu("Run Benchmark (Single-Threaded)")]
@@ -85,10 +80,11 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         isRunning = true;
         report.Clear();
 
-        bool wasParallel = UniText.UseParallel;
+        GlyphAtlas.ForceCpuRasterization = forceCPURasterization;
+        bool wasParallel = UniTextBase.UseParallel;
         bool wasForceST = GlyphAtlas.ForceSingleThreaded;
 
-        UniText.UseParallel = !singleThreaded;
+        UniTextBase.UseParallel = !singleThreaded;
         GlyphAtlas.ForceSingleThreaded = singleThreaded;
 
         string mode = singleThreaded ? "SINGLE-THREADED" : "PARALLEL";

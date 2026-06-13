@@ -85,6 +85,32 @@
             }
         }
 
+#if UNITEXT_UGUI_2_6
+        public float maxWidth
+        {
+            get
+            {
+                if (CopySource == null)
+                {
+                    return -1f;
+                }
+                return LayoutUtility.GetMaxWidth(CopySource.rectTransform) + Padding.x;
+            }
+        }
+
+        public float maxHeight
+        {
+            get
+            {
+                if (CopySource == null)
+                {
+                    return -1f;
+                }
+                return LayoutUtility.GetMaxHeight(CopySource.rectTransform) + Padding.y;
+            }
+        }
+#endif
+
         public int layoutPriority
         {
             get { return 0; }

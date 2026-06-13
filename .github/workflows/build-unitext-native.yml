@@ -97,7 +97,7 @@ env:
   # BLEND2D_NO_JIT=ON for all platforms (consistent behavior, smaller size)
 
   # Cache version suffix
-  CACHE_VERSION: "v10"
+  CACHE_VERSION: "v11"
 
 jobs:
   # ============================================================================
@@ -156,6 +156,7 @@ jobs:
           cd zlib-src && mkdir build && cd build
           cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
             -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
             -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\zlib ^
             -DBUILD_SHARED_LIBS=OFF
           cmake --build . --config Release
@@ -177,6 +178,7 @@ jobs:
           cd libpng-src && mkdir build && cd build
           cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
             -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
             -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\libpng ^
             -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=OFF ^
             -DZLIB_INCLUDE_DIR=%cd%\..\..\deps\zlib\include ^
@@ -201,6 +203,7 @@ jobs:
           cd freetype-src && mkdir build && cd build
           cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
             -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
             -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\freetype ^
             -DBUILD_SHARED_LIBS=OFF ^
             -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON ^
@@ -248,6 +251,7 @@ jobs:
           meson setup build --prefix=%cd%\..\deps\harfbuzz ^
             --pkg-config-path=%cd%\..\deps\freetype\lib\pkgconfig ^
             --buildtype=release ^
+            -Db_vscrt=mt ^
             -Ddefault_library=static ^
             -Dfreetype=enabled ^
             -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled ^
@@ -266,6 +270,7 @@ jobs:
           cd harfbuzz-src && mkdir build && cd build
           cmake .. -G "Visual Studio 17 2022" -A ARM64 ^
             -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
             -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\harfbuzz ^
             -DBUILD_SHARED_LIBS=OFF ^
             -DHB_HAVE_FREETYPE=OFF ^
@@ -292,6 +297,7 @@ jobs:
           cd blend2d-src && mkdir build && cd build
           cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
             -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
             -DCMAKE_INSTALL_PREFIX=%cd%\..\..\deps\blend2d ^
             -DBLEND2D_STATIC=ON ^
             -DBLEND2D_NO_JIT=ON
@@ -314,6 +320,7 @@ jobs:
           cd zstd-src\build\cmake && mkdir build && cd build
           cmake .. -G "Visual Studio 17 2022" -A ${{ matrix.cmake_arch }} ^
             -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
             -DCMAKE_INSTALL_PREFIX=%cd%\..\..\..\..\deps\zstd ^
             -DZSTD_BUILD_PROGRAMS=OFF ^
             -DZSTD_BUILD_TESTS=OFF ^
@@ -335,14 +342,14 @@ jobs:
         if: matrix.arch == 'x64'
         shell: cmd
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MD /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /I deps\zstd\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\libharfbuzz.a deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib deps\zstd\lib\zstd_static.lib gdi32.lib user32.lib ole32.lib advapi32.lib
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MT /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /I deps\zstd\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\libharfbuzz.a deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib deps\zstd\lib\zstd_static.lib gdi32.lib user32.lib ole32.lib advapi32.lib
 
       # ARM64: HarfBuzz from cmake creates harfbuzz.lib
       - name: Link unified DLL (ARM64)
         if: matrix.arch == 'arm64'
         shell: cmd
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MD /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /I deps\zstd\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\harfbuzz.lib deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib deps\zstd\lib\zstd_static.lib gdi32.lib user32.lib ole32.lib advapi32.lib
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} && cl /c /O2 /MT /EHsc /std:c++17 native\unitext_native.cpp /I deps\freetype\include\freetype2 /I deps\harfbuzz\include\harfbuzz /I deps\blend2d\include /I deps\zstd\include /DBLEND2D_STATIC && link /DLL /OUT:unitext_native.dll /DEF:native\unitext_native.def unitext_native.obj deps\blend2d\lib\blend2d.lib deps\harfbuzz\lib\harfbuzz.lib deps\freetype\lib\freetype.lib deps\libpng\lib\libpng16_static.lib deps\zlib\lib\zlibstatic.lib deps\zstd\lib\zstd_static.lib gdi32.lib user32.lib ole32.lib advapi32.lib
 
       - name: Verify DLL
         shell: bash

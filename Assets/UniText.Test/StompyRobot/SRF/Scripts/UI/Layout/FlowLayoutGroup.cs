@@ -57,7 +57,11 @@
 
             var minWidth = GetGreatestMinimumChildWidth() + padding.left + padding.right;
 
+#if UNITEXT_UGUI_2_6
+            SetLayoutInputForAxis(minWidth, LayoutUtility.DefaultMaxSize, -1, -1, 0);
+#else
             SetLayoutInputForAxis(minWidth, -1, -1, 0);
+#endif
         }
 
         public override void SetLayoutHorizontal()
@@ -163,7 +167,11 @@
             {
                 if (axis == 1)
                 {
+#if UNITEXT_UGUI_2_6
+                    SetLayoutInputForAxis(yOffset, LayoutUtility.DefaultMaxSize, yOffset, -1, axis);
+#else
                     SetLayoutInputForAxis(yOffset, yOffset, -1, axis);
+#endif
                 }
             }
 
