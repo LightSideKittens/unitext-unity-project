@@ -67,7 +67,7 @@ jobs:
           git clone --depth 1 --branch %HARFBUZZ_VERSION% https://github.com/harfbuzz/harfbuzz.git harfbuzz-src
           cd harfbuzz-src
           meson setup build --prefix=%cd%\..\deps\harfbuzz ^
-            --buildtype=minsize -Ddefault_library=static ^
+            --buildtype=minsize -Db_vscrt=mt -Ddefault_library=static ^
             -Dfreetype=disabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled ^
             -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled ^
             -Ddirectwrite=disabled -Dgdi=disabled ^
@@ -81,6 +81,7 @@ jobs:
           git clone --depth 1 --branch v%ZSTD_VERSION% https://github.com/facebook/zstd.git zstd-src
           cd zstd-src\build\cmake && mkdir build && cd build
           cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
             -DCMAKE_INSTALL_PREFIX=%cd%\..\..\..\..\deps\zstd ^
             -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF ^
             -DZSTD_BUILD_SHARED=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_MULTITHREAD_SUPPORT=OFF ^
@@ -92,8 +93,8 @@ jobs:
       - name: Build DLL
         shell: cmd
         run: |
-          cl /c /O1 /MD /EHsc /std:c++17 native\unitext_subset.cpp /I deps\harfbuzz\include\harfbuzz /I deps\zstd\include /DNDEBUG
-          cl /c /O1 /MD /EHsc /std:c++17 native\unitext_file_dialog.cpp /DNDEBUG
+          cl /c /O1 /MT /EHsc /std:c++17 native\unitext_subset.cpp /I deps\harfbuzz\include\harfbuzz /I deps\zstd\include /DNDEBUG
+          cl /c /O1 /MT /EHsc /std:c++17 native\unitext_file_dialog.cpp /DNDEBUG
           link /DLL /OUT:unitext_native_editor.dll /DEF:native\unitext_subset.def unitext_subset.obj unitext_file_dialog.obj deps\harfbuzz\lib\libharfbuzz-subset.a deps\harfbuzz\lib\libharfbuzz.a deps\zstd\lib\zstd_static.lib comdlg32.lib
 
       - name: Verify

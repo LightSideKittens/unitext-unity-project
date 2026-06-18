@@ -229,7 +229,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirectionAuto()
     {
         if (target == null) return;
-        target.BaseDirection = TextDirection.Auto;
+        target.SetWholeText<DirectionModifier>("Auto");
         Log("BaseDirection set to Auto");
     }
 
@@ -237,7 +237,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirectionLTR()
     {
         if (target == null) return;
-        target.BaseDirection = TextDirection.LeftToRight;
+        target.SetWholeText<DirectionModifier>("LeftToRight");
         Log("BaseDirection set to LeftToRight");
     }
 
@@ -245,7 +245,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirectionRTL()
     {
         if (target == null) return;
-        target.BaseDirection = TextDirection.RightToLeft;
+        target.SetWholeText<DirectionModifier>("RightToLeft");
         Log("BaseDirection set to RightToLeft");
     }
 
@@ -253,8 +253,10 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void CycleDirection()
     {
         if (target == null) return;
-        target.BaseDirection = (TextDirection)(((int)target.BaseDirection + 1) % 3);
-        Log($"BaseDirection cycled to: {target.BaseDirection}");
+        System.Enum.TryParse<TextDirection>(target.GetWholeTextParameter<DirectionModifier>(), out var cur);
+        var next = (TextDirection)(((int)cur + 1) % 3);
+        target.SetWholeText<DirectionModifier>(next.ToString());
+        Log($"BaseDirection cycled to: {next}");
     }
 
     #endregion
@@ -540,7 +542,7 @@ public class UniTextInteractiveTest : MonoBehaviour
                   $"MainFont: {(target.PrimaryFont != null ? target.PrimaryFont.name : "null")}\n" +
                   $"FontSize: {target.FontSize}\n" +
                   $"Color: {target.color}\n" +
-                  $"Direction: {target.BaseDirection}\n" +
+                  $"Direction: {target.GetWholeTextParameter<DirectionModifier>()}\n" +
                   $"WordWrap: {target.WordWrap}\n" +
                   $"HAlign: {target.HorizontalAlignment}\n" +
                   $"VAlign: {target.VerticalAlignment}\n" +

@@ -298,7 +298,11 @@ namespace SRF.UI.Layout
 
         public override void CalculateLayoutInputVertical()
         {
+#if UNITEXT_UGUI_2_6
+            SetLayoutInputForAxis(minHeight, LayoutUtility.DefaultMaxSize, minHeight, -1, 1);
+#else
             SetLayoutInputForAxis(minHeight, minHeight, -1, 1);
+#endif
         }
 
         public override void SetLayoutHorizontal()

@@ -9,6 +9,12 @@
     "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.6.0",
+            "define": "UNITEXT_UGUI_2_6"
+        }
+    ],
     "noEngineReferences": false
 }
