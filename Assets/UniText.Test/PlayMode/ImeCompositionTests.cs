@@ -20,7 +20,11 @@ namespace Tests.PlayMode
             UniTextNativeInput.RaiseCompositionChanged(data);
         }
 
-        private string Overlay() => editable.compositionOverlay.Text.ToString();
+        private string Overlay()
+        {
+            var o = editable.compositionOverlay;
+            return o.textLength == 0 ? string.Empty : new string(o.textBuffer, 0, o.textLength);
+        }
 
         [UnityTest]
         public IEnumerator Composition_IsNonDestructive_UntilCommit()
@@ -78,7 +82,7 @@ namespace Tests.PlayMode
             Assert.IsTrue(editable.isComposing);
             Assert.AreEqual(2, editable.compositionOverlay.clauseCount);
             Assert.AreEqual(CompositionClauseStyle.TargetConverted,
-                editable.compositionOverlay.Clauses[1].style);
+                editable.compositionOverlay.clauses[1].style);
         }
 
         [UnityTest]

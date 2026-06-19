@@ -88,5 +88,28 @@ namespace Tests.PlayMode
             editable.PasteFromItems(new[] { new ClipboardItem(ClipboardFormat.PlainText, "a\nb\nc") });
             Assert.AreEqual("abc", editable.Text);
         }
+
+        [UnityTest]
+        public IEnumerator Copy_InsideHiddenStyledRun_KeepsRichChannel()
+        {
+            var fake = new FakeClipboard();
+            UniTextClipboard.Provider = fake;
+            try
+            {
+                yield return BuildField();
+                uniText.EnsureStyleFor(new BoldModifier(), new TagRule("b"));
+                editable.InsertText("<b>Bold</b>");
+                yield return null;
+                editable.Select(4, 5);
+                editable.Copy();
+                Assert.AreEqual("o", fake.GetText(ClipboardFormat.PlainText));
+                Assert.AreEqual("<b>o</b>", fake.GetText(ClipboardFormat.UniTextSource),
+                    "a selection inside a styled run must still carry the rich channels");
+            }
+            finally
+            {
+                UniTextClipboard.Provider = null;
+            }
+        }
     }
 }
