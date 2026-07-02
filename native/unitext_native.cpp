@@ -906,7 +906,10 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
     if (!face || !outCurves || !outTypes || !outCurveCount || !outContours || !outContourCount)
         return -1;
 
-    FT_Error err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP | FT_LOAD_NO_SCALE);
+    // Tricky fonts force hinting even under FT_LOAD_NO_HINTING (implied by NO_SCALE); at zero
+    // scale the forced autohinter collapses the outline into garbage. NO_AUTOHINT blocks it so
+    // the raw font-unit outline is returned, matching non-tricky fonts.
+    FT_Error err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP | FT_LOAD_NO_SCALE | FT_LOAD_NO_AUTOHINT);
     if (err) return (int)err;
 
     if (face->glyph->format != FT_GLYPH_FORMAT_OUTLINE) {
