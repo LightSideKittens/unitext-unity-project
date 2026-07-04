@@ -162,6 +162,20 @@ public class BenchmarkRunner : MonoBehaviour
                 () => data.glyphRasterization["unitextParallel"] = ConvertGlyphResults(uniGlyph.LastResults));
 
             if (!CheckWatchdog()) yield break;
+
+            Debug.Log("[BenchmarkRunner] Running UniText Glyph Rasterization (Single-Threaded + Max Stroke)...");
+            yield return SafeRun("unitextGlyphSTMaxStroke",
+                () => uniGlyph.RunBenchmarkCoroutine(singleThreaded: true, maxStroke: true),
+                () => data.glyphRasterization["unitextSingleThreadedMaxStroke"] = ConvertGlyphResults(uniGlyph.LastResults));
+
+            if (!CheckWatchdog()) yield break;
+
+            Debug.Log("[BenchmarkRunner] Running UniText Glyph Rasterization (Parallel + Max Stroke)...");
+            yield return SafeRun("unitextGlyphParallelMaxStroke",
+                () => uniGlyph.RunBenchmarkCoroutine(singleThreaded: false, maxStroke: true),
+                () => data.glyphRasterization["unitextParallelMaxStroke"] = ConvertGlyphResults(uniGlyph.LastResults));
+
+            if (!CheckWatchdog()) yield break;
         }
         else
         {

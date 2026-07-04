@@ -43,9 +43,9 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
 
     public GlyphRasterResults LastResults { get; private set; }
 
-    public IEnumerator RunBenchmarkCoroutine(bool singleThreaded)
+    public IEnumerator RunBenchmarkCoroutine(bool singleThreaded, bool maxStroke = false)
     {
-        yield return RunCore(singleThreaded);
+        yield return RunCore(singleThreaded, maxStroke);
     }
 
     [ContextMenu("Run Benchmark (Single-Threaded)")]
@@ -62,11 +62,32 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         StartCoroutine(RunCore(singleThreaded: false));
     }
 
+    [ContextMenu("Run Benchmark (Single-Threaded + Max Stroke)")]
+    public void RunBenchmarkMaxStroke()
+    {
+        if (isRunning) return;
+        StartCoroutine(RunCore(singleThreaded: true, maxStroke: true));
+    }
+
+    [ContextMenu("Run Benchmark (Parallel + Max Stroke)")]
+    public void RunBenchmarkParallelMaxStroke()
+    {
+        if (isRunning) return;
+        StartCoroutine(RunCore(singleThreaded: false, maxStroke: true));
+    }
+
     [ContextMenu("Run Benchmark (Both)")]
     public void RunBenchmarkBoth()
     {
         if (isRunning) return;
         StartCoroutine(RunBoth());
+    }
+
+    [ContextMenu("Run Benchmark (All 4)")]
+    public void RunBenchmarkAll()
+    {
+        if (isRunning) return;
+        StartCoroutine(RunAll());
     }
 
     IEnumerator RunBoth()
@@ -75,19 +96,27 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         yield return RunCore(singleThreaded: false);
     }
 
-    IEnumerator RunCore(bool singleThreaded)
+    IEnumerator RunAll()
+    {
+        yield return RunCore(singleThreaded: true);
+        yield return RunCore(singleThreaded: false);
+        yield return RunCore(singleThreaded: true, maxStroke: true);
+        yield return RunCore(singleThreaded: false, maxStroke: true);
+    }
+
+    IEnumerator RunCore(bool singleThreaded, bool maxStroke = false)
     {
         isRunning = true;
         report.Clear();
 
-        GlyphAtlas.ForceCpuRasterization = forceCPURasterization;
+        GlyphAtlas.forceCpuRasterization = forceCPURasterization;
         bool wasParallel = UniTextBase.UseParallel;
-        bool wasForceST = GlyphAtlas.ForceSingleThreaded;
+        bool wasForceST = GlyphAtlas.forceSingleThreaded;
 
         UniTextBase.UseParallel = !singleThreaded;
-        GlyphAtlas.ForceSingleThreaded = singleThreaded;
+        GlyphAtlas.forceSingleThreaded = singleThreaded;
 
-        string mode = singleThreaded ? "SINGLE-THREADED" : "PARALLEL";
+        string mode = (singleThreaded ? "SINGLE-THREADED" : "PARALLEL") + (maxStroke ? " + MAX-STROKE" : "");
 
         CollectChildren();
 
@@ -100,6 +129,24 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
 
         CollectFonts();
 
+        List<(UniText text, Style style)> strokeStyles = null;
+        if (maxStroke)
+        {
+            strokeStyles = new List<(UniText, Style)>();
+            for (int i = 0; i < textObjects.Length; i++)
+            {
+                var ut = textObjects[i].GetComponent<UniText>();
+                if (ut == null) continue;
+                var style = Style.WholeText(new StrokeModifier
+                {
+                    Width = UnitValue.Em(1f),
+                    Align = 1f
+                });
+                ut.AddStyle(style);
+                strokeStyles.Add((ut, style));
+            }
+        }
+
         report.AppendLine("═══════════════════════════════════════════════");
         report.AppendLine($"    UNITEXT GLYPH RASTERIZATION BENCHMARK ({mode})");
         report.AppendLine("═══════════════════════════════════════════════");
@@ -109,6 +156,7 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         report.AppendLine("═══════════════════════════════════════════════");
 
         var frameTimes = new List<float>();
+        var e2eTimes = new List<float>();
         var glyphCounts = new List<int>();
         long totalManagedAlloc = 0;
 
@@ -123,8 +171,7 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
 
             string atlasBeforeClear = GetAtlasDiagnostics("BEFORE clear");
 
-            for (int i = 0; i < fontAssets.Length; i++)
-                fontAssets[i].ClearDynamicData();
+            UniTextFont.Core.DisposeAllLive();
             yield return null;
 
             int entriesAfterClear = 0;
@@ -143,6 +190,17 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
             sw.Stop();
 
             float ms = (float)sw.Elapsed.TotalMilliseconds;
+            float e2eMs = ms;
+#if UNITEXT_DEBUG
+            {
+                double activationStart = Time.realtimeSinceStartupAsDouble - sw.Elapsed.TotalSeconds;
+                var sdfAtlas = GlyphAtlas.GetInstance(UniTextRenderMode.SDF);
+                var msdfAtlas = GlyphAtlas.GetInstance(UniTextRenderMode.MSDF);
+                for (int guard = 0; guard < 600 && !(sdfAtlas.GpuRasterComplete && msdfAtlas.GpuRasterComplete); guard++)
+                    yield return null;
+                e2eMs = (float)((Time.realtimeSinceStartupAsDouble - activationStart) * 1000.0);
+            }
+#endif
             int glyphsAfter = CountGlyphs();
             int uniqueGlyphs = glyphsAfter - glyphsBefore;
 
@@ -154,13 +212,14 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
             bool isWarmup = iter < 0;
             string tag = isWarmup ? "warmup" : $"iter {iter + 1}";
 
-            Debug.Log($"[UniText GlyphRaster {mode}] {tag}: {ms:F2}ms, +{uniqueGlyphs} glyphs (total {glyphsAfter})\n" +
+            Debug.Log($"[UniText GlyphRaster {mode}] {tag}: {ms:F2}ms (e2e {e2eMs:F2}ms), +{uniqueGlyphs} glyphs (total {glyphsAfter})\n" +
                       $"  entries: {entriesBefore}→{entriesAfterClear}→{entriesAfterRaster} (before→afterClear→afterRaster)\n" +
                       $"  {atlasBeforeClear}\n  {atlasAfterClear}\n  {atlasAfterRaster}");
 
             if (!isWarmup)
             {
                 frameTimes.Add(ms);
+                e2eTimes.Add(e2eMs);
                 glyphCounts.Add(uniqueGlyphs);
                 totalManagedAlloc += gcRec.LastValue;
             }
@@ -169,8 +228,12 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         for (int i = 0; i < textObjects.Length; i++)
             textObjects[i].SetActive(false);
 
+        if (strokeStyles != null)
+            for (int i = 0; i < strokeStyles.Count; i++)
+                strokeStyles[i].text.RemoveStyle(strokeStyles[i].style);
+
         UniText.UseParallel = wasParallel;
-        GlyphAtlas.ForceSingleThreaded = wasForceST;
+        GlyphAtlas.forceSingleThreaded = wasForceST;
 
         LastResults = new GlyphRasterResults
         {
@@ -180,7 +243,7 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
             mode = mode
         };
 
-        FormatResults(frameTimes, glyphCounts, totalManagedAlloc, mode);
+        FormatResults(frameTimes, e2eTimes, glyphCounts, totalManagedAlloc, mode);
         lastResult = report.ToString();
         Debug.Log(lastResult);
 
@@ -214,32 +277,25 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
 
         GlyphAtlas.ForEachInstance(atlas =>
         {
-            var tex = atlas.AtlasTexture as Texture2DArray;
+            var tex = atlas.AtlasTexture;
             if (tex == null)
             {
                 sb.Append($"pages={atlas.PageCount} tex=NULL  ");
                 return;
             }
 
-            long pixelChecksum = 0;
-            int sampledPages = Mathf.Min(atlas.PageCount, 2);
-            for (int p = 0; p < sampledPages; p++)
-            {
-                var raw = tex.GetPixelData<ushort>(0, p);
-                int step = Mathf.Max(1, raw.Length / 64);
-                for (int j = 0; j < raw.Length; j += step)
-                    pixelChecksum += raw[j];
-            }
-
-            sb.Append($"pages={atlas.PageCount} texSize={tex.width}x{tex.height}x{tex.depth} " +
-                      $"pixelChecksum={pixelChecksum}  ");
+            int depth = tex is RenderTexture rt ? rt.volumeDepth
+                : tex is Texture2DArray ta ? ta.depth : 1;
+            sb.Append($"pages={atlas.PageCount} texSize={tex.width}x{tex.height}x{depth} " +
+                      $"pixelChecksum={BenchmarkAtlasUtils.Checksum(tex)}  ");
         });
 
         return sb.ToString();
     }
 
-    void FormatResults(List<float> frameTimes, List<int> glyphCounts, long managedAlloc, string mode)
+    void FormatResults(List<float> frameTimes, List<float> e2eTimes, List<int> glyphCounts, long managedAlloc, string mode)
     {
+        var unsortedFrameTimes = new List<float>(frameTimes);
         frameTimes.Sort();
         float median = frameTimes[frameTimes.Count / 2];
         float min = frameTimes[0];
@@ -249,11 +305,15 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         for (int i = 0; i < frameTimes.Count; i++) sum += frameTimes[i];
         float avg = sum / frameTimes.Count;
 
+        var sortedE2e = new List<float>(e2eTimes);
+        sortedE2e.Sort();
+        float e2eMedian = sortedE2e[sortedE2e.Count / 2];
+
         int typicalGlyphs = glyphCounts[0];
 
         report.AppendLine();
-        for (int i = 0; i < frameTimes.Count; i++)
-            report.AppendLine($"  Run {i + 1}: {frameTimes[i]:F2} ms   ({glyphCounts[i]} glyphs)");
+        for (int i = 0; i < unsortedFrameTimes.Count; i++)
+            report.AppendLine($"  Run {i + 1}: {unsortedFrameTimes[i]:F2} ms   e2e {e2eTimes[i]:F2} ms   ({glyphCounts[i]} glyphs)");
 
         report.AppendLine();
         report.AppendLine($"  Mode: {mode}");
@@ -261,6 +321,7 @@ public class UniText_GlyphRasterizationBenchmark : MonoBehaviour
         report.AppendLine($"  Average: {avg:F2} ms");
         report.AppendLine($"  Min:     {min:F2} ms");
         report.AppendLine($"  Max:     {max:F2} ms");
+        report.AppendLine($"  Median e2e (CPU + GPU raster): {e2eMedian:F2} ms");
         report.AppendLine($"  Unique glyphs: {typicalGlyphs}");
         report.AppendLine($"  Managed alloc: {FormatBytes(managedAlloc)} (total across {iterations} runs)");
 

@@ -189,17 +189,8 @@ public class TMP_GlyphRasterizationBenchmark : MonoBehaviour
             int chars = font.characterTable.Count;
 
             long pixelChecksum = 0;
-            if (textures != null && textures.Length > 0 && textures[0] != null)
-            {
-                var tex = textures[0];
-                if (tex.isReadable)
-                {
-                    var raw = tex.GetRawTextureData<byte>();
-                    int step = Mathf.Max(1, raw.Length / 128);
-                    for (int j = 0; j < raw.Length; j += step)
-                        pixelChecksum += raw[j];
-                }
-            }
+            if (textures != null && textures.Length > 0)
+                pixelChecksum = BenchmarkAtlasUtils.Checksum(textures[0]);
 
             sb.Append($"'{font.name}': glyphs={glyphs} chars={chars} " +
                       $"atlasCount={textures?.Length ?? 0} pixelChecksum={pixelChecksum}  ");

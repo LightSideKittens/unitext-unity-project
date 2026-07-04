@@ -11,7 +11,7 @@ public class UniTextBenchmark : TextBenchmarkBase
     protected override void OnBeforeAllTests()
     {
         UniText.UseParallel = parallelMode;
-        GlyphAtlas.ForceSingleThreaded = !parallelMode;
+        GlyphAtlas.forceSingleThreaded = !parallelMode;
         UniTextDebug.Enabled = true;
         UniTextPoolStats.ResetAll();
     }
@@ -19,7 +19,7 @@ public class UniTextBenchmark : TextBenchmarkBase
     protected override void OnAfterAllTests()
     {
         UniText.UseParallel = true;
-        GlyphAtlas.ForceSingleThreaded = false;
+        GlyphAtlas.forceSingleThreaded = false;
         UniTextDebug.Enabled = false;
     }
 

@@ -287,74 +287,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!1 &131775394
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 131775397}
-  - component: {fileID: 131775396}
-  - component: {fileID: 131775395}
-  m_Layer: 0
-  m_Name: EventSystem
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &131775395
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 131775394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.StandaloneInputModule
-  m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
---- !u!114 &131775396
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 131775394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
-  m_FirstSelected: {fileID: 0}
-  m_sendNavigationEvents: 1
-  m_DragThreshold: 10
---- !u!4 &131775397
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 131775394}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &387182426
 GameObject:
   m_ObjectHideFlags: 0
@@ -439,42 +371,40 @@ MonoBehaviour:
       rule:
         rid: 266425450751590472
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2031797989190140031
       rule:
         rid: 266425450751590473
       defaultParameter: 
+      disabled: 0
   stylePresets:
     items: []
   useGlobalStylePreset: 1
   renderMode: 0
-  highlighter:
-    rid: 2935973836690030638
   references:
     version: 2
     RefIds:
     - rid: 266425450751590472
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: ellipsis
         defaultParameter: 
+        tagName: ellipsis
     - rid: 266425450751590473
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: color
         defaultParameter: 
+        tagName: color
     - rid: 2031797989190140001
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        position: 1
     - rid: 2031797989190140031
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
-    - rid: 2935973836690030638
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.4}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.2}
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
 --- !u!222 &387182429
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -601,6 +531,7 @@ GameObject:
   - component: {fileID: 636393885}
   - component: {fileID: 636393884}
   - component: {fileID: 636393886}
+  - component: {fileID: 636393887}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -692,6 +623,18 @@ MonoBehaviour:
     m_Bits: 4294967295
   sortPriority: 0
   renderPriority: 0
+--- !u!114 &636393887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 636393882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f672eede22fc8a24ab5dbe3938790a25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.EventSystemBootstrap
 --- !u!1 &992357366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1205,55 +1148,70 @@ MonoBehaviour:
       rule:
         rid: 7750513568556253270
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 7750513568556253271
       rule:
         rid: 7750513568556253272
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 7750513568556253273
       rule:
         rid: 7750513568556253274
       defaultParameter: 
+      disabled: 0
   stylePresets:
     items: []
   useGlobalStylePreset: 1
   renderMode: 1
-  highlighter:
-    rid: 266425111468834867
   references:
     version: 2
     RefIds:
-    - rid: 266425111468834867
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 7750513568556253269
       type: {class: ItalicModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        style:
+          mode: 0
+          slant: 0
     - rid: 7750513568556253270
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: i
         defaultParameter: 
+        tagName: i
     - rid: 7750513568556253271
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        weight: 0
+        mode: 0
     - rid: 7750513568556253272
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: b
         defaultParameter: 
+        tagName: b
     - rid: 7750513568556253273
       type: {class: VariationModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        weight:
+          value: 400
+          unit: 0
+        width:
+          value: 100
+          unit: 0
+        italic:
+          value: 0
+          unit: 0
+        slant:
+          value: 0
+          unit: 0
+        opticalSize:
+          value: 12
+          unit: 0
     - rid: 7750513568556253274
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: var
         defaultParameter: 
+        tagName: var
 --- !u!222 &1553998144
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1325,6 +1283,91 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &1780687027
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1780687028}
+  - component: {fileID: 1780687030}
+  - component: {fileID: 1780687029}
+  m_Layer: 5
+  m_Name: Text (UniText)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1780687028
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1780687027}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2040662659}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -534, y: 1351}
+  m_SizeDelta: {x: 345.4, y: 152.3}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1780687029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1780687027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: beaa34cb0e58d624bb3a264b28600785, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.UniText
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  text: e
+  font: {fileID: 11400000, guid: 6c99dbb707ffa04419619145979cf7f9, type: 2}
+  fontStack: {fileID: 0}
+  fontSize: 36
+  wordWrap: 1
+  padding: {x: 0, y: 0, z: 0, w: 0}
+  horizontalAlignment: 0
+  verticalAlignment: 0
+  autoSize: 0
+  minFontSize: 10
+  maxFontSize: 72
+  styles:
+    items: []
+  stylePresets:
+    items: []
+  useGlobalStylePreset: 1
+  renderMode: 0
+  references:
+    version: 2
+    RefIds: []
+--- !u!222 &1780687030
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1780687027}
+  m_CullTransparentMesh: 1
 --- !u!1 &1821288032
 GameObject:
   m_ObjectHideFlags: 0
@@ -1399,17 +1442,9 @@ MonoBehaviour:
     items: []
   useGlobalStylePreset: 1
   renderMode: 0
-  highlighter:
-    rid: 2935973836690030637
   references:
     version: 2
-    RefIds:
-    - rid: 2935973836690030637
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.4}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.2}
+    RefIds: []
 --- !u!222 &1821288035
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1520,42 +1555,40 @@ MonoBehaviour:
       rule:
         rid: 266425450751590470
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2031797989190140031
       rule:
         rid: 266425450751590471
       defaultParameter: 
+      disabled: 0
   stylePresets:
     items: []
   useGlobalStylePreset: 1
   renderMode: 0
-  highlighter:
-    rid: 2935973836690030639
   references:
     version: 2
     RefIds:
     - rid: 266425450751590470
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: ellipsis
         defaultParameter: 
+        tagName: ellipsis
     - rid: 266425450751590471
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: color
         defaultParameter: 
+        tagName: color
     - rid: 2031797989190140001
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        position: 1
     - rid: 2031797989190140031
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
-    - rid: 2935973836690030639
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.4}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.2}
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
 --- !u!222 &2019467434
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1772,7 +1805,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab4ca32a48458b44a8f00fa118f127a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  disable: 0
+  disable: 1
   mode: 1
   testEntries:
     items:
@@ -1909,6 +1942,7 @@ RectTransform:
   - {fileID: 2081125547}
   - {fileID: 2090398505}
   - {fileID: 1553998142}
+  - {fileID: 1780687028}
   m_Father: {fileID: 2035672421}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1979,9 +2013,238 @@ PrefabInstance:
       value: FullTest
       objectReference: {fileID: 0}
     - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: text
+      value: "123456. \u0644\u0644\u0644\u0644\u0644shaping  faksjd  fhak<obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/>lsjdfhaklsjdhafalskjdh
+        aksldjha ksl jfha skldaskjhaskdjh\n  1. \u0644\u0644\u0644\u0644\u0644shaping\n-
+        \u0644\u0644\u0644\u0644\u0644shaping  faksjd fhak lsjdfhaklsjdha falskjdh
+        aksldjha ksl jfha skldaskjhaskdjh\n  - \u0644\u0644\u0644\u0644\u0644shaping\n     
+        - \u0644\u0644\u0644\u0644\u0644shaping\n- sdfsdf\n  - sdfjslkdfs\n    -
+        dfskldfj\n12345. <b>Test numbered</b>\n  1. <u><s>Test nested numbered</s></u>\n\n[Google
+        Markdown link](https://google.com)\n\nhttps://google.com\n\n\u0645\u0631\u062D\u0628\u0627
+        \u0643\u062A\u0627\u0628 <link=\"https://google.com\">\u0634\u0645\u0633
+        Google Tag</link> Link\n\n<color=#98f>\u0627\u0644\u0639\u0631\u0628\u064A\u0629:
+        \u0645\u0631\u062D\u0628\u0627\u064B \u0628\u0627\u0644\u0639\u0627\u0644\u0645!
+        <obj=\"logo\"/> \u0647\u0630\u0627 \u0646\u064E\u0635\u0651\u064C \u0644\u0627\u062E\u062A\u0628\u0627\u0631
+        \u0627\u0644\u0627\u062A\u062C\u0627\u0647\u061B \u0639\u0631\u0628\u0649\u060C
+        \u0639\u0631\u0628\u064A\u060C \u0639\u0631\u0628\u064A\u061F\n\u0623\u0631\u0642\u0627\u0645
+        \u0639\u0631\u0628\u064A\u0629-\u0647\u0646\u062F\u064A\u0629: \u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669\u0660,
+        Arabic digits: 1234567890.\n\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u062A\u0631\u0642\u064A\u0645:
+        \u060C \u061B \u061F ! : \u060C \u2026 \u2014 (\u0634\u0631\u0637\u0629 \u0637\u0648\u064A\u0644\u0629)\u060C
+        \"\u0627\u0642\u062A\u0628\u0627\u0633\"\u060C \xAB\u0627\u0642\u062A\u0628\u0627\u0633\xBB.\n\n\u0644\u0627\u0645-\u0623\u0644\u0641:
+        \u0644\u0627 \u0644\u064E\u0627 \u0644\u0651\u064E\u0627 \u0644\u064E\u200D\u0627
+        (LAM + FATHA + ZWJ + ALEF).\n\u0633\u0644\u0633\u0644\u0629 \u0645\u0634\u0643\u0648\u0644\u0629:
+        \u0627\u064E\u0644\u0644\u0651\u0670\u0647\u064F \u0631\u064E\u0628\u0651\u064F
+        \u0627\u0644\u0652\u0639\u064E\u0627\u0644\u064E\u0645\u0650\u064A\u0646\u064E\u060C
+        \u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u0670\u0647\u0650
+        \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650.\n\n\u0641\u0627\u0631\u0633\u06CC:
+        \u0633\u0644\u0627\u0645 \u062F\u0646\u06CC\u0627! \u062D\u0631\u0648\u0641
+        \u0627\u0636\u0627\u0641\u06CC: \u067E \u0686 \u0698 \u06AF \u06CC.\n\u0641\u0627\u0635\u0644\u0647\u0654
+        \u0645\u062C\u0627\u0632\u06CC (<cspace=122>ZWNJ</cspace>): \u0645\u06CC\u200C\u0631\u0648\u0645\u060C
+        \u062E\u0627\u0646\u0647\u200C\u0647\u0627\u060C \u06A9\u062A\u0627\u0628\u200C\u0647\u0627\u060C
+        \u0646\u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u0645.\n\n\u0627\u064F\u0631\u062F\u0648:
+        \u06CC\u06C1 \u0627\u06CC\u06A9 \u062C\u0627\u0645\u0639 \u0679\u06CC\u0633\u0679
+        \u0679\u06CC\u06A9\u0633\u0679 \u06C1\u06D2\u061B \u062D\u0631\u0648\u0641:
+        \u0679\u060C \u0688\u060C \u0691\u060C \u06BA\u060C \u06C1\u060C \u06BE\u060C
+        \u06D2\u060C \u06BA\u060C \u06AF\u060C \u06A9\u060C \u06CC.\n\u0645\u062E\u0644\u0648\u0637
+        \u062C\u0645\u0644\u06C1: \u0627\u0631\u062F\u0648 (Urdu) + English + \u0627\u0639\u062F\u0627\u062F
+        \u06F1\u06F2\u06F3\u06F4.\n\n\u05E2\u05D1\u05E8\u05D9\u05EA: \u05E9\u05DC\u05D5\u05DD
+        \u05E2\u05D5\u05DC\u05DD, \u05D8\u05E7\u05E1\u05D8 \u05D1\u05D3\u05D9\u05E7\u05D4,
+        \u05DE\u05E1\u05E4\u05E8\u05D9\u05DD 1234 \u05D5-\u0665\u0666\u0667\u0668.\nMixed
+        Hebrew/English: \u05E9\u05DC\u05D5\u05DD (shalom) world 2025-12-01, test-\u05DE\u05E1\u05E4\u05E8.\n\nNested
+        brackets: (AR: \u0645\u0631\u062D\u0628\u0627 [\u0646\u0635 {\u062A\u062C\u0631\u064A\u0628\u064A}
+        \u0645\u0639 \u0623\u0642\u0648\u0627\u0633]!) and (EN: (nested [brackets]
+        {here})).\nQuotes: \"plain quotes\", \u2018single\u2019, \u201Cdouble smart\u201D,
+        \xABguillemets\xBB, \u201Elow-high\u201C.\n\nRichText: <i><b>\u063A\u0627\u0645\u0642
+        \u0639\u0631\u0628\u064A \u0645\u0631\u062D\u0628\u0627</b></i>, <i>\u05E9\u05DC\u05D5\u05DD
+        \u05DE\u05D5\u05D3\u05D2\u05E9</i>, <color=#FF0000>red English text</color>,
+        <size=150%>\u0646\u0635 \u0645\u0643\u0628\u0631</size>, <u><color=#695>test</color>
+        \u062E\u0637 \u0633\u0641\u0644\u064A</u>.\n\nZWJ forms (for shaping): \u200D\u0628
+        (forced final), \u0628\u200D (forced initial), \u200D\u0628\u200D (forced
+        medial).\nMix with diacritics + ZWJ: \u200D\u0628\u064E\u200D\u060C \u200D\u0646\u0651\u064E\u200D.\nZWNJ
+        breaking join: \u0628\u0627\u200C\u0628\u060C \u0644\u0627\u200C\u0627\u060C
+        \u0645\u06CC\u200C\u0631\u0648\u062F.\n<line-height=70>Bidi controls (LRE/RLE/PDF,
+        LRM/RLM):\nEnglish before  \u0645\u0631\u062D\u0628\u0627 \u0628\u0627\u0644\u0639\u0627\u0644\u0645 
+        after [RLE ... PDF].\nLRM/LRM: EN\u200E-\u200Etag, AR\u200F-\u200F\u0639\u0644\u0627\u0645\u0629.</line-height>\n<gradient=rainbow,L>\nMixed
+        run: \u0645\u0631\u062D\u0628\u0627 (hello) 123 in [EN], \u062B\u0645 \u0646\u0635
+        \u0639\u0631\u0628\u064A\u060C then Hebrew \u05E9\u05DC\u05D5\u05DD, \u05D5\u05D0\u05D6
+        again \u0639\u0631\u0628\u0649.\nRight-to-left with inner English: \u0647\u0630\u0627
+        \"test\" \u062F\u0627\u062E\u0644 \u062C\u0645\u0644\u0629 \u0639\u0631\u0628\u064A\u0629
+        (with brackets).\u061F\n\nBrackets around RTL: (\u0645\u0631\u062D\u0628\u0627)\u060C
+        [\u0633\u0644\u0627\u0645]\u060C {\u0634\u06A9\u0631\u06CC\u06C1} and around
+        mixed [hello \u0645\u0631\u062D\u0628\u0627 123].</gradient></color>\n\n<b>Emojis:
+        \U0001F600 \U0001F603 \U0001F601 \U0001F602 \U0001F914 \U0001F44D.</b>\n<i>RTL
+        with <upper>emojis:</upper> \u0645\u0631\u062D\u0628\u0627 \U0001F600 \u0628\u0627\u0644\u0639\u0627\u0644\u0645\u060C
+        \u0631\u0642\u0645 \u0661\u0662\u0663\u060C \u0646\u0635 \U0001F603 \u0645\u062E\u062A\u0644\u0637
+        \U0001F44D.</i>\n<gradient=rainbow>Family ZWJ emoji: \U0001F468\u200D\U0001F469\u200D\U0001F467\u200D\U0001F466,
+        flags: \U0001F1EE\U0001F1F7 (IL), \U0001F1EA\U0001F1F8 (ES), \U0001F1FA\U0001F1F8
+        (US).</gradient>\n\nBig mixed line: \u0644\u0627 + \u0644\u064E\u0627 + \u0644\u0651\u064E\u0627
+        + \u0641\u0627\u0631\u0633\u06CC \u067E\u0686\u0698\u06AF + \u0627\u064F\u0631\u062F\u0648
+        \u0679\u060C\u0688\u060C\u0691 + \u05E2\u05D1\u05E8\u05D9\u05EA \u05E9\u05DC\u05D5\u05DD
+        + English TEXT 1234 ++ emoji \U0001F600 + brackets (\u0639\u0631\u0628\u064A
+        [EN {\u05E2\u05D1\u05E8\u05D9\u05EA} 42]) + ZWNJ \u0645\u06CC\u200C\u0631\u0648\u0645
+        + ZWJ \u200D\u0628\u200D + bidi controls  \u0639\u0631\u0628\u064A \u0645\u0639 
+        EN  \u062F\u0627\u062E\u0644  done."
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[-2]'
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: styles.items.Array.size
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: styles.items.Array.data[9].rule
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: styles.items.Array.data[9].modifier
+      value: 7750514236629450851
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450822]'
+      value: LightSide.UniText LightSide.CompositeModifier
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450823]'
+      value: LightSide.UniText LightSide.TagRule
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450824]'
+      value: LightSide.UniText LightSide.LinkModifier
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450825]'
+      value: LightSide.UniText LightSide.ColorModifier
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450826]'
+      value: LightSide.UniText LightSide.UnderlineModifier
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450827]'
+      value: LightSide.UniText LightSide.GlobalSettingsPaintProvider
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450828]'
+      value: LightSide.UniText LightSide.CompositeModifier
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450829]'
+      value: LightSide.UniText LightSide.MarkdownLinkParseRule
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450830]'
+      value: LightSide.UniText LightSide.LinkModifier
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450831]'
+      value: LightSide.UniText LightSide.ColorModifier
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450832]'
+      value: LightSide.UniText LightSide.UnderlineModifier
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450833]'
+      value: LightSide.UniText LightSide.GlobalSettingsPaintProvider
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[2031797866453532882].mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[2031797866453532880].weight
+      value: 700
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450823].tagName
+      value: link
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450826].provider
+      value: 7750514236629450827
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450832].provider
+      value: 7750514236629450833
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[2031797866453532882].style.mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[2031797866453532882].style.slant
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450824].autoOpenUrl
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450824].highlighter
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450830].autoOpenUrl
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450830].highlighter
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[266425450751590462].defaultParameter
+      value: ',f'
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[266425450751590463].defaultParameter
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450823].defaultParameter
+      value: ;#4285F4FF
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450829].defaultParameter
+      value: ;#4285F4FF
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
       propertyPath: managedReferences[1000].entries.items.Array.data[0].prefab
       value: 
       objectReference: {fileID: 1061559364}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450822].modifiers.items.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: managedReferences[7750514236629450828].modifiers.items.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450822].modifiers.items.Array.data[0]'
+      value: 7750514236629450824
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450822].modifiers.items.Array.data[1]'
+      value: 7750514236629450825
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450822].modifiers.items.Array.data[2]'
+      value: 7750514236629450826
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450828].modifiers.items.Array.data[0]'
+      value: 7750514236629450830
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450828].modifiers.items.Array.data[1]'
+      value: 7750514236629450831
+      objectReference: {fileID: 0}
+    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      propertyPath: 'managedReferences[7750514236629450828].modifiers.items.Array.data[2]'
+      value: 7750514236629450832
+      objectReference: {fileID: 0}
     - target: {fileID: 9001780787298192370, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
       propertyPath: m_Pivot.x
       value: 0.79593015
@@ -2158,27 +2421,36 @@ MonoBehaviour:
       rule:
         rid: 4507959643864039494
       defaultParameter: 
+      disabled: 0
   stylePresets:
     items: []
   useGlobalStylePreset: 1
   renderMode: 0
-  highlighter:
-    rid: 4507959310606401623
   references:
     version: 2
     RefIds:
-    - rid: 4507959310606401623
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 4507959643864039491
       type: {class: VariationModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        weight:
+          value: 400
+          unit: 0
+        width:
+          value: 100
+          unit: 0
+        italic:
+          value: 0
+          unit: 0
+        slant:
+          value: 0
+          unit: 0
+        opticalSize:
+          value: 12
+          unit: 0
     - rid: 4507959643864039494
       type: {class: CompositeParseRule, ns: LightSide, asm: LightSide.UniText}
       data:
+        defaultParameter: 
         rules:
           items:
           - rid: 4507959643864039495
@@ -2186,13 +2458,13 @@ MonoBehaviour:
     - rid: 4507959643864039495
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: var1
         defaultParameter: 1000,100,0,0,12
+        tagName: var1
     - rid: 4507959643864039496
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: var2
         defaultParameter: 426,100,0,0,12
+        tagName: var2
 --- !u!222 &2090398507
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2207,4 +2479,3 @@ SceneRoots:
   m_Roots:
   - {fileID: 636393885}
   - {fileID: 2035672421}
-  - {fileID: 131775397}

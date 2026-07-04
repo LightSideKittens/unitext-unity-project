@@ -474,7 +474,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyAll()
     {
         if (target == null) return;
-        target.SetDirty(UniTextDirtyFlags.All);
+        target.SetDirty(UniTextDirty.All);
         Log("SetDirty(All)");
     }
 
@@ -482,7 +482,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyText()
     {
         if (target == null) return;
-        target.SetDirty(UniTextDirtyFlags.Text);
+        target.SetDirty(UniTextDirty.Text);
         Log("SetDirty(Text)");
     }
 
@@ -490,7 +490,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyLayout()
     {
         if (target == null) return;
-        target.SetDirty(UniTextDirtyFlags.Layout);
+        target.SetDirty(UniTextDirty.Layout);
         Log("SetDirty(Layout)");
     }
 
@@ -498,7 +498,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyColor()
     {
         if (target == null) return;
-        target.SetDirty(UniTextDirtyFlags.Color);
+        target.SetDirty(UniTextDirty.Mesh);
         Log("SetDirty(Color)");
     }
 
@@ -506,7 +506,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyAlignment()
     {
         if (target == null) return;
-        target.SetDirty(UniTextDirtyFlags.Alignment);
+        target.SetDirty(UniTextDirty.Positions);
         Log("SetDirty(Alignment)");
     }
 
@@ -514,7 +514,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyFont()
     {
         if (target == null) return;
-        target.SetDirty(UniTextDirtyFlags.Font);
+        target.SetDirty(UniTextDirty.Font);
         Log("SetDirty(Font)");
     }
 
@@ -522,7 +522,7 @@ public class UniTextInteractiveTest : MonoBehaviour
     public void SetDirtyFontSize()
     {
         if (target == null) return;
-        target.SetDirty(UniTextDirtyFlags.FontSize);
+        target.SetDirty(UniTextDirty.Layout);
         Log("SetDirty(FontSize)");
     }
 

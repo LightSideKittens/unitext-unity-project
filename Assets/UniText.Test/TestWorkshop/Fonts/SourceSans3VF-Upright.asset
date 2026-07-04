@@ -16,6 +16,7 @@ MonoBehaviour:
   fontDataHash: 1067537970
   italicStyle: 30
   spacingOffset: 0
+  spaceAdvance: 200
   fakeBoldWeight: 0
   faceInfo:
     faceIndex: 0
@@ -29,6 +30,12 @@ MonoBehaviour:
     capLine: 660
     meanLine: 478
     descentLine: -326
+    typoAscent: 0
+    typoDescent: 0
+    typoLineGap: 0
+    winAscent: 0
+    winDescent: 0
+    useTypoMetrics: 0
     superscriptOffset: 350
     superscriptSize: 600
     subscriptOffset: 75
@@ -40,6 +47,7 @@ MonoBehaviour:
     tabWidth: 200
   unitsPerEm: 1000
   fontScale: 1
+  participatesInNormalization: 1
   sdfDetailMultiplier: 1
   tileSizeOffset: 2
   glyphOverrides: []

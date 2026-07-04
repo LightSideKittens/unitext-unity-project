@@ -1134,7 +1134,7 @@ MonoBehaviour:
         fadeDuration: 0.25
         hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425364373307585
-      type: {class: OutlineModifier, ns: LightSide, asm: LightSide.UniText}
+      type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
     - rid: 266425364373307609
@@ -1896,7 +1896,7 @@ MonoBehaviour:
         fadeDuration: 0.25
         hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425359752233041
-      type: {class: OutlineModifier, ns: LightSide, asm: LightSide.UniText}
+      type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
     - rid: 266425359752233043
@@ -2612,7 +2612,7 @@ MonoBehaviour:
         fadeDuration: 0.25
         hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425359752233041
-      type: {class: OutlineModifier, ns: LightSide, asm: LightSide.UniText}
+      type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
     - rid: 266425359752233043
@@ -2720,7 +2720,7 @@ MonoBehaviour:
         fadeDuration: 0.25
         hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425364373307595
-      type: {class: OutlineModifier, ns: LightSide, asm: LightSide.UniText}
+      type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
 --- !u!222 &1660377101
@@ -2878,7 +2878,7 @@ MonoBehaviour:
         fadeDuration: 0.25
         hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425359752233041
-      type: {class: OutlineModifier, ns: LightSide, asm: LightSide.UniText}
+      type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
     - rid: 266425359752233043

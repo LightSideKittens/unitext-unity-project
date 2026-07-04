@@ -136,16 +136,10 @@ MonoBehaviour:
   font: {fileID: 0}
   fontStack: {fileID: 11400000, guid: 72f6e3edfbc82804791ebe8e4814fa46, type: 2}
   fontSize: 28
-  baseDirection: 2
   wordWrap: 1
   padding: {x: 0, y: 0, z: 0, w: 0}
   horizontalAlignment: 0
   verticalAlignment: 0
-  textJustify: 0
-  lastLineAlignment: 0
-  overEdge: 0
-  underEdge: 0
-  leadingDistribution: 0
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
@@ -156,46 +150,55 @@ MonoBehaviour:
       rule:
         rid: 266425450751590462
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2031797866453532882
       rule:
         rid: 266425450751590463
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2031797866453532884
       rule:
         rid: 266425450751590464
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2031797866453532886
       rule:
         rid: 266425450751590465
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2031797866453532888
       rule:
         rid: 2031797866453532889
       defaultParameter: 
+      disabled: 0
     - modifier:
-        rid: 2031797913714425946
+        rid: 7750514236629450809
       rule:
         rid: 2031797913714425947
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2935973566340137039
       rule:
         rid: 266425450751590467
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2935973566340137040
       rule:
         rid: 266425450751590474
       defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2935973566340137021
       rule:
         rid: 266425450751590468
       defaultParameter: 
+      disabled: 0
   stylePresets:
     items:
     - {fileID: 11400000, guid: c63bfb476d8131e49bfee56b80320ec3, type: 2}
@@ -206,20 +209,23 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
     - rid: 1000
       type: {class: InlineObjProvider, ns: LightSide, asm: LightSide.UniText}
       data:
         entries:
           items:
           - name: log
-            width: 1
-            height: 1
-            bearingX: 0
-            bearingY: 0
+            size: {x: 1, y: 1}
+            bearingOffset: {x: 0, y: 0}
             advance: 1
+            lineHeight: 0
             prefab: {fileID: 0}
+    - rid: 1001
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 1002
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
     - rid: 266424891755987002
       type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -250,7 +256,7 @@ MonoBehaviour:
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
         tagName: link
-        defaultParameter: 
+        defaultParameter: ;#14A6FFFF
     - rid: 266425450751590467
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -274,10 +280,14 @@ MonoBehaviour:
       data: 
     - rid: 2031797866453532884
       type: {class: UnderlineModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        provider:
+          rid: 1001
     - rid: 2031797866453532886
       type: {class: StrikethroughModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        provider:
+          rid: 1002
     - rid: 2031797866453532888
       type: {class: ListModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -293,16 +303,6 @@ MonoBehaviour:
       type: {class: MarkdownListParseRule, ns: LightSide, asm: LightSide.UniText}
       data:
         spacesPerLevel: 2
-    - rid: 2031797913714425946
-      type: {class: LinkModifier, ns: LightSide, asm: LightSide.UniText}
-      data:
-        highlighter:
-          rid: -2
-        linkColor:
-          serializedVersion: 2
-          rgba: 4294214978
-        enableUnderline: 1
-        autoOpenUrl: 1
     - rid: 2031797913714425947
       type: {class: CompositeParseRule, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -313,10 +313,12 @@ MonoBehaviour:
           - rid: 266425450751590466
     - rid: 2031797913714425948
       type: {class: MarkdownLinkParseRule, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        defaultParameter: ;#14A6FFFF
     - rid: 2031797913714425949
       type: {class: RawUrlParseRule, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        defaultParameter: ;#14A6FFFF
     - rid: 2935973566340137021
       type: {class: ObjModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -327,4 +329,35 @@ MonoBehaviour:
       data: 
     - rid: 2935973566340137040
       type: {class: LetterSpacingModifier, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 7750514236629450809
+      type: {class: CompositeModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifiers:
+          items:
+          - rid: 7750514236629450810
+          - rid: 7750514236629450812
+          - rid: 7750514236629450819
+    - rid: 7750514236629450810
+      type: {class: LinkModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        highlighter:
+          rid: 7750514236629450811
+        autoOpenUrl: 1
+    - rid: 7750514236629450811
+      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
+      data:
+        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
+        fadeDuration: 0.25
+        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
+    - rid: 7750514236629450812
+      type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 7750514236629450819
+      type: {class: UnderlineModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        provider:
+          rid: 7750514236629450820
+    - rid: 7750514236629450820
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
       data: 

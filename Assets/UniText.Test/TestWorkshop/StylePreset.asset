@@ -34,7 +34,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 266424891755987266
-      type: {class: GradientModifier, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FillModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 266425450685005831
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
