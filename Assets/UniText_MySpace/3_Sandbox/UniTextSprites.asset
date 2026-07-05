@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc54a570fcd742647a0ce55aa741a918, type: 3}
+  m_Name: UniTextSprites
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextSprites
+  entries:
+    items:
+    - name: test
+      size: {x: 1.2800001, y: 1.25}
+      bearingOffset: {x: -0.04, y: -0.13}
+      advance: 1
+      lineHeight: 0
+      sprite: {fileID: 21300000, guid: e5e90987976c6af42b157640e62181d8, type: 3}
+      color: {r: 1, g: 1, b: 1, a: 1}
+      preserveAspect: 0
+    - name: test2
+      size: {x: 1, y: 1}
+      bearingOffset: {x: 0, y: 0}
+      advance: 1
+      lineHeight: 0
+      sprite: {fileID: 21300000, guid: 534e3ec14cd78434b8676eec8a7fd9ba, type: 3}
+      color: {r: 1, g: 1, b: 1, a: 1}
+      preserveAspect: 1

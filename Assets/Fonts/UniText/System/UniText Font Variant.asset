@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f98884f63101cdb43a545305c46a5ba2, type: 3}
+  m_Name: UniText Font Variant
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFontVariant
+  fontData: 
+  fontDataHash: 0
+  italicStyle: 30
+  spacingOffset: 0
+  fakeBoldWeight: 0
+  faceInfo:
+    faceIndex: 0
+    familyName: Consolas
+    styleName: Regular
+    weightClass: 400
+    isItalic: 0
+    unitsPerEm: 2048
+    lineHeight: 2398
+    ascentLine: 1521
+    capLine: 1307
+    meanLine: 1004
+    descentLine: -527
+    superscriptOffset: 977
+    superscriptSize: 1331
+    subscriptOffset: 287
+    subscriptSize: 1331
+    underlineOffset: -338
+    underlineThickness: 144
+    strikethroughOffset: 512
+    strikethroughThickness: 102
+    tabWidth: 1126
+  unitsPerEm: 2048
+  fontScale: 1
+  sdfDetailMultiplier: 1
+  tileSizeOffset: 0
+  glyphOverrides: []
+  axisDefaults: []
+  sourceFont: {fileID: 0}
+  source: {fileID: 11400000, guid: 59e617656509026429df0eb316364399, type: 2}
+  faceIndex: 0

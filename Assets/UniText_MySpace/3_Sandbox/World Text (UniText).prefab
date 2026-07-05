@@ -1,0 +1,146 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7549888600479429898
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7861371071331635329}
+  - component: {fileID: 6225836709243572963}
+  m_Layer: 5
+  m_Name: World Text (UniText)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &7861371071331635329
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7549888600479429898}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 263, y: 855}
+  m_SizeDelta: {x: 400.4, y: 48}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6225836709243572963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7549888600479429898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f82394fefa9244d49e439daa1fb85977, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextWorld
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  text: MAX MAX MAX
+  font: {fileID: 11400000, guid: 105fc23435d31a84288b7e66f8f1c607, type: 2}
+  fontStack: {fileID: 0}
+  fontSize: 53.1
+  wordWrap: 1
+  padding: {x: 0, y: 0, z: 0, w: 0}
+  horizontalAlignment: 1
+  verticalAlignment: 1
+  autoSize: 0
+  minFontSize: 10
+  maxFontSize: 72
+  styles:
+    items:
+    - modifier:
+        rid: 7750514117476090139
+      rule:
+        rid: -2
+      defaultParameter: 
+      disabled: 0
+    - modifier:
+        rid: 7750514117476090140
+      rule:
+        rid: -2
+      defaultParameter: ',,,,,,stretch,0'
+      disabled: 0
+    - modifier:
+        rid: 7750514117476090141
+      rule:
+        rid: -2
+      defaultParameter: test
+      disabled: 0
+    - modifier:
+        rid: 7750514117476090143
+      rule:
+        rid: -2
+      defaultParameter: 
+      disabled: 0
+  stylePresets:
+    items: []
+  useGlobalStylePreset: 1
+  renderMode: 0
+  highlighter:
+    rid: 5346788155469332535
+  sortingOrder: 0
+  sortingLayerID: 0
+  raycastTarget: 1
+  lit: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 5346788155469332535
+      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
+      data:
+        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
+        fadeDuration: 0.25
+        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
+    - rid: 7750514117476090139
+      type: {class: ShadowModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        provider:
+          rid: -2
+    - rid: 7750514117476090140
+      type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        provider:
+          rid: -2
+    - rid: 7750514117476090141
+      type: {class: FillModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        provider:
+          rid: 7750514117476090142
+    - rid: 7750514117476090142
+      type: {class: AssetPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data:
+        asset: {fileID: 11400000, guid: ce2b980721664e142902a1d04c94d08c, type: 2}
+    - rid: 7750514117476090143
+      type: {class: MaterialModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        material: {fileID: 2100000, guid: 62e99437d113fd44686fc53685b1214e, type: 2}
+        renderOrder: 0
+        sortIndex: 0
+        constantUv2: {x: 0.478, y: 0, z: 0, w: 0}
+        constantUv3: {x: 0, y: 0, z: 0, w: 0}
+        emojiMaterial: {fileID: 0}
+        quadPaddingOverride: -1
+        cloneMaterial: 1

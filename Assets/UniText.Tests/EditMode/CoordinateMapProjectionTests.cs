@@ -28,8 +28,8 @@ namespace LightSide.Tests
             Assert.AreEqual(4, map.VisibleLength);
             Assert.AreEqual(2, map.SourceToVisible(5), "inside the range collapses to its visible start");
             Assert.AreEqual(3, map.SourceToVisible(9), "offset after the range shifts by hidden = length - codepointWidth");
-            Assert.AreEqual(9, map.VisibleToSource(3, TagStick.Before));
-            Assert.AreEqual(2, map.VisibleToSource(2, TagStick.Before), "width-bearing ranges never stick");
+            Assert.AreEqual(9, map.VisibleToSource(3, MarkupStick.Before));
+            Assert.AreEqual(2, map.VisibleToSource(2, MarkupStick.Before), "width-bearing ranges never stick");
         }
 
         [Test]
@@ -42,23 +42,23 @@ namespace LightSide.Tests
         }
 
         [Test]
-        public void ZeroWidthTagSticksBySide()
+        public void ZeroWidthMarkupSticksBySide()
         {
             var map = Build(10, new ProjectedRange(2, 7, string.Empty));
             Assert.AreEqual(3, map.VisibleLength);
-            Assert.AreEqual(2, map.VisibleToSource(2, TagStick.Before));
-            Assert.AreEqual(9, map.VisibleToSource(2, TagStick.After));
+            Assert.AreEqual(2, map.VisibleToSource(2, MarkupStick.Before));
+            Assert.AreEqual(9, map.VisibleToSource(2, MarkupStick.After));
         }
 
         [Test]
-        public void IsInsideTagBounds()
+        public void IsInsideMarkupBounds()
         {
             var map = Build(10, new ProjectedRange(2, 7, "😊"));
-            Assert.IsTrue(map.IsInsideTag(5, out var region));
+            Assert.IsTrue(map.IsInsideMarkup(5, out var region));
             Assert.AreEqual(2, region.start);
             Assert.AreEqual(9, region.End);
-            Assert.IsFalse(map.IsInsideTag(1, out _));
-            Assert.IsFalse(map.IsInsideTag(9, out _), "End is exclusive");
+            Assert.IsFalse(map.IsInsideMarkup(1, out _));
+            Assert.IsFalse(map.IsInsideMarkup(9, out _), "End is exclusive");
         }
     }
 }

@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!28 &2800000
+Texture2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UniTextBevelProfile
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 4
+  m_Width: 256
+  m_Height: 1
+  m_CompleteImageSize: 256
+  m_MipsStripped: 0
+  m_TextureFormat: 63
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_IsPreProcessed: 0
+  m_IgnoreMipmapLimit: 1
+  m_MipmapLimitGroupName: 
+  m_StreamingMipmaps: 0
+  m_StreamingMipmapsPriority: 0
+  m_VTOnly: 0
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  m_PlatformBlob: 
+  image data: 256
+  _typelessdata: 0000000101020304050607090a0c0e10121416181b1d202225282a2d303336393c3f4346494c4f5256595c5f6366696c6f7275787b7e818487898c8f919396989a9c9ea0a2a3a5a6a8a9aaababacadadaeaeaeaeaeaeaeadadacacabaaa9a8a7a6a5a4a3a2a09f9d9c9a98979593918f8d8c8a888583817f7d7b79777472706e6b69676563605e5c5a585553514f4d4b4947454341403e3c3b393736343332302f2e2d2c2b2a292928282727272626262727272828292a2c2d2e30323436383a3c3f4144474a4d505356595d6063676b6e7275797d8184888c9094989b9fa3a7abaeb2b6babdc1c4c8cbced2d5d8dbdee1e4e7e9eceef0f2f4f6f8fafbfdfeff
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
