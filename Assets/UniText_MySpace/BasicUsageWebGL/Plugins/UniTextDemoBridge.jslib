@@ -7,12 +7,24 @@
 
 mergeInto(LibraryManager.library, {
 
-  UniTextDemo_EmitTextChanged: function(textPtr) {
-    var text = UTF8ToString(textPtr);
+  $UniTextDemoEmit: function(event, payload) {
     var bridge = (typeof window !== 'undefined') ? window.__uniTextDemoBridge : null;
-    if (bridge && typeof bridge.emit === 'function') {
-      bridge.emit('textChanged', text);
-    }
+    if (bridge && typeof bridge.emit === 'function') bridge.emit(event, payload);
+  },
+
+  UniTextDemo_EmitTextChanged__deps: ['$UniTextDemoEmit'],
+  UniTextDemo_EmitTextChanged: function(textPtr) {
+    UniTextDemoEmit('textChanged', UTF8ToString(textPtr));
+  },
+
+  UniTextDemo_EmitFontLoaded__deps: ['$UniTextDemoEmit'],
+  UniTextDemo_EmitFontLoaded: function(labelPtr) {
+    UniTextDemoEmit('fontLoaded', UTF8ToString(labelPtr));
+  },
+
+  UniTextDemo_EmitFontError__deps: ['$UniTextDemoEmit'],
+  UniTextDemo_EmitFontError: function(messagePtr) {
+    UniTextDemoEmit('fontError', UTF8ToString(messagePtr));
   }
 
 });
