@@ -25,7 +25,7 @@ namespace LightSide.Tests
             root = new GameObject("TestCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
 
-            if (Object.FindObjectOfType<EventSystem>() == null)
+            if (ObjectUtils.FindAny<EventSystem>() == null)
                 new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
 
             var textGo = new GameObject("Editable", typeof(RectTransform));
@@ -46,7 +46,7 @@ namespace LightSide.Tests
         protected void Teardown()
         {
             if (root != null) Object.Destroy(root);
-            var es = Object.FindObjectOfType<EventSystem>();
+            var es = ObjectUtils.FindAny<EventSystem>();
             if (es != null && es.gameObject.name == "EventSystem") Object.Destroy(es.gameObject);
         }
 

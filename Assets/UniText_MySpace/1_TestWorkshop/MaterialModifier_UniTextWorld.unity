@@ -390,17 +390,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 266424891755987007
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987007
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 5346788061360161101
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
@@ -522,7 +514,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f672eede22fc8a24ab5dbe3938790a25, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: LightSide.UniText::LightSide.EventSystemBootstrap
+  m_EditorClassIdentifier: LightSide.Core::LightSide.EventSystemBootstrap
 --- !u!1 &692691899
 GameObject:
   m_ObjectHideFlags: 0
@@ -714,17 +706,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 266424891755987007
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987007
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 5346788121205538862
       type: {class: MaterialModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -1499,17 +1483,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 266424891755987006
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987006
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 2935973710890795272
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
       data: 

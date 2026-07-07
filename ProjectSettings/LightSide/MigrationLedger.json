@@ -1,0 +1,15 @@
+{
+    "packages": [
+        {
+            "name": "media.lightside.unitext",
+            "version": "3.0.0"
+        },
+        {
+            "name": "media.lightside.core",
+            "version": "1.0.0"
+        }
+    ],
+    "completedMigrations": [
+        "value/BoldModifier.weight/700->auto"
+    ]
+}

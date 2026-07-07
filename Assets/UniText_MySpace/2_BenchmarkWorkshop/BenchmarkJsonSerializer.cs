@@ -9,8 +9,19 @@ public static class BenchmarkJsonSerializer
     {
         var root = new JObject
         {
-            ["version"] = "1.0",
+            ["version"] = "1.1",
             ["timestamp"] = data.timestamp,
+            ["meta"] = new JObject
+            {
+                ["utc"] = data.utc,
+                ["commit"] = data.commit,
+                ["branch"] = data.branch,
+                ["dirty"] = data.dirty,
+                ["submoduleCommit"] = data.submoduleCommit,
+                ["submoduleBranch"] = data.submoduleBranch,
+                ["submoduleDirty"] = data.submoduleDirty,
+                ["source"] = data.source
+            },
             ["systemInfo"] = SerializeSystemInfo(),
             ["config"] = new JObject
             {
@@ -20,6 +31,16 @@ public static class BenchmarkJsonSerializer
             },
             ["textBenchmarks"] = SerializeTextBenchmarks(data.textBenchmarks),
             ["glyphRasterization"] = SerializeGlyphRasterization(data.glyphRasterization),
+            ["phaseNotes"] = new JObject
+            {
+                ["fullRebuild"] = "Incremental edit of one document — warm caches where an engine has them (UniText reuses unchanged-paragraph shaping).",
+                ["fullRebuildUnique"] = "Every paragraph unique per iteration — the cold path for all engines.",
+                ["fullRebuildRichText"] = "Unique variants of the corpus saturated with markup (91 tag pairs: <b> <i> <u> <s> <color=#hex> <size=%> <sub> <sup> <uppercase> <lowercase>) parsed by all three engines with byte-identical syntax (UniText via registered tag styles, TMP/UIToolkit richText). The previous phase measures the same content tag-free, so the delta is the markup cost.",
+                ["meshRebuild"] = "Engine-incremental color change: UniText re-emits mesh only, TMP re-runs full layout, UIToolkit repaints tint — different work classes by design.",
+                ["corpus.multilingual"] = "Arabic/bidi/emoji showcase: UniText produces correct shaped output; TMP and legacy UIToolkit do not shape or reorder this text — visual output is NOT equivalent.",
+                ["corpus.latin"] = "Plain Latin text — every engine performs comparable work; the apples-to-apples case.",
+                ["glyphRasterization"] = "Clear the glyph atlas, time re-rasterizing the shared corpus. UIToolkit and TMP funnel through the same TextCore FreeType path (apples-to-apples). UniText rasterizes async on the GPU — its e2e time is a different-architecture reference, not a like-for-like figure."
+            },
             ["errors"] = new JArray(data.errors.ToArray())
         };
 
@@ -53,7 +74,15 @@ public static class BenchmarkJsonSerializer
             ["screenDpi"] = Screen.dpi,
             ["unityVersion"] = Application.unityVersion,
             ["scriptingBackend"] = backend,
-            ["platform"] = Application.platform.ToString()
+            ["platform"] = Application.platform.ToString(),
+            ["isEditor"] = Application.isEditor,
+            ["isDebugBuild"] = UnityEngine.Debug.isDebugBuild,
+            ["unitextDebugDefine"] =
+#if UNITEXT_DEBUG
+                true
+#else
+                false
+#endif
         };
     }
 
@@ -72,6 +101,8 @@ public static class BenchmarkJsonSerializer
             ["creation"] = SerializeMetrics(r.creation),
             ["destruction"] = SerializeMetrics(r.destruction),
             ["fullRebuild"] = SerializeMetrics(r.fullRebuild),
+            ["fullRebuildUnique"] = SerializeMetrics(r.fullRebuildUnique),
+            ["fullRebuildRichText"] = SerializeMetrics(r.fullRebuildRichText),
             ["layoutWrapNoAuto"] = SerializeMetrics(r.layoutWrapNoAuto),
             ["layoutWrapAuto"] = SerializeMetrics(r.layoutWrapAuto),
             ["layoutNoWrapNoAuto"] = SerializeMetrics(r.layoutNoWrapNoAuto),
@@ -103,11 +134,18 @@ public static class BenchmarkJsonSerializer
         };
     }
 
-    static JObject SerializeGlyphRasterization(Dictionary<string, GlyphRasterData> data)
+    static JObject SerializeGlyphRasterization(Dictionary<string, Dictionary<string, GlyphRasterData>> data)
     {
         var obj = new JObject();
-        foreach (var kvp in data)
-            obj[kvp.Key] = SerializeGlyphRaster(kvp.Value);
+        foreach (var engine in data)
+        {
+            var byFont = new JObject();
+            foreach (var font in engine.Value)
+                if (font.Value?.frameTimes != null)
+                    byFont[font.Key] = SerializeGlyphRaster(font.Value);
+            if (byFont.Count > 0)
+                obj[engine.Key] = byFont;
+        }
         return obj;
     }
 
@@ -124,7 +162,7 @@ public static class BenchmarkJsonSerializer
         float avg = sorted.Count > 0 ? sum / sorted.Count : 0;
         double perGlyphUs = d.uniqueGlyphs > 0 ? (median * 1000.0) / d.uniqueGlyphs : 0;
 
-        return new JObject
+        var obj = new JObject
         {
             ["frameTimes"] = new JArray(d.frameTimes.ToArray()),
             ["median"] = median,
@@ -135,23 +173,46 @@ public static class BenchmarkJsonSerializer
             ["perGlyphMedianUs"] = perGlyphUs,
             ["managedAlloc"] = d.managedAlloc
         };
+
+        if (d.e2eTimes is { Count: > 0 })
+        {
+            var sortedE2e = new List<float>(d.e2eTimes);
+            sortedE2e.Sort();
+            obj["e2eTimes"] = new JArray(d.e2eTimes.ToArray());
+            obj["e2eMedian"] = sortedE2e[sortedE2e.Count / 2];
+            obj["perGlyphE2eMedianUs"] = d.uniqueGlyphs > 0 ? (sortedE2e[sortedE2e.Count / 2] * 1000.0) / d.uniqueGlyphs : 0;
+        }
+
+        return obj;
     }
 }
 
 public class BenchmarkRunData
 {
     public string timestamp;
+    public string utc;
+    public string commit = "unknown";
+    public string branch = "unknown";
+    public bool dirty;
+    public string submoduleCommit = "unknown";
+    public string submoduleBranch = "unknown";
+    public bool submoduleDirty;
+    public string source = "unknown";
     public int objectCount;
     public int iterations;
     public int warmupIterations;
     public Dictionary<string, TextBenchmarkBase.TestResults> textBenchmarks = new();
-    public Dictionary<string, GlyphRasterData> glyphRasterization = new();
+    public Dictionary<string, Dictionary<string, GlyphRasterData>> glyphRasterization = new();
     public List<string> errors = new();
 }
 
 public class GlyphRasterData
 {
     public List<float> frameTimes;
+
+    /// <summary>End-to-end times (CPU dispatch + GPU raster completion); empty for engines whose rasterization is fully synchronous inside <see cref="frameTimes"/>.</summary>
+    public List<float> e2eTimes;
+
     public int uniqueGlyphs;
     public long managedAlloc;
 }

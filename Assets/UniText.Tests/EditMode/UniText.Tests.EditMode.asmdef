@@ -2,7 +2,10 @@
     "name": "UniText.Tests.EditMode",
     "rootNamespace": "",
     "references": [
+        "LightSide.Core.Editor",
+        "LightSide.Core",
         "LightSide.UniText",
+        "LightSide.UniText.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
@@ -10,7 +13,7 @@
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll"

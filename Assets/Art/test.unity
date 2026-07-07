@@ -194,17 +194,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 6322824768975536128
   references:
     version: 2
     RefIds:
-    - rid: 6322824768975536128
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &776477375
 CanvasRenderer:
   m_ObjectHideFlags: 0

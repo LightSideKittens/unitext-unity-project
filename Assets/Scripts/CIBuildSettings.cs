@@ -7,9 +7,8 @@ using UnityEngine;
 [InitializeOnLoad]
 public static class CIBuildSettings
 {
-    private const string TestScenePath = "Assets/UniText.Test/TestWorkshop/UniTextTest.unity";
-    private const string BenchmarkScenePath = "Assets/UniText.Test/BenchmarkWorkshop/UniText_BenchmarkTest.unity";
-    private const string GlyphRasterizationBenchmarkScenePath = "Assets/UniText.Test/BenchmarkWorkshop/GlyphRasterization_BenchmarkTest.unity";
+    private const string TestScenePath = "Assets/UniText_MySpace/1_TestWorkshop/UniTextTest.unity";
+    private const string BenchmarkScenePath = "Assets/UniText_MySpace/2_BenchmarkWorkshop/1_General/General_BenchmarkTest.unity";
 
     static readonly BuildTargetGroup[] AllTargets =
     {
@@ -61,11 +60,11 @@ public static class CIBuildSettings
 
         if (benchmarkArg == "true")
         {
-            SetBuildScenes(BenchmarkScenePath, GlyphRasterizationBenchmarkScenePath);
+            SetBuildScene(BenchmarkScenePath);
             EnableBenchmark();
             DisableTests();
             DisableDebug();
-            Debug.Log("[CIBuildSettings] Benchmark build configured (2 scenes)");
+            Debug.Log("[CIBuildSettings] Benchmark build configured");
         }
         else
         {
@@ -106,7 +105,7 @@ public static class CIBuildSettings
     public static void SetTestScene() => SetBuildScene(TestScenePath);
 
     [MenuItem("UniText/CI/Set Build Scene - Benchmark")]
-    public static void SetBenchmarkScene() => SetBuildScenes(BenchmarkScenePath, GlyphRasterizationBenchmarkScenePath);
+    public static void SetBenchmarkScene() => SetBuildScene(BenchmarkScenePath);
 
     private static void SetBuildScene(string scenePath)
     {
@@ -133,10 +132,18 @@ public static class CIBuildSettings
     }
 
     [MenuItem("UniText/CI/Enable UNITEXT_DEBUG Symbol")]
-    public static void EnableDebug() => SetDefineSymbol("UNITEXT_DEBUG", true);
+    public static void EnableDebug()
+    {
+        SetDefineSymbol("UNITEXT_DEBUG", true);
+        SetDefineSymbol("LIGHTSIDE_DEBUG", true);
+    }
 
     [MenuItem("UniText/CI/Disable UNITEXT_DEBUG Symbol")]
-    public static void DisableDebug() => SetDefineSymbol("UNITEXT_DEBUG", false);
+    public static void DisableDebug()
+    {
+        SetDefineSymbol("UNITEXT_DEBUG", false);
+        SetDefineSymbol("LIGHTSIDE_DEBUG", false);
+    }
 
     [MenuItem("UniText/CI/Enable UNITEXT_TESTS Symbol")]
     public static void EnableTests() => SetDefineSymbol("UNITEXT_TESTS", true);

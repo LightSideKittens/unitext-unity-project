@@ -5,19 +5,12 @@ using System.IO;
 using System.Runtime.InteropServices;
 using LightSide;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class BenchmarkRunner : MonoBehaviour
 {
-    const string GlyphRasterizationScene = "GlyphRasterization_BenchmarkTest";
     const float WatchdogTimeout = 600f;
 
     BenchmarkRunData data;
-
-    void Awake()
-    {
-        DontDestroyOnLoad(gameObject);
-    }
 
 #if UNITEXT_BENCHMARK
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -25,7 +18,7 @@ public class BenchmarkRunner : MonoBehaviour
     {
         Debug.Log("[BenchmarkRunner] OnRuntimeStart called");
 
-        var runner = ObjectUtils.FindFirst<BenchmarkRunner>();
+        var runner = ObjectUtils.FindAny<BenchmarkRunner>();
         if (runner == null)
         {
             Debug.LogError("[BenchmarkRunner] BenchmarkRunner not found on scene!");
@@ -54,6 +47,7 @@ public class BenchmarkRunner : MonoBehaviour
         {
             timestamp = DateTime.UtcNow.ToString("o")
         };
+        FillMeta(data);
 
         for (int i = 0; i < 5; i++)
             yield return null;
@@ -64,11 +58,8 @@ public class BenchmarkRunner : MonoBehaviour
 
         if (CheckWatchdog())
         {
-            Debug.Log("[BenchmarkRunner] Loading glyph rasterization scene...");
-            SceneManager.LoadScene(GlyphRasterizationScene);
-            yield return null;
-            yield return null;
-
+            yield return EngineCooldown();
+            WarnIfSceneNotSterile();
             yield return RunGlyphRasterizationBenchmarks();
         }
 
@@ -80,12 +71,13 @@ public class BenchmarkRunner : MonoBehaviour
 
     IEnumerator RunTextBenchmarks()
     {
+        var cfg = BenchmarkConfig.Instance;
         var uniTextBench = ObjectUtils.FindAny<UniTextBenchmark>();
         if (uniTextBench != null)
         {
-            data.objectCount = uniTextBench.objectCount;
-            data.iterations = uniTextBench.iterations;
-            data.warmupIterations = uniTextBench.warmupIterations;
+            data.objectCount = cfg != null ? cfg.objectCount : uniTextBench.objectCount;
+            data.iterations = cfg != null ? cfg.iterations : uniTextBench.iterations;
+            data.warmupIterations = cfg != null ? cfg.warmupIterations : uniTextBench.warmupIterations;
 
             Debug.Log("[BenchmarkRunner] Running UniText (Single-Threaded)...");
             yield return SafeRun("unitextSingleThreaded",
@@ -93,6 +85,7 @@ public class BenchmarkRunner : MonoBehaviour
                 () => data.textBenchmarks["unitextSingleThreaded"] = uniTextBench.Results);
 
             if (!CheckWatchdog()) yield break;
+            yield return EngineCooldown();
 
             Debug.Log("[BenchmarkRunner] Running UniText (Parallel)...");
             yield return SafeRun("unitextParallel",
@@ -100,6 +93,7 @@ public class BenchmarkRunner : MonoBehaviour
                 () => data.textBenchmarks["unitextParallel"] = uniTextBench.Results);
 
             if (!CheckWatchdog()) yield break;
+            yield return EngineCooldown();
         }
         else
         {
@@ -117,6 +111,7 @@ public class BenchmarkRunner : MonoBehaviour
                 () => data.textBenchmarks["tmp"] = tmpBench.Results);
 
             if (!CheckWatchdog()) yield break;
+            yield return EngineCooldown();
         }
         else
         {
@@ -127,14 +122,12 @@ public class BenchmarkRunner : MonoBehaviour
         var uitkBench = ObjectUtils.FindAny<UIToolkitBenchmark>();
         if (uitkBench != null)
         {
-            uitkBench.objectCount = data.objectCount;
-            uitkBench.iterations = data.iterations;
-            uitkBench.warmupIterations = data.warmupIterations;
+            ApplyConfig(uitkBench);
 
             Debug.Log("[BenchmarkRunner] Running UIToolkit...");
             yield return SafeRun("uiToolkit",
                 () => uitkBench.RunBenchmarkCoroutine(silent: true),
-                () => data.textBenchmarks["uiToolkit"] = ConvertUIToolkitResults(uitkBench.Results));
+                () => data.textBenchmarks["uiToolkit"] = uitkBench.Results);
 
             if (!CheckWatchdog()) yield break;
         }
@@ -142,60 +135,88 @@ public class BenchmarkRunner : MonoBehaviour
         {
             Debug.LogWarning("[BenchmarkRunner] UIToolkitBenchmark not found (optional)");
         }
+
+        if (runLatinCorpus)
+            yield return RunLatinCorpusPass(uniTextBench, tmpBench, uitkBench);
+    }
+
+    /// <summary>Glyph benchmarks count global atlas deltas — any enabled text component left over from the text phase deflates them via warm cache hits.</summary>
+    void WarnIfSceneNotSterile()
+    {
+        int live = ObjectUtils.FindAll<UniTextBase>().Length
+                 + ObjectUtils.FindAll<TMPro.TMP_Text>().Length;
+        if (live == 0) return;
+        data.errors.Add($"{live} enabled text component(s) alive before glyph phase — counts may be skewed");
+        Debug.LogWarning($"[BenchmarkRunner] {live} enabled text component(s) alive before glyph phase");
     }
 
     IEnumerator RunGlyphRasterizationBenchmarks()
     {
-        var uniGlyph = ObjectUtils.FindAny<UniText_GlyphRasterizationBenchmark>();
-        if (uniGlyph != null)
+        var selector = ObjectUtils.FindAny<BenchmarkFontSelector>();
+        if (selector != null && selector.Fonts.Count > 0)
         {
-            Debug.Log("[BenchmarkRunner] Running UniText Glyph Rasterization (Single-Threaded)...");
-            yield return SafeRun("unitextGlyphST",
-                () => uniGlyph.RunBenchmarkCoroutine(singleThreaded: true),
-                () => data.glyphRasterization["unitextSingleThreaded"] = ConvertGlyphResults(uniGlyph.LastResults));
-
-            if (!CheckWatchdog()) yield break;
-
-            Debug.Log("[BenchmarkRunner] Running UniText Glyph Rasterization (Parallel)...");
-            yield return SafeRun("unitextGlyphParallel",
-                () => uniGlyph.RunBenchmarkCoroutine(singleThreaded: false),
-                () => data.glyphRasterization["unitextParallel"] = ConvertGlyphResults(uniGlyph.LastResults));
-
-            if (!CheckWatchdog()) yield break;
-
-            Debug.Log("[BenchmarkRunner] Running UniText Glyph Rasterization (Single-Threaded + Max Stroke)...");
-            yield return SafeRun("unitextGlyphSTMaxStroke",
-                () => uniGlyph.RunBenchmarkCoroutine(singleThreaded: true, maxStroke: true),
-                () => data.glyphRasterization["unitextSingleThreadedMaxStroke"] = ConvertGlyphResults(uniGlyph.LastResults));
-
-            if (!CheckWatchdog()) yield break;
-
-            Debug.Log("[BenchmarkRunner] Running UniText Glyph Rasterization (Parallel + Max Stroke)...");
-            yield return SafeRun("unitextGlyphParallelMaxStroke",
-                () => uniGlyph.RunBenchmarkCoroutine(singleThreaded: false, maxStroke: true),
-                () => data.glyphRasterization["unitextParallelMaxStroke"] = ConvertGlyphResults(uniGlyph.LastResults));
-
-            if (!CheckWatchdog()) yield break;
+            foreach (var pair in selector.Fonts)
+            {
+                selector.Apply(pair);
+                yield return null;
+                yield return RunGlyphForFont(pair.Name);
+                if (!CheckWatchdog()) yield break;
+            }
         }
         else
         {
-            data.errors.Add("UniText_GlyphRasterizationBenchmark not found on glyph rasterization scene");
-            Debug.LogWarning("[BenchmarkRunner] UniText_GlyphRasterizationBenchmark not found");
+            yield return RunGlyphForFont("default");
+        }
+    }
+
+    IEnumerator RunGlyphForFont(string font)
+    {
+        var uniGlyph = ObjectUtils.FindAny<UniText_GlyphRasterizationBenchmark>();
+        if (uniGlyph != null)
+        {
+            var variants = new (string key, bool singleThreaded, bool maxStroke)[]
+            {
+                ("unitextSingleThreaded", true, false),
+                ("unitextParallel", false, false),
+                ("unitextSingleThreadedMaxStroke", true, true),
+                ("unitextParallelMaxStroke", false, true),
+            };
+            foreach (var v in variants)
+            {
+                Debug.Log($"[BenchmarkRunner] Running UniText Glyph Rasterization ({v.key}, {font})...");
+                yield return SafeRun($"unitextGlyph.{v.key}.{font}",
+                    () => uniGlyph.RunBenchmarkCoroutine(v.singleThreaded, v.maxStroke),
+                    () => StoreGlyph(v.key, font, uniGlyph.LastResults));
+                if (!CheckWatchdog()) yield break;
+            }
         }
 
         var tmpGlyph = ObjectUtils.FindAny<TMP_GlyphRasterizationBenchmark>();
         if (tmpGlyph != null)
         {
-            Debug.Log("[BenchmarkRunner] Running TMP Glyph Rasterization...");
-            yield return SafeRun("tmpGlyph",
+            Debug.Log($"[BenchmarkRunner] Running TMP Glyph Rasterization ({font})...");
+            yield return SafeRun($"tmpGlyph.{font}",
                 () => tmpGlyph.RunBenchmarkCoroutine(),
-                () => data.glyphRasterization["tmp"] = ConvertTmpGlyphResults(tmpGlyph.LastResults));
+                () => StoreGlyph("tmp", font, tmpGlyph.LastResults));
+            if (!CheckWatchdog()) yield break;
         }
-        else
+
+        var uitkGlyph = ObjectUtils.FindAny<UIToolkit_GlyphRasterizationBenchmark>();
+        if (uitkGlyph != null)
         {
-            data.errors.Add("TMP_GlyphRasterizationBenchmark not found on glyph rasterization scene");
-            Debug.LogWarning("[BenchmarkRunner] TMP_GlyphRasterizationBenchmark not found");
+            Debug.Log($"[BenchmarkRunner] Running UIToolkit Glyph Rasterization ({font})...");
+            yield return SafeRun($"uiToolkitGlyph.{font}",
+                () => uitkGlyph.RunBenchmarkCoroutine(),
+                () => StoreGlyph("uiToolkit", font, uitkGlyph.LastResults));
         }
+    }
+
+    void StoreGlyph(string engineKey, string font, GlyphRasterData result)
+    {
+        if (result == null) return;
+        if (!data.glyphRasterization.TryGetValue(engineKey, out var byFont))
+            data.glyphRasterization[engineKey] = byFont = new Dictionary<string, GlyphRasterData>();
+        byFont[font] = result;
     }
 
     IEnumerator SafeRun(string name, Func<IEnumerator> coroutineFactory, Action onComplete)
@@ -274,57 +295,134 @@ public class BenchmarkRunner : MonoBehaviour
         bench.warmupIterations = data.warmupIterations;
     }
 
-    #region Result Conversion
+    /// <summary>Second pass over every engine with the plain-Latin corpus — the apples-to-apples case (result keys get a ".latin" suffix). Creation/destruction is skipped there: it does not depend on text content.</summary>
+    public bool runLatinCorpus = true;
 
-    static TextBenchmarkBase.TestResults ConvertUIToolkitResults(UIToolkitBenchmark.TestResults src)
+    IEnumerator RunLatinCorpusPass(UniTextBenchmark uniTextBench, TMPBenchmark tmpBench, UIToolkitBenchmark uitkBench)
     {
-        return new TextBenchmarkBase.TestResults
+        Debug.Log("[BenchmarkRunner] === LATIN CORPUS PASS ===");
+        var latin = BenchmarkConfig.Latin;
+
+        if (uniTextBench != null)
         {
-            creation = ConvertMetrics(src.creation),
-            destruction = ConvertMetrics(src.destruction),
-            fullRebuild = ConvertMetrics(src.fullRebuild),
-            layoutWrapNoAuto = ConvertMetrics(src.layoutWrapNoAuto),
-            layoutWrapAuto = ConvertMetrics(src.layoutWrapAuto),
-            layoutNoWrapNoAuto = ConvertMetrics(src.layoutNoWrapNoAuto),
-            layoutNoWrapAuto = ConvertMetrics(src.layoutNoWrapAuto),
-            meshRebuild = ConvertMetrics(src.meshRebuild)
-        };
+            uniTextBench.corpusName = "latin";
+            uniTextBench.corpusOverrideText = latin;
+            var wasCreation = uniTextBench.runCreationDestructionTest;
+            uniTextBench.runCreationDestructionTest = false;
+
+            yield return EngineCooldown();
+            yield return SafeRun("unitextSingleThreaded.latin",
+                () => uniTextBench.RunBenchmarkCoroutine(silent: true, parallel: false),
+                () => data.textBenchmarks["unitextSingleThreaded.latin"] = uniTextBench.Results);
+            if (!CheckWatchdog()) yield break;
+
+            yield return EngineCooldown();
+            yield return SafeRun("unitextParallel.latin",
+                () => uniTextBench.RunBenchmarkCoroutine(silent: true, parallel: true),
+                () => data.textBenchmarks["unitextParallel.latin"] = uniTextBench.Results);
+            if (!CheckWatchdog()) yield break;
+
+            uniTextBench.corpusOverrideText = null;
+            uniTextBench.corpusName = "multilingual";
+            uniTextBench.runCreationDestructionTest = wasCreation;
+        }
+
+        if (tmpBench != null)
+        {
+            tmpBench.corpusName = "latin";
+            tmpBench.corpusOverrideText = latin;
+            var wasCreation = tmpBench.runCreationDestructionTest;
+            tmpBench.runCreationDestructionTest = false;
+
+            yield return EngineCooldown();
+            yield return SafeRun("tmp.latin",
+                () => tmpBench.RunBenchmarkCoroutine(silent: true),
+                () => data.textBenchmarks["tmp.latin"] = tmpBench.Results);
+            if (!CheckWatchdog()) yield break;
+
+            tmpBench.corpusOverrideText = null;
+            tmpBench.corpusName = "multilingual";
+            tmpBench.runCreationDestructionTest = wasCreation;
+        }
+
+        if (uitkBench != null)
+        {
+            uitkBench.corpusName = "latin";
+            uitkBench.corpusOverrideText = latin;
+            var wasCreation = uitkBench.runCreationDestructionTest;
+            uitkBench.runCreationDestructionTest = false;
+
+            yield return EngineCooldown();
+            yield return SafeRun("uiToolkit.latin",
+                () => uitkBench.RunBenchmarkCoroutine(silent: true),
+                () => data.textBenchmarks["uiToolkit.latin"] = uitkBench.Results);
+            if (!CheckWatchdog()) yield break;
+
+            uitkBench.corpusOverrideText = null;
+            uitkBench.corpusName = "multilingual";
+            uitkBench.runCreationDestructionTest = wasCreation;
+        }
     }
 
-    static TextBenchmarkBase.TestMetrics ConvertMetrics(UIToolkitBenchmark.TestMetrics src)
+    /// <summary>
+    /// Run provenance: UTC stamp, commit/branch (git in the editor, GITHUB_* env on CI runners),
+    /// dirty flag and origin — the history viewer separates publishable numbers from tainted ones by these.
+    /// </summary>
+    static void FillMeta(BenchmarkRunData data)
     {
-        return new TextBenchmarkBase.TestMetrics
-        {
-            frameTimes = src.frameTimes,
-            totalAlloc = src.totalAlloc,
-            managedAlloc = src.managedAlloc,
-            gcGen0 = src.gcGen0,
-            gcGen1 = src.gcGen1,
-            gcGen2 = src.gcGen2
-        };
+        data.utc = DateTime.UtcNow.ToString("o");
+        data.commit = Environment.GetEnvironmentVariable("GITHUB_SHA") ?? "unknown";
+        data.branch = Environment.GetEnvironmentVariable("GITHUB_REF_NAME") ?? "unknown";
+        data.source = Application.isEditor ? "editor"
+            : Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true" ? "ci"
+            : "local-player";
+
+#if UNITY_EDITOR
+        data.commit = RunGit("rev-parse HEAD") ?? data.commit;
+        data.branch = RunGit("rev-parse --abbrev-ref HEAD") ?? data.branch;
+        data.dirty = !string.IsNullOrEmpty(RunGit("status --porcelain"));
+
+        data.submoduleCommit = RunGit("-C Assets/UniText rev-parse HEAD") ?? data.submoduleCommit;
+        data.submoduleBranch = RunGit("-C Assets/UniText rev-parse --abbrev-ref HEAD") ?? data.submoduleBranch;
+        data.submoduleDirty = !string.IsNullOrEmpty(RunGit("-C Assets/UniText status --porcelain"));
+#endif
     }
 
-    static GlyphRasterData ConvertGlyphResults(UniText_GlyphRasterizationBenchmark.GlyphRasterResults src)
+#if UNITY_EDITOR
+    static string RunGit(string args)
     {
-        return new GlyphRasterData
+        try
         {
-            frameTimes = src.frameTimes ?? new List<float>(),
-            uniqueGlyphs = src.glyphCounts is { Count: > 0 } ? src.glyphCounts[0] : 0,
-            managedAlloc = src.managedAlloc
-        };
+            var psi = new System.Diagnostics.ProcessStartInfo("git", args)
+            {
+                WorkingDirectory = Directory.GetParent(Application.dataPath).FullName,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            using var p = System.Diagnostics.Process.Start(psi);
+            var output = p.StandardOutput.ReadToEnd().Trim();
+            p.WaitForExit(3000);
+            return p.ExitCode == 0 && output.Length > 0 ? output : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
+#endif
 
-    static GlyphRasterData ConvertTmpGlyphResults(TMP_GlyphRasterizationBenchmark.GlyphRasterResults src)
+    /// <summary>
+    /// Heap normalization between engine runs: without it, later engines inherit the previous run's
+    /// heap debt and pending finalizers, contaminating GC counts and alloc deltas in run order.
+    /// </summary>
+    static IEnumerator EngineCooldown()
     {
-        return new GlyphRasterData
-        {
-            frameTimes = src.frameTimes ?? new List<float>(),
-            uniqueGlyphs = src.glyphCounts is { Count: > 0 } ? src.glyphCounts[0] : 0,
-            managedAlloc = src.managedAlloc
-        };
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        for (var i = 0; i < 10; i++) yield return null;
     }
-
-    #endregion
 
     #region Output
 
@@ -338,6 +436,10 @@ public class BenchmarkRunner : MonoBehaviour
         var jsonPath = Path.Combine(Application.persistentDataPath, "benchmarkResults.json");
         File.WriteAllText(jsonPath, json);
         Debug.Log($"[BenchmarkRunner] Results saved to: {jsonPath}");
+
+#if UNITY_EDITOR
+        BenchmarkHistory.SaveRun(json);
+#endif
         Debug.Log($"[BenchmarkRunner] JSON length: {json.Length} chars");
 
         Console.WriteLine($"BENCHMARK_RESULTS_PATH={jsonPath}");

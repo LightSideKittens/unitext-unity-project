@@ -214,7 +214,7 @@ namespace LightSide
         private static AccessorChain BuildAccessorChain(object rootInstance, string path)
         {
             ReadOnlySpan<char> input = path.AsSpan();
-            var tokens = ArrayPool<Token>.Shared.Rent(32);
+            var tokens = System.Buffers.ArrayPool<Token>.Shared.Rent(32);
             int length = Tokenize(input, tokens);
 
             var steps = new List<IStep>();
@@ -279,7 +279,7 @@ namespace LightSide
                 }
             }
 
-            ArrayPool<Token>.Shared.Return(tokens);
+            System.Buffers.ArrayPool<Token>.Shared.Return(tokens);
 
             var lastStep = steps[steps.Count - 1];
             return new AccessorChain(steps.ToArray(), lastStep.CanRead, lastStep.CanWrite);

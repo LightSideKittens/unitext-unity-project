@@ -73,17 +73,9 @@ MonoBehaviour:
     items: []
   useGlobalStylePreset: 1
   renderMode: 0
-  highlighter:
-    rid: 7750513601299087656
   sortingOrder: 0
   sortingLayerID: 0
   raycastTarget: 1
   references:
     version: 2
     RefIds:
-    - rid: 7750513601299087656
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}

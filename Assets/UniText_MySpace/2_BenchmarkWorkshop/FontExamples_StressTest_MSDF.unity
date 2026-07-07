@@ -194,17 +194,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &20824372
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -288,17 +280,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &65922580
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -391,17 +375,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &202104336
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -537,17 +513,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &245313779
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -687,17 +655,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425114772635648
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
@@ -787,17 +747,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &402534607
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -881,17 +833,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &484399819
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -975,17 +919,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &530026887
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1261,17 +1197,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &597782804
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1355,17 +1283,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &606648619
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1449,17 +1369,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &618433723
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1608,7 +1520,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f672eede22fc8a24ab5dbe3938790a25, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: LightSide.UniText::LightSide.EventSystemBootstrap
+  m_EditorClassIdentifier: LightSide.Core::LightSide.EventSystemBootstrap
 --- !u!1 &718189087
 GameObject:
   m_ObjectHideFlags: 0
@@ -1688,17 +1600,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &718189090
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1782,17 +1686,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &877038708
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1884,17 +1780,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425359752233041
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -2033,17 +1921,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &1058847118
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2164,17 +2044,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &1174340484
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2267,17 +2139,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &1215502536
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2370,17 +2234,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &1401452952
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2598,19 +2454,11 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425359752233041
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -2706,19 +2554,11 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425364373307595
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -2866,17 +2706,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987549
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987549
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425359752233041
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -3135,17 +2967,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 2935973836690030637
   references:
     version: 2
     RefIds:
-    - rid: 2935973836690030637
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.4}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.2}
 --- !u!222 &1980427243
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3454,17 +3278,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 1
-  highlighter:
-    rid: 266424891755987548
   references:
     version: 2
     RefIds:
-    - rid: 266424891755987548
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &2123860650
 CanvasRenderer:
   m_ObjectHideFlags: 0

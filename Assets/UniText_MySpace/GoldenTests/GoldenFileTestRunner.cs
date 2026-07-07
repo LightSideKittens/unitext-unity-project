@@ -21,7 +21,7 @@ public class GoldenFileTestRunner : MonoBehaviour
     [SerializeField] private UniText emojiTestTarget;
     [SerializeField] private List<EmojiTestCase> emojiTestCases;
 
-    private const string ResourcesPath = "Assets/UniText.Test/Resources";
+    private const string ResourcesPath = "Assets/UniText_MySpace/Resources";
     private const string GoldenFilesSubfolder = "GoldenTests";
 
     private static GoldenFileTestRunner instance;

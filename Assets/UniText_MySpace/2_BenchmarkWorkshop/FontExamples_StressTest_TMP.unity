@@ -1255,7 +1255,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f672eede22fc8a24ab5dbe3938790a25, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: LightSide.UniText::LightSide.EventSystemBootstrap
+  m_EditorClassIdentifier: LightSide.Core::LightSide.EventSystemBootstrap
 --- !u!1 &660590002
 GameObject:
   m_ObjectHideFlags: 0

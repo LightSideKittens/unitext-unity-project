@@ -97,8 +97,6 @@ MonoBehaviour:
     items: []
   useGlobalStylePreset: 1
   renderMode: 0
-  highlighter:
-    rid: 5346788155469332535
   sortingOrder: 0
   sortingLayerID: 0
   raycastTarget: 1
@@ -108,12 +106,6 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 5346788155469332535
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 7750514117476090139
       type: {class: ShadowModifier, ns: LightSide, asm: LightSide.UniText}
       data:

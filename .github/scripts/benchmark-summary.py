@@ -197,37 +197,35 @@ def main():
 
     print("")
 
-    # Glyph Rasterization
+    # Glyph Rasterization (nested: engine -> font -> data; tolerates the old flat shape too)
     if glyph:
         print("### Glyph Rasterization")
         print("")
+        print("| Engine · Font | Glyphs | Median | Per-glyph | Managed Alloc |")
+        print("|---|---|---|---|---|")
 
-        uni_st_g = glyph.get("unitextSingleThreaded", {})
-        uni_par_g = glyph.get("unitextParallel", {})
-        tmp_g = glyph.get("tmp", {})
-
-        glyphs = uni_st_g.get("uniqueGlyphs", "?")
-        print(f"Unique glyphs: **{glyphs}**")
-        print("")
-        print("| Mode | Median | Per-glyph | Managed Alloc |")
-        print("|------|--------|-----------|---------------|")
-
-        for label, g in [
-            ("UniText (ST)", uni_st_g),
-            ("UniText (Parallel)", uni_par_g),
-            ("TMP", tmp_g),
-        ]:
-            if not g:
-                continue
-            med = g.get("median", 0)
-            ppg = g.get("perGlyphMedianUs", 0)
-            alloc = g.get("managedAlloc", 0)
-            print(
-                f"| {label} "
-                f"| {fmt_ms(med)} "
-                f"| {ppg:.1f} us "
-                f"| {fmt_bytes(alloc)} |"
-            )
+        labels = {
+            "unitextSingleThreaded": "UniText ST",
+            "unitextParallel": "UniText MT",
+            "unitextSingleThreadedMaxStroke": "UniText ST +stroke",
+            "unitextParallelMaxStroke": "UniText MT +stroke",
+            "tmp": "TMP",
+            "uiToolkit": "UI Toolkit",
+        }
+        for ekey, entry in glyph.items():
+            label = labels.get(ekey, ekey)
+            is_flat = isinstance(entry, dict) and ("median" in entry or "frameTimes" in entry)
+            rows = [("—", entry)] if is_flat else entry.items()
+            for font, g in rows:
+                if not g:
+                    continue
+                print(
+                    f"| {label} · {font} "
+                    f"| {g.get('uniqueGlyphs', '?')} "
+                    f"| {fmt_ms(g.get('median', 0))} "
+                    f"| {g.get('perGlyphMedianUs', 0):.1f} us "
+                    f"| {fmt_bytes(g.get('managedAlloc', 0))} |"
+                )
 
         print("")
 

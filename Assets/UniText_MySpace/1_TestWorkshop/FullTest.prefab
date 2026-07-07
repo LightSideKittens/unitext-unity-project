@@ -204,8 +204,6 @@ MonoBehaviour:
     - {fileID: 11400000, guid: c63bfb476d8131e49bfee56b80320ec3, type: 2}
   useGlobalStylePreset: 1
   renderMode: 0
-  highlighter:
-    rid: 266424891755987002
   references:
     version: 2
     RefIds:
@@ -226,12 +224,6 @@ MonoBehaviour:
     - rid: 1002
       type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
       data: 
-    - rid: 266424891755987002
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 266425450751590462
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -341,15 +333,12 @@ MonoBehaviour:
     - rid: 7750514236629450810
       type: {class: LinkModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        highlighter:
+        styler:
           rid: 7750514236629450811
         autoOpenUrl: 1
     - rid: 7750514236629450811
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
+      type: {class: StateHighlightStyler, ns: LightSide, asm: LightSide.UniText}
       data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 7750514236629450812
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
       data: 

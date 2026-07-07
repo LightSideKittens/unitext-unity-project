@@ -154,9 +154,9 @@ RectTransform:
   - {fileID: 512799960}
   m_Father: {fileID: 1195603033}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -10.649, y: -12756}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -10.649, y: 262}
   m_SizeDelta: {x: 953, y: 0}
   m_Pivot: {x: 0.48882622, y: 1}
 --- !u!114 &24251883
@@ -356,7 +356,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 282.1928, y: 367.25092}
+  m_AnchoredPosition: {x: 282.02, y: 356}
   m_SizeDelta: {x: 953, y: 69.9}
   m_Pivot: {x: 0.79593015, y: 0.66504484}
 --- !u!114 &628271374
@@ -372,14 +372,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: LSCore.UIModule::UniText
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 1, b: 0.27177, a: 1}
+  m_Color: {r: 0.39957345, g: 1, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 1, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  text: "\U0001F446 Drag with finger or mouse to explore"
+  text: "\U0001F446 Drag with finger or mouse to explore\n"
   font: {fileID: 0}
   fontStack: {fileID: 11400000, guid: 5533cb9b3cdff7548a43448a32c090ce, type: 2}
   fontSize: 36
@@ -538,7 +538,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f672eede22fc8a24ab5dbe3938790a25, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: LightSide.UniText::LightSide.EventSystemBootstrap
+  m_EditorClassIdentifier: LightSide.Core::LightSide.EventSystemBootstrap
 --- !u!1 &1195603032
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,3 +4,6 @@
 [submodule "Assets/UniText-Public"]
 	path = Assets/UniText-Public
 	url = https://github.com/LightSideMeowshop/unitext.git
+[submodule "Assets/LightSide.Core"]
+	path = Assets/LightSide.Core
+	url = https://github.com/LightSideMeowshop/lightside-core.git

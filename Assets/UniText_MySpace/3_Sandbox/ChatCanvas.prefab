@@ -466,17 +466,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 266425111468834867
   references:
     version: 2
     RefIds:
-    - rid: 266425111468834867
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!1 &2438605484922773810
 GameObject:
   m_ObjectHideFlags: 0
@@ -696,17 +688,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 266425111468834868
   references:
     version: 2
     RefIds:
-    - rid: 266425111468834868
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!1 &5038952990196482851
 GameObject:
   m_ObjectHideFlags: 0
@@ -1182,17 +1166,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 266425111468834866
   references:
     version: 2
     RefIds:
-    - rid: 266425111468834866
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!1 &8166277980150434607
 GameObject:
   m_ObjectHideFlags: 0

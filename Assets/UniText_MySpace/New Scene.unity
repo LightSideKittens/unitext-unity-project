@@ -379,17 +379,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 4507959310606401630
   references:
     version: 2
     RefIds:
-    - rid: 4507959310606401630
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 5346787764359659711
       type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -399,7 +391,7 @@ MonoBehaviour:
     - rid: 5346787764359659712
       type: {class: LinkModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        highlighter:
+        styler:
           rid: 5346787764359659713
         linkColor:
           serializedVersion: 2
@@ -407,11 +399,8 @@ MonoBehaviour:
         enableUnderline: 1
         autoOpenUrl: 1
     - rid: 5346787764359659713
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
+      type: {class: StateHighlightStyler, ns: LightSide, asm: LightSide.UniText}
       data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!222 &286914895
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -511,17 +500,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 4507959310606401623
   references:
     version: 2
     RefIds:
-    - rid: 4507959310606401623
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 5346787764359659520
       type: {class: ListModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -1156,8 +1137,6 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 2
-  highlighter:
-    rid: 5346788256457424968
   sortingOrder: 0
   sortingLayerID: 0
   references:
@@ -1202,12 +1181,6 @@ MonoBehaviour:
     - rid: 5346787794514608380
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
-    - rid: 5346788256457424968
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
 --- !u!224 &1182202588
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1768,19 +1741,11 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 5346788256457424951
   sortingOrder: 0
   sortingLayerID: 0
   references:
     version: 2
     RefIds:
-    - rid: 5346788256457424951
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 5346788256457424964
       type: {class: MaterialModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -2993,17 +2958,9 @@ MonoBehaviour:
   stylePresets:
     items: []
   renderMode: 0
-  highlighter:
-    rid: 4507959310606401623
   references:
     version: 2
     RefIds:
-    - rid: 4507959310606401623
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 5346787647322062848
       type: {class: VariationModifier, ns: LightSide, asm: LightSide.UniText}
       data: 

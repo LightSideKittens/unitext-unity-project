@@ -96,17 +96,9 @@ MonoBehaviour:
     items: []
   useGlobalStylePreset: 1
   renderMode: 0
-  highlighter:
-    rid: 5414327550044537131
   references:
     version: 2
     RefIds:
-    - rid: 5414327550044537131
-      type: {class: DefaultTextHighlighter, ns: LightSide, asm: LightSide.UniText}
-      data:
-        clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}
-        fadeDuration: 0.25
-        hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}
     - rid: 5414327550044537257
       type: {class: ListModifier, ns: LightSide, asm: LightSide.UniText}
       data:

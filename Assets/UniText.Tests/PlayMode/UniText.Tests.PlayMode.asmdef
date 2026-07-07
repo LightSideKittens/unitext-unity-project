@@ -2,6 +2,7 @@
     "name": "UniText.Tests.PlayMode",
     "rootNamespace": "",
     "references": [
+        "LightSide.Core",
         "LightSide.UniText",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
