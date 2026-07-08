@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
+using LightSide;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
@@ -16,6 +19,16 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
     [Header("Settings")]
     public int iterations = 5;
     public int warmupIterations = 1;
+
+    [Header("Profiling")]
+    [Tooltip("After the timed runs, do one extra rasterization recorded through Prof. Deep call tree only when the engine assembly is IL-woven (Window/LightSide/Profiler Weaver).")]
+    public bool captureProfile;
+
+    [Tooltip("Also record per-method allocation. Costs a native probe on every woven call — very slow on million-call hot paths. Leave off for a fast time-only tree.")]
+    public bool captureAlloc;
+
+    [Tooltip("Also take a native statistical sample profile of this pass — zero per-call overhead, works without weaving. Needs the native sampler plugin; managed frame names resolve in a standalone IL2CPP build. Exports a Chrome trace for Perfetto/speedscope.")]
+    public bool captureSample;
 
     [Header("Status")]
     [SerializeField] protected bool isRunning;
@@ -116,6 +129,8 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
             }
         }
 
+        if (captureProfile || captureSample) yield return CaptureProfilePass();
+
         Deactivate();
         OnAfterRun();
 
@@ -131,6 +146,42 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         lastResult = report.ToString();
         Debug.Log(lastResult);
         isRunning = false;
+    }
+
+    /// <summary>One extra rasterization, off the timing stats, recorded through the instrumentation sink (<see cref="Prof"/>) and/or the native statistical sampler (<see cref="ProfSampler"/>). Instrumentation gives a deep tree only when the engine assembly is IL-woven; sampling needs no weaving and costs nothing per call. Outputs are saved beside the results.</summary>
+    private IEnumerator CaptureProfilePass()
+    {
+        Deactivate();
+        yield return null;
+        ClearCaches();
+        yield return null;
+
+        bool sampling = captureSample && ProfSampler.Available;
+        if (sampling) { ProfSampler.Clear(); ProfSampler.Arm(); }
+
+        if (captureProfile)
+        {
+            Prof.SampleAlloc = captureAlloc;
+            if (captureAlloc) ProfExactAlloc.Begin();
+            Prof.BeginCapture();
+        }
+
+        Rasterize();
+        if (HasE2E) yield return AwaitAsyncCompletion(0f);
+
+        if (captureProfile)
+        {
+            var capture = Prof.EndCapture();
+            if (captureAlloc) ProfExactAlloc.End();
+            ProfTransport.Ship(capture.ToJson(), $"profile_{EngineName}.json");
+        }
+
+        if (sampling)
+        {
+            ProfSampler.Disarm();
+            ProfSampler.Drain();
+            ProfTransport.Ship(ProfSampler.BuildSampledCapture().ToChromeTrace(), $"profile_{EngineName}_sampled.trace.json");
+        }
     }
 
     private void AppendHeader(string mode)
