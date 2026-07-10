@@ -1,8 +1,11 @@
 // UniText GPU Upload — Metal implementation.
 //
-// Uploads are encoded on a dedicated command buffer on *Unity's own queue*
-// (acquired via CurrentCommandBuffer.commandQueue). Same-queue scheduling
-// gives us automatic Metal hazard tracking against Unity's later shader reads.
+// Uploads are blit-encoded into *Unity's current command buffer* (the
+// IUnityGraphicsMetalV2 in-frame pattern): EndCurrentCommandEncoder() closes
+// Unity's in-flight encoder, then a blit encoder opens on
+// CurrentCommandBuffer(). Unity commits that buffer at its own submission
+// points, so ordering against later shader reads is guaranteed without a
+// separate command buffer or manual hazard tracking.
 //
 // Texture lifetime:
 //   Between main-thread IssuePluginEventAndData and render-thread callback
@@ -10,7 +13,9 @@
 //   implicit encoder retain would dereference the already-freed MTLTexture
 //   → SIGSEGV. We close the window by having the caller synchronously call
 //   ut_gpu_metal_retain_texture on the main thread (bumps MTLTexture refcount)
-//   and matching it with CFRelease in an MTLCommandBuffer completion handler.
+//   and matching it with CFRelease in a completion handler installed on the
+//   command buffer that carries the blit. Every early-out below must release
+//   the same set, or the caller-side retain leaks.
 //   The retain must target a materialized MTLTexture — callers must have
 //   called Apply() (or otherwise forced Metal materialization) before passing
 //   the native pointer in.
@@ -29,19 +34,14 @@
 #include "unity_plugin_api/IUnityGraphicsMetal.h"
 #include "gpu_upload_common.h"
 
-#ifdef _WIN32
-#define UTMETAL_EXPORT extern "C" __declspec(dllexport)
-#else
 #define UTMETAL_EXPORT extern "C" __attribute__((visibility("default")))
-#endif
 
-static IUnityGraphicsMetal* s_Metal = nullptr;
-static id<MTLCommandQueue> s_UnityQueue = nil;
+static IUnityGraphicsMetalV2* s_Metal = nullptr;
 static bool s_UsesManagedStorage = false;
 
 extern "C" void InitMetal(IUnityInterfaces* interfaces)
 {
-    s_Metal = interfaces->Get<IUnityGraphicsMetal>();
+    s_Metal = interfaces->Get<IUnityGraphicsMetalV2>();
     if (!s_Metal) return;
     id<MTLDevice> device = s_Metal->MetalDevice();
     if (!device) { s_Metal = nullptr; return; }
@@ -58,7 +58,6 @@ extern "C" void InitMetal(IUnityInterfaces* interfaces)
 
 extern "C" void ReleaseMetalResources()
 {
-    s_UnityQueue = nil;
     s_Metal = nullptr;
     s_UsesManagedStorage = false;
 }
@@ -73,20 +72,36 @@ UTMETAL_EXPORT void ut_gpu_metal_retain_texture(void* ptr)
     if (ptr) CFRetain(ptr);
 }
 
+// Flush boundary: ends Unity's encoder, then commits Unity's current command
+// buffer through the V2 receptor (Unity runs its own bookkeeping on commit
+// and starts a fresh buffer), so work encoded so far — including our blits —
+// reaches the GPU mid-frame. Safe to call any number of times per frame.
+extern "C" void FlushMetal()
+{
+    if (!s_Metal) return;
+    s_Metal->EndCurrentCommandEncoder();
+    s_Metal->CommitCurrentCommandBuffer();
+}
+
 extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count)
 {
-    if (!s_Metal || count <= 0) return;
-
-    if (s_UnityQueue == nil)
+    NSMutableSet* retainedTexPtrs = [NSMutableSet set];
+    for (int i = 0; i < count; i++)
     {
-        id<MTLCommandBuffer> probe = s_Metal->CurrentCommandBuffer();
-        if (probe == nil) return;
-        s_UnityQueue = probe.commandQueue;
-        if (s_UnityQueue == nil) return;
+        if (requests[i].nativeTexPtr)
+            [retainedTexPtrs addObject:[NSValue valueWithPointer:requests[i].nativeTexPtr]];
     }
+    // The caller retained every unique texture in the batch; any path that
+    // does not install the completion handler must release here.
+    void (^releaseRetained)(void) = ^{
+        for (NSValue* v in retainedTexPtrs)
+            CFRelease(v.pointerValue);
+    };
+
+    if (!s_Metal || count <= 0) { releaseRetained(); return; }
 
     id<MTLDevice> device = s_Metal->MetalDevice();
-    if (device == nil) return;
+    if (device == nil) { releaseRetained(); return; }
 
     size_t totalSize = 0;
     for (int i = 0; i < count; i++)
@@ -94,7 +109,7 @@ extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count)
         if (!requests[i].nativeTexPtr || !requests[i].pixelData) continue;
         totalSize += (size_t)requests[i].width * requests[i].height * requests[i].bytesPerPixel;
     }
-    if (totalSize == 0) return;
+    if (totalSize == 0) { releaseRetained(); return; }
 
     MTLResourceOptions options;
 #if TARGET_OS_OSX
@@ -106,7 +121,7 @@ extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count)
 #endif
 
     id<MTLBuffer> staging = [device newBufferWithLength:totalSize options:options];
-    if (staging == nil) return;
+    if (staging == nil) { releaseRetained(); return; }
     staging.label = @"UniText GPU Upload Staging";
 
     uint8_t* mapped = (uint8_t*)[staging contents];
@@ -139,23 +154,13 @@ extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count)
         [staging didModifyRange:NSMakeRange(0, totalSize)];
 #endif
 
-    NSMutableSet* retainedTexPtrs = [NSMutableSet set];
-    for (int i = 0; i < count; i++)
-    {
-        if (requests[i].nativeTexPtr)
-            [retainedTexPtrs addObject:[NSValue valueWithPointer:requests[i].nativeTexPtr]];
-    }
+    id<MTLCommandBuffer> cmdBuf = s_Metal->CurrentCommandBuffer();
+    if (cmdBuf == nil) { releaseRetained(); return; }
 
-    id<MTLCommandBuffer> cmdBuf = [s_UnityQueue commandBuffer];
-    if (cmdBuf == nil)
-    {
-        for (NSValue* v in retainedTexPtrs)
-            CFRelease(v.pointerValue);
-        return;
-    }
-    cmdBuf.label = @"UniText GPU Upload";
+    s_Metal->EndCurrentCommandEncoder();
 
     id<MTLBlitCommandEncoder> blit = [cmdBuf blitCommandEncoder];
+    if (blit == nil) { releaseRetained(); return; }
     blit.label = @"UniText GPU Upload";
 
     offset = 0;
@@ -183,12 +188,13 @@ extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count)
 
     [blit endEncoding];
 
+    // Installed before Unity commits this buffer (we run mid-frame on the
+    // render thread). The blit encoder's own retain keeps `staging` alive
+    // until execution completes.
     [cmdBuf addCompletedHandler:^(id<MTLCommandBuffer> _Nonnull) {
         for (NSValue* v in retainedTexPtrs)
             CFRelease(v.pointerValue);
     }];
-
-    [cmdBuf commit];
 }
 
 #endif

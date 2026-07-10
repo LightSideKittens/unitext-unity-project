@@ -21,6 +21,8 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
     VisualElement root;
     bool reloadHooked;
 
+    internal VisualElement RootElement => root;
+
     private void Start() => EnsurePanelRenderer();
 
     private void EnsurePanelRenderer()
@@ -98,10 +100,24 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
         label ??= new Label();
         label.style.position = Position.Absolute;
         label.style.left = 10;
-        label.style.top = 10;
+        label.style.top = 10 + index * 50;
         label.style.width = UGuiRectWidth;
         container.Add(label);
         return label;
+    }
+
+    protected override void SetInspectionName(Label instance, int index, BenchmarkInspectionPhase phase)
+    {
+        if (instance != null)
+            instance.name = $"{SystemName}_{phase}_{index:000}";
+    }
+
+    protected override int CountInspectionObjects() => container != null ? container.childCount : 0;
+
+    protected override string DescribeInspectionInstance(Label instance, int index)
+    {
+        if (instance == null) return "null";
+        return $"{instance.name}: textLen={instance.text?.Length ?? 0}, richText={instance.enableRichText}, whiteSpace={instance.style.whiteSpace}, left={instance.style.left}, top={instance.style.top}, width={instance.style.width}, height={instance.style.height}, fontSize={instance.style.fontSize}, color={instance.style.color}";
     }
 
     protected override void DestroyInstance(Label instance) => instance?.RemoveFromHierarchy();

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using LightSide;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
@@ -13,8 +14,12 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 {
     [SerializeField] bool forceCPURasterization;
 
+    [SerializeField, Tooltip("Un-mutes the raster Cat zone so the per-pass ContourUnion phase/bail line reaches Logs/unitext.log. Needs the UNITEXT_DEBUG scripting define, else the counters read 0.")]
+    bool dumpPhases;
+
     UniText[] targets;
     bool pendingSingleThreaded, pendingMaxStroke;
+    bool abortRun;
     bool wasParallel, wasForceST, wasMuted, wasSysDisabled, wasEmojiDisabled;
     List<(UniText text, Style style)> strokeStyles;
 
@@ -40,6 +45,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     protected override void OnBeforeRun()
     {
+        abortRun = false;
         GlyphAtlas.forceCpuRasterization = forceCPURasterization;
         wasParallel = UniTextBase.UseParallel;
         wasForceST = GlyphAtlas.forceSingleThreaded;
@@ -48,7 +54,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         wasEmojiDisabled = EmojiFont.Disabled;
         UniTextBase.UseParallel = !pendingSingleThreaded;
         GlyphAtlas.forceSingleThreaded = pendingSingleThreaded;
-        CatZones.MuteAll = true;
+        CatZones.MuteAll = !dumpPhases;
         SystemFont.Disabled = true;
         EmojiFont.Disabled = true;
     }
@@ -119,18 +125,31 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     protected override IEnumerator AwaitAsyncCompletion(float cpuMs)
     {
-#if UNITEXT_DEBUG
+        bool usesGpu = false;
+        GlyphAtlas.ForEachInstance(atlas => usesGpu |= atlas.UsesGpuRasterization);
+        if (!usesGpu)
+        {
+            lastE2eMs = cpuMs;
+            yield break;
+        }
+
         double dispatchStart = Time.realtimeSinceStartupAsDouble - cpuMs / 1000.0;
         var sdf = GlyphAtlas.GetInstance(UniTextRenderMode.SDF);
         var msdf = GlyphAtlas.GetInstance(UniTextRenderMode.MSDF);
-        for (int guard = 0; guard < 600 && !(sdf.GpuRasterComplete && msdf.GpuRasterComplete); guard++)
+        int guard = 0;
+        for (; guard < 600 && !(sdf.GpuRasterComplete && msdf.GpuRasterComplete); guard++)
             yield return null;
+
+        if (guard >= 600)
+        {
+            abortRun = true;
+            Debug.LogWarning("[UniText GlyphRaster] GPU raster did not complete within 600 frames.");
+        }
+
         lastE2eMs = (float)((Time.realtimeSinceStartupAsDouble - dispatchStart) * 1000.0);
-#else
-        lastE2eMs = cpuMs;
-        yield break;
-#endif
     }
+
+    protected override bool ShouldAbortRun() => abortRun;
 
     protected override string Diagnostics(string label)
     {
@@ -145,7 +164,10 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
                 return;
             }
             int depth = tex is RenderTexture rt ? rt.volumeDepth : tex is Texture2DArray ta ? ta.depth : 1;
-            sb.Append($"pages={atlas.PageCount} texSize={tex.width}x{tex.height}x{depth} pixelChecksum={BenchmarkAtlasUtils.Checksum(tex)}  ");
+            long storageMb = BenchmarkAtlasUtils.EstimatedStorageBytes(tex) / (1024 * 1024);
+            int contentSlices = BenchmarkAtlasUtils.ContentSliceCount(tex, atlas.PageCount);
+            string content = contentSlices >= 0 ? $" contentSlices={contentSlices}" : "";
+            sb.Append($"pages={atlas.PageCount} texSize={tex.width}x{tex.height}x{depth} texMB={storageMb}{content} pixelChecksum={BenchmarkAtlasUtils.Checksum(tex, atlas.PageCount)}  ");
         });
         return sb.ToString();
     }

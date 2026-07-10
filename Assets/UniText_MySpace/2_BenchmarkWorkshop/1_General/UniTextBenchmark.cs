@@ -52,6 +52,12 @@ public class UniTextBenchmark : UGuiTextBenchmarkBase
     protected override void SetWordWrap(Component instance, bool enabled) => ((UniText)instance).WordWrap = enabled;
     protected override void SetAutoSize(Component instance, bool enabled) => ((UniText)instance).AutoSize = enabled;
 
+    protected override string DescribeInspectionInstance(Component instance, int index)
+    {
+        var text = (UniText)instance;
+        return $"{base.DescribeInspectionInstance(instance, index)}, textLen={text.Text?.Length ?? 0}, fontSize={text.FontSize:F1}, color={text.color}, wrap={text.WordWrap}, autoSize={text.AutoSize}, globalPreset={text.UseGlobalStylePreset}, stylePresets={text.StylePresets.Count}, dirty={text.CurrentDirtyFlags}";
+    }
+
     /// <summary>
     /// Rich on = register a runtime preset whose tag rules parse the corpus's markup (the same
     /// &lt;b&gt;/&lt;i&gt;/&lt;u&gt;/&lt;s&gt;/&lt;color&gt;/&lt;size&gt;/&lt;sub&gt;/&lt;sup&gt;/&lt;uppercase&gt;/&lt;lowercase&gt; set TMP and UI Toolkit

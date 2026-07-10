@@ -8,6 +8,21 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
+/// <summary>Stable states from the shared text benchmark flow that can be left alive for editor inspection.</summary>
+public enum BenchmarkInspectionPhase
+{
+    CreatedOnly,
+    InitialCorpus,
+    FullRebuildIncremental,
+    FullRebuildUnique,
+    FullRebuildRichText,
+    LayoutWrapNoAuto,
+    LayoutWrapAuto,
+    LayoutNoWrapNoAuto,
+    LayoutNoWrapAuto,
+    MeshRebuildColor
+}
+
 /// <summary>
 /// Engine-agnostic half of the text harness: shared config, result structs, corpus/string generation,
 /// reporting and run control. The instance-typed measurement loops live in <see cref="TextBenchmarkBase{TInstance}"/>.
@@ -25,6 +40,13 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     public bool runFullRebuildTest = true;
     public bool runLayoutRebuildTest = true;
     public bool runMeshRebuildTest = true;
+
+    [Header("Inspection")]
+    [SerializeField] protected BenchmarkInspectionPhase inspectionPhase = BenchmarkInspectionPhase.FullRebuildUnique;
+    [SerializeField] protected int inspectionVariantIndex;
+    [SerializeField] protected bool inspectionLatinCorpus;
+    [SerializeField, Min(0)] protected int inspectionSampleCount = 5;
+    [SerializeField, TextArea(8, 24)] protected string inspectionReport = "";
 
     /// <summary>Corpus label recorded with the results ("multilingual" = the showcase text, "latin" = the apples-to-apples pass).</summary>
     [NonSerialized] public string corpusName = "multilingual";
@@ -49,6 +71,8 @@ public abstract class TextBenchmarkBase : MonoBehaviour
 
     public TestResults Results => testResults;
     public bool IsRunning => isRunning;
+    public string InspectionReport => inspectionReport;
+    protected bool inspectionActive;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Init()
@@ -134,6 +158,8 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     protected abstract void SetupContainer();
     protected abstract void TeardownContainer();
     protected abstract IEnumerator RunAllTests();
+    protected abstract IEnumerator RunInspection();
+    protected abstract void ClearInspectionObjects();
 
     protected virtual bool ValidateSetup() => true;
     protected virtual void OnPhaseComplete(string phaseName) { }
@@ -221,6 +247,23 @@ public abstract class TextBenchmarkBase : MonoBehaviour
         StartCoroutine(RunBenchmarkCoroutine(silent: false));
     }
 
+    [ContextMenu("Inspect Selected Phase")]
+    public void InspectSelectedPhase()
+    {
+        if (!Application.isPlaying)
+        {
+            Debug.LogError("Enter Play Mode to inspect benchmark runtime objects.");
+            return;
+        }
+        if (isRunning)
+        {
+            Debug.LogWarning("Benchmark already running!");
+            return;
+        }
+        if (!ValidateSetup()) return;
+        StartCoroutine(RunInspection());
+    }
+
     [ContextMenu("Stop Benchmark")]
     public void StopBenchmark()
     {
@@ -231,8 +274,30 @@ public abstract class TextBenchmarkBase : MonoBehaviour
         Debug.Log("Benchmark stopped.");
     }
 
+    [ContextMenu("Clear Inspection")]
+    public void ClearInspection()
+    {
+        if (isRunning)
+        {
+            Debug.LogWarning("Stop the benchmark before clearing inspection objects.");
+            return;
+        }
+        ClearInspectionState();
+    }
+
+    protected void ClearInspectionState()
+    {
+        if (!inspectionActive) return;
+        ClearInspectionObjects();
+        OnAfterAllTests();
+        inspectionActive = false;
+        inspectionReport = "";
+        currentTest = "";
+    }
+
     public IEnumerator RunBenchmarkCoroutine(bool silent)
     {
+        ClearInspectionState();
         isRunning = true;
         results.Clear();
 
@@ -311,7 +376,8 @@ public abstract class TextBenchmarkBase : MonoBehaviour
 
     private void OnDisable()
     {
-        StopBenchmark();
+        if (isRunning) StopBenchmark();
+        else ClearInspectionState();
     }
 }
 
@@ -336,6 +402,46 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
     /// <summary>Enables the engine's markup path so the bold tags in the rich variants are parsed and styled.</summary>
     protected abstract void SetRichText(TInstance instance, bool enabled);
 
+    protected virtual void SetInspectionName(TInstance instance, int index, BenchmarkInspectionPhase phase) { }
+    protected virtual int CountInspectionObjects() => instances == null ? 0 : instances.Length;
+    protected virtual string DescribeInspectionInstance(TInstance instance, int index) => instance != null ? instance.ToString() : "null";
+
+    struct InspectionState
+    {
+        public string textSource;
+        public string text;
+        public bool richText;
+        public bool wordWrap;
+        public bool autoSize;
+        public bool hasWordWrap;
+        public bool hasAutoSize;
+        public bool hasRect;
+        public bool hasColor;
+        public float width;
+        public float height;
+        public Color color;
+        public int measuredIndex;
+    }
+
+    void PrepareCorpus(bool latin)
+    {
+        if (latin)
+        {
+            corpus = richCorpus = BenchmarkConfig.Latin;
+        }
+        else if (string.IsNullOrEmpty(corpusOverrideText))
+        {
+            corpus = BenchmarkConfig.MultilingualPlain;
+            richCorpus = BenchmarkConfig.Multilingual;
+        }
+        else
+        {
+            corpus = richCorpus = corpusOverrideText;
+        }
+
+        GenerateTestStrings();
+    }
+
     protected override IEnumerator RunAllTests()
     {
         if (runCreationDestructionTest)
@@ -355,23 +461,13 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
         for (int i = 0; i < objectCount; i++)
             instances[i] = CreateInstance(i);
 
-        if (string.IsNullOrEmpty(corpusOverrideText))
-        {
-            corpus = BenchmarkConfig.MultilingualPlain;
-            richCorpus = BenchmarkConfig.Multilingual;
-        }
-        else
-        {
-            corpus = richCorpus = corpusOverrideText;
-        }
-
+        PrepareCorpus(false);
         for (int i = 0; i < objectCount; i++)
         {
             SetText(instances[i], corpus);
             SetRichText(instances[i], false);
         }
 
-        GenerateTestStrings();
         yield return null;
 
         if (runFullRebuildTest)
@@ -433,6 +529,47 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
         yield return null;
     }
 
+    protected override IEnumerator RunInspection()
+    {
+        ClearInspectionState();
+
+        var cfg = BenchmarkConfig.Instance;
+        if (cfg != null)
+        {
+            objectCount = cfg.objectCount;
+            iterations = cfg.iterations;
+            warmupIterations = cfg.warmupIterations;
+        }
+
+        isRunning = true;
+        currentTest = $"{SystemName}: Inspect {inspectionPhase}";
+        OnBeforeAllTests();
+        SetupContainer();
+        PrepareCorpus(inspectionLatinCorpus);
+
+        instances = new TInstance[objectCount];
+        for (int i = 0; i < objectCount; i++)
+        {
+            instances[i] = CreateInstance(i);
+            SetInspectionName(instances[i], i, inspectionPhase);
+        }
+
+        var state = ApplyInspectionPhase();
+        yield return null;
+        yield return waitForEndOfFrame;
+
+        inspectionReport = BuildInspectionReport(state);
+        Debug.Log(inspectionReport);
+        inspectionActive = true;
+        isRunning = false;
+    }
+
+    protected override void ClearInspectionObjects()
+    {
+        TeardownContainer();
+        instances = null;
+    }
+
     private void ApplyText(string[] source, int index)
     {
         var text = source[index % source.Length];
@@ -445,6 +582,157 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
         var c = new Color(r, 0.5f, 0.5f, 1f);
         for (int i = 0; i < objectCount; i++)
             SetColor(instances[i], c);
+    }
+
+    private InspectionState ApplyInspectionPhase()
+    {
+        var measuredIndex = Mathf.Max(0, inspectionVariantIndex) + warmupIterations;
+        var state = new InspectionState { measuredIndex = measuredIndex };
+
+        switch (inspectionPhase)
+        {
+            case BenchmarkInspectionPhase.CreatedOnly:
+                state.textSource = "prefab/template defaults";
+                break;
+
+            case BenchmarkInspectionPhase.InitialCorpus:
+                state.textSource = "corpus";
+                state.text = corpus;
+                state.richText = false;
+                ApplyRichText(false);
+                ApplySingleText(corpus);
+                break;
+
+            case BenchmarkInspectionPhase.FullRebuildIncremental:
+                state.textSource = $"testStrings[{measuredIndex % testStrings.Length}]";
+                state.text = testStrings[measuredIndex % testStrings.Length];
+                state.richText = false;
+                ApplyRichText(false);
+                ApplySingleText(state.text);
+                break;
+
+            case BenchmarkInspectionPhase.FullRebuildUnique:
+                state.textSource = $"uniqueTestStrings[{measuredIndex % uniqueTestStrings.Length}]";
+                state.text = uniqueTestStrings[measuredIndex % uniqueTestStrings.Length];
+                state.richText = false;
+                ApplyRichText(false);
+                ApplySingleText(state.text);
+                break;
+
+            case BenchmarkInspectionPhase.FullRebuildRichText:
+                state.textSource = $"richTestStrings[{measuredIndex % richTestStrings.Length}]";
+                state.text = richTestStrings[measuredIndex % richTestStrings.Length];
+                state.richText = true;
+                ApplyRichText(true);
+                ApplySingleText(state.text);
+                break;
+
+            case BenchmarkInspectionPhase.LayoutWrapNoAuto:
+                ApplyInspectionLayout(true, false, measuredIndex, ref state);
+                break;
+
+            case BenchmarkInspectionPhase.LayoutWrapAuto:
+                ApplyInspectionLayout(true, true, measuredIndex, ref state);
+                break;
+
+            case BenchmarkInspectionPhase.LayoutNoWrapNoAuto:
+                ApplyInspectionLayout(false, false, measuredIndex, ref state);
+                break;
+
+            case BenchmarkInspectionPhase.LayoutNoWrapAuto:
+                ApplyInspectionLayout(false, true, measuredIndex, ref state);
+                break;
+
+            case BenchmarkInspectionPhase.MeshRebuildColor:
+                state.textSource = "corpus";
+                state.text = corpus;
+                state.autoSize = false;
+                state.hasAutoSize = true;
+                state.hasRect = true;
+                state.width = 300f;
+                state.height = 300f;
+                state.color = new Color((measuredIndex * 0.1f) % 1f, 0.5f, 0.5f, 1f);
+                state.hasColor = true;
+                ApplyRichText(false);
+                ApplySingleText(corpus);
+                for (int i = 0; i < objectCount; i++)
+                {
+                    SetAutoSize(instances[i], false);
+                    SetRectSize(instances[i], state.width, state.height);
+                    SetColor(instances[i], state.color);
+                }
+                break;
+        }
+
+        return state;
+    }
+
+    private void ApplyInspectionLayout(bool wordWrap, bool autoSize, int measuredIndex, ref InspectionState state)
+    {
+        state.textSource = "corpus";
+        state.text = corpus;
+        state.wordWrap = wordWrap;
+        state.autoSize = autoSize;
+        state.hasWordWrap = true;
+        state.hasAutoSize = true;
+        state.hasRect = true;
+        state.width = state.height = 100f + (measuredIndex % 10) * 550f;
+        ApplyRichText(false);
+        for (int i = 0; i < objectCount; i++)
+        {
+            SetWordWrap(instances[i], wordWrap);
+            SetAutoSize(instances[i], autoSize);
+            SetText(instances[i], corpus);
+            SetRectSize(instances[i], state.width, state.height);
+        }
+    }
+
+    private void ApplyRichText(bool enabled)
+    {
+        for (int i = 0; i < objectCount; i++)
+            SetRichText(instances[i], enabled);
+    }
+
+    private void ApplySingleText(string text)
+    {
+        for (int i = 0; i < objectCount; i++)
+            SetText(instances[i], text);
+    }
+
+    private string BuildInspectionReport(InspectionState state)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"[{SystemName}] Inspection: {inspectionPhase}");
+        sb.AppendLine($"Corpus: {(inspectionLatinCorpus ? "latin" : corpusName)}");
+        sb.AppendLine($"Requested objects: {objectCount}");
+        sb.AppendLine($"Live objects: {CountInspectionObjects()}");
+        sb.AppendLine($"Variant index: {inspectionVariantIndex} (measured index {state.measuredIndex})");
+        if (!string.IsNullOrEmpty(state.textSource)) sb.AppendLine($"Text source: {state.textSource}");
+        if (state.text != null)
+        {
+            sb.AppendLine($"Text length: {state.text.Length}");
+            sb.AppendLine($"Text preview: {Preview(state.text, 240)}");
+        }
+        sb.AppendLine($"Rich text: {state.richText}");
+        if (state.hasWordWrap) sb.AppendLine($"Word wrap: {state.wordWrap}");
+        if (state.hasAutoSize) sb.AppendLine($"Auto size: {state.autoSize}");
+        if (state.hasRect) sb.AppendLine($"Rect: {state.width:F1}x{state.height:F1}");
+        if (state.hasColor) sb.AppendLine($"Color: {state.color}");
+
+        var count = instances == null ? 0 : instances.Length;
+        var samples = Mathf.Min(Mathf.Max(0, inspectionSampleCount), count);
+        for (int i = 0; i < samples; i++)
+            sb.AppendLine($"Sample {i}: {DescribeInspectionInstance(instances[i], i)}");
+        if (count > samples)
+            sb.AppendLine($"... {count - samples} more object(s)");
+        return sb.ToString();
+    }
+
+    private static string Preview(string text, int maxChars)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        var oneLine = text.Replace('\n', ' ').Replace('\r', ' ');
+        return oneLine.Length <= maxChars ? oneLine : oneLine.Substring(0, maxChars) + "...";
     }
 
     private IEnumerator RunCreationDestruction()

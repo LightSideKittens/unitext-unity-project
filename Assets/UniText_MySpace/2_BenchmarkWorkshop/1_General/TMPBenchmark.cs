@@ -17,6 +17,21 @@ public class TMPBenchmark : UGuiTextBenchmarkBase
     protected override void SetAutoSize(Component instance, bool enabled) => ((TMP_Text)instance).enableAutoSizing = enabled;
     protected override void SetRichText(Component instance, bool enabled) => ((TMP_Text)instance).richText = enabled;
 
+    protected override string DescribeInspectionInstance(Component instance, int index)
+    {
+        var text = (TMP_Text)instance;
+        return $"{base.DescribeInspectionInstance(instance, index)}, textLen={text.text?.Length ?? 0}, fontSize={text.fontSize:F1}, color={text.color}, wrap={WrapState(text)}, autoSize={text.enableAutoSizing}, richText={text.richText}, font={text.font?.name ?? "null"}";
+    }
+
+    static string WrapState(TMP_Text text)
+    {
+#if UNITY_2023_1_OR_NEWER
+        return text.textWrappingMode.ToString();
+#else
+        return text.enableWordWrapping.ToString();
+#endif
+    }
+
     protected override void SetWordWrap(Component instance, bool enabled)
     {
 #if UNITY_2023_1_OR_NEWER

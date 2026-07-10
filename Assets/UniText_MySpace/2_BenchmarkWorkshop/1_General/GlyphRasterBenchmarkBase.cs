@@ -19,6 +19,8 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
     [Header("Settings")]
     public int iterations = 5;
     public int warmupIterations = 1;
+    [Min(0), Tooltip("Frames to keep the rasterized workload visible after each measured pass. Set to 0 for unattended runs.")]
+    public int previewFrames = 8;
 
     [Header("Profiling")]
     [Tooltip("After the timed runs, do one extra rasterization recorded through Prof. Deep call tree only when the engine assembly is IL-woven (Window/LightSide/Profiler Weaver).")]
@@ -58,7 +60,11 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
     /// <summary>Turn the workload off before clearing so nothing re-rasterizes during the clear frame. No-op for engines that rasterize a font asset directly.</summary>
     protected virtual void Deactivate() { }
 
+    protected virtual void ShowPreview() { }
+
     protected virtual string Diagnostics(string label) => "";
+
+    protected virtual bool ShouldAbortRun() => false;
 
     /// <summary>True when rasterization is async (UniText's GPU path) and <see cref="AwaitAsyncCompletion"/> yields a distinct end-to-end time. False for synchronous CPU rasterizers (TMP, UI Toolkit).</summary>
     protected virtual bool HasE2E => false;
@@ -114,11 +120,24 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
 
             int uniqueGlyphs = CountGlyphs() - glyphsBefore;
             string afterRaster = Diagnostics("AFTER raster");
+            ShowPreview();
 
             bool isWarmup = iter < 0;
             string tag = isWarmup ? "warmup" : $"iter {iter + 1}";
             Debug.Log($"[{EngineName} GlyphRaster{(mode != null ? $" {mode}" : "")}] {tag}: {ms:F2}ms" +
                       (HasE2E ? $" (e2e {e2eMs:F2}ms)" : "") + $", +{uniqueGlyphs} glyphs\n  {beforeClear}\n  {afterClear}\n  {afterRaster}");
+
+            if (ShouldAbortRun())
+            {
+                Deactivate();
+                OnAfterRun();
+                isRunning = false;
+                yield break;
+            }
+
+            int holdFrames = Mathf.Max(0, previewFrames);
+            for (int frame = 0; frame < holdFrames; frame++)
+                yield return null;
 
             if (!isWarmup)
             {

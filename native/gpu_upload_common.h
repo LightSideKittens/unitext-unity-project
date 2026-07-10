@@ -6,6 +6,18 @@
 
 #include <stdint.h>
 
+// ABI version of the request/batch structs and the event contract below.
+// ut_gpu_get_abi_version() reports it; C# refuses the native path unless the
+// loaded binary returns exactly this value, so stale shipped binaries fail
+// safe into the Apply() fallback instead of reading misaligned requests.
+// Bump on ANY change to GpuUploadRequest/GpuUploadBatch layout or event ids.
+#define GPU_UPLOAD_ABI_VERSION 2
+
+// Plugin event ids. C# must pass these to IssuePluginEvent(AndData) — the
+// D3D12/Vulkan ConfigureEvent registrations are keyed by event id.
+#define GPU_UPLOAD_EVENT_BATCH 0
+#define GPU_UPLOAD_EVENT_FLUSH 1
+
 // Triple-buffered staging ring for all per-frame GPU-owned slots
 // (D3D12 / Vulkan / Metal). 3 = canonical CPU-GPU overlap depth.
 #define GPU_UPLOAD_STAGING_RING_SIZE 3

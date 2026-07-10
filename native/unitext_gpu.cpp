@@ -56,6 +56,7 @@ extern "C" void InitMetal(IUnityInterfaces* interfaces);
 extern "C" void ReleaseMetalResources();
 extern "C" void UploadMetalBatch(const GpuUploadRequest* requests, int count);
 extern "C" bool IsMetalReady();
+extern "C" void FlushMetal();
 #endif
 
 // ============================================================================
@@ -142,6 +143,11 @@ UTEXPORT int ut_gpu_get_renderer()
     return s_Graphics ? (int)s_Graphics->GetRenderer() : -1;
 }
 
+UTEXPORT int ut_gpu_get_abi_version()
+{
+    return GPU_UPLOAD_ABI_VERSION;
+}
+
 // ============================================================================
 // D3D11 (Windows)
 // ============================================================================
@@ -220,6 +226,21 @@ UTEXPORT void ut_gpu_d3d12_addref_texture(void* ptr)
     if (ptr) static_cast<IUnknown*>(ptr)->AddRef();
 }
 
+// Balances the caller's per-unique-texture AddRef on paths that bail out
+// before the batch reaches s_D3D12Retained; otherwise the refs leak.
+static void ReleaseD3D12BatchRefs(const GpuUploadRequest* requests, int count)
+{
+    for (int i = 0; i < count; i++)
+    {
+        void* p = requests[i].nativeTexPtr;
+        if (!p) continue;
+        bool seen = false;
+        for (int j = 0; j < i; j++)
+            if (requests[j].nativeTexPtr == p) { seen = true; break; }
+        if (!seen) static_cast<IUnknown*>(p)->Release();
+    }
+}
+
 static void InitD3D12(IUnityInterfaces* interfaces)
 {
     s_D3D12 = interfaces->Get<IUnityGraphicsD3D12v7>();
@@ -231,7 +252,16 @@ static void InitD3D12(IUnityInterfaces* interfaces)
     config.graphicsQueueAccess = kUnityD3D12GraphicsQueueAccess_DontCare;
     config.flags = kUnityD3D12EventConfigFlag_ModifiesCommandBuffersState;
     config.ensureActiveRenderTextureIsBound = false;
-    s_D3D12->ConfigureEvent(0, &config);
+    s_D3D12->ConfigureEvent(GPU_UPLOAD_EVENT_BATCH, &config);
+
+    // IUnityGraphicsD3D12 exposes no receptor to close/execute Unity's own
+    // command list; the documented equivalent is this config flag — Unity
+    // flushes its pending command buffers around the event itself.
+    UnityD3D12PluginEventConfig flushConfig = {};
+    flushConfig.graphicsQueueAccess = kUnityD3D12GraphicsQueueAccess_DontCare;
+    flushConfig.flags = kUnityD3D12EventConfigFlag_FlushCommandBuffers;
+    flushConfig.ensureActiveRenderTextureIsBound = false;
+    s_D3D12->ConfigureEvent(GPU_UPLOAD_EVENT_FLUSH, &flushConfig);
 
     for (int i = 0; i < GPU_UPLOAD_STAGING_RING_SIZE; i++)
     {
@@ -301,7 +331,12 @@ static void EnsureD3D12UploadBuffer(int slot, size_t requiredSize)
 
 static bool UploadD3D12Batch(const GpuUploadRequest* requests, int count)
 {
-    if (!s_D3D12 || !s_D3D12Device || count == 0) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
+    if (!s_D3D12 || !s_D3D12Device || count == 0)
+    {
+        ReleaseD3D12BatchRefs(requests, count);
+        s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
+        return false;
+    }
 
     int slot = s_D3D12Frame % GPU_UPLOAD_STAGING_RING_SIZE;
 
@@ -317,6 +352,7 @@ static bool UploadD3D12Batch(const GpuUploadRequest* requests, int count)
                 fprintf(stderr, "[UniText GPU] D3D12 fence wait failed (result=0x%08lx, fence=%llu); assuming device loss, disabling D3D12 path.\n",
                     (unsigned long)waitResult, (unsigned long long)s_D3D12Fence[slot]);
                 s_D3D12 = nullptr;
+                ReleaseD3D12BatchRefs(requests, count);
                 s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
                 return false;
             }
@@ -351,13 +387,13 @@ static bool UploadD3D12Batch(const GpuUploadRequest* requests, int count)
         totalSize += (reqSize + PLACE_ALIGN - 1) & ~(PLACE_ALIGN - 1);
     }
 
-    if (totalSize == 0) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
+    if (totalSize == 0) { ReleaseD3D12BatchRefs(requests, count); s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
 
     EnsureD3D12UploadBuffer(slot, totalSize);
-    if (!s_D3D12Upload[slot]) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
+    if (!s_D3D12Upload[slot]) { ReleaseD3D12BatchRefs(requests, count); s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
 
     void* mapped = nullptr;
-    if (FAILED(s_D3D12Upload[slot]->Map(0, nullptr, &mapped)) || !mapped) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
+    if (FAILED(s_D3D12Upload[slot]->Map(0, nullptr, &mapped)) || !mapped) { ReleaseD3D12BatchRefs(requests, count); s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
     for (int i = 0; i < count; i++)
     {
         if (!requests[i].nativeTexPtr || !requests[i].pixelData) continue;
@@ -524,6 +560,7 @@ static PFN_vkCmdCopyBufferToImage           s_vkCmdCopyBufferToImage;
 static PFN_vkGetPhysicalDeviceMemoryProperties s_vkGetPhysicalDeviceMemoryProperties;
 static PFN_vkGetPhysicalDeviceProperties     s_vkGetPhysicalDeviceProperties;
 static PFN_vkFlushMappedMemoryRanges         s_vkFlushMappedMemoryRanges;
+static PFN_vkQueueWaitIdle                   s_vkQueueWaitIdle;
 
 static VkPhysicalDeviceMemoryProperties s_VkMemProps = {};
 static VkDeviceSize s_VkNonCoherentAtomSize = 1;
@@ -564,6 +601,7 @@ static void InitVulkan(IUnityInterfaces* interfaces)
     VK_LOAD(inst, vkGetPhysicalDeviceMemoryProperties);
     VK_LOAD(inst, vkGetPhysicalDeviceProperties);
     VK_LOAD(inst, vkFlushMappedMemoryRanges);
+    VK_LOAD(inst, vkQueueWaitIdle);
 
     if (!s_vkCreateBuffer || !s_vkCmdCopyBufferToImage)
     {
@@ -588,7 +626,16 @@ static void InitVulkan(IUnityInterfaces* interfaces)
     config.graphicsQueueAccess = kUnityVulkanGraphicsQueueAccess_DontCare;
     config.flags = kUnityVulkanEventConfigFlag_EnsurePreviousFrameSubmission
                  | kUnityVulkanEventConfigFlag_ModifiesCommandBuffersState;
-    s_Vulkan->ConfigureEvent(0, &config);
+    s_Vulkan->ConfigureEvent(GPU_UPLOAD_EVENT_BATCH, &config);
+
+    // Flush boundary: kUnityVulkanEventConfigFlag_FlushCommandBuffers makes
+    // Unity itself submit pending command buffers around the event, so the
+    // callback body stays a no-op for Vulkan.
+    UnityVulkanPluginEventConfig flushConfig = {};
+    flushConfig.renderPassPrecondition = kUnityVulkanRenderPass_EnsureOutside;
+    flushConfig.graphicsQueueAccess = kUnityVulkanGraphicsQueueAccess_DontCare;
+    flushConfig.flags = kUnityVulkanEventConfigFlag_FlushCommandBuffers;
+    s_Vulkan->ConfigureEvent(GPU_UPLOAD_EVENT_FLUSH, &flushConfig);
 }
 
 static void ReleaseVulkanResources()
@@ -673,6 +720,16 @@ static bool EnsureVkStagingBuffer(int slot, size_t requiredSize)
     return true;
 }
 
+// Runs under Unity's queue lock via AccessQueue; with flush=true Unity has
+// already submitted its pending command buffers, so waiting the queue idle
+// drains every prior use of the staging ring.
+static void UNITY_INTERFACE_API OnVkQueueWaitIdle(int eventId, void* data)
+{
+    (void)eventId; (void)data;
+    if (s_vkQueueWaitIdle && s_Vulkan)
+        s_vkQueueWaitIdle(s_Vulkan->Instance().graphicsQueue);
+}
+
 static bool UploadVulkanBatch(const GpuUploadRequest* requests, int count)
 {
     if (!s_Vulkan || count == 0) { s_SkippedBatches.fetch_add(1, std::memory_order_relaxed); return false; }
@@ -691,12 +748,33 @@ static bool UploadVulkanBatch(const GpuUploadRequest* requests, int count)
     int slot = s_VkFrame % GPU_UPLOAD_STAGING_RING_SIZE;
     if (s_VkStagingFrameUsed[slot] > state.safeFrameNumber)
     {
-        fprintf(stderr, "[UniText GPU] Vulkan staging slot %d still in flight (used@%llu > safe@%llu); dropping batch.\n",
-            slot,
-            (unsigned long long)s_VkStagingFrameUsed[slot],
-            (unsigned long long)state.safeFrameNumber);
-        s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
-        return false;
+        // Ring exhausted (>RING_SIZE batches inside one frame window). Unity
+        // retires safeFrameNumber on the render thread, which is parked in
+        // this callback — polling can never observe progress. Instead drain
+        // the GPU: AccessQueue(flush=true) submits Unity's pending command
+        // buffers, then OnVkQueueWaitIdle blocks until already-submitted
+        // (finite) work completes, after which every slot is idle. Beats the
+        // previous behavior of silently dropping the whole batch.
+        if (!s_vkQueueWaitIdle)
+        {
+            s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
+            return false;
+        }
+
+        static std::atomic<bool> s_VkRingWaitLogged{false};
+        if (!s_VkRingWaitLogged.exchange(true, std::memory_order_relaxed))
+            fprintf(stderr, "[UniText GPU] Vulkan staging ring exhausted; draining GPU instead of dropping (logged once).\n");
+
+        s_Vulkan->AccessQueue(OnVkQueueWaitIdle, 0, nullptr, true);
+        for (int i = 0; i < GPU_UPLOAD_STAGING_RING_SIZE; i++)
+            s_VkStagingFrameUsed[i] = 0;
+
+        // The flush invalidated the recording state captured above.
+        if (!s_Vulkan->CommandRecordingState(&state, kUnityVulkanGraphicsQueueAccess_DontCare))
+        {
+            s_SkippedBatches.fetch_add(1, std::memory_order_relaxed);
+            return false;
+        }
     }
 
     size_t totalSize = 0;
@@ -908,6 +986,62 @@ UTEXPORT UnityRenderingEventAndData ut_gpu_get_upload_batch_event()
     if (renderer == kUnityGfxRendererMetal && !IsMetalReady()) return nullptr;
 #endif
     return OnGpuUploadBatchEvent;
+}
+
+// ============================================================================
+// Flush boundary — submission chunking
+// ============================================================================
+
+// Pushes work encoded so far toward the GPU without waiting for it. Safe to
+// call any number of times per frame; each call is a cheap submit hint.
+// D3D12/Vulkan bodies are intentionally empty: their flush happens through
+// the GPU_UPLOAD_EVENT_FLUSH ConfigureEvent registrations (Unity submits its
+// pending command buffers around the event itself).
+static void UNITY_INTERFACE_API OnGpuFlushEvent(int eventId)
+{
+    (void)eventId;
+    if (!s_Graphics) return;
+
+    switch (s_Graphics->GetRenderer())
+    {
+#ifdef _WIN32
+    case kUnityGfxRendererD3D11:
+        EnsureD3D11Context();
+        if (s_d3d11Ctx) s_d3d11Ctx->Flush();
+        break;
+
+    case kUnityGfxRendererD3D12:
+        break;
+#endif
+
+#ifdef HAS_GL_UPLOAD
+    case kUnityGfxRendererOpenGLCore:
+    case kUnityGfxRendererOpenGLES30:
+        glFlush();
+        break;
+#endif
+
+#ifdef HAS_VULKAN_UPLOAD
+    case kUnityGfxRendererVulkan:
+        break;
+#endif
+
+#if defined(__APPLE__)
+    case kUnityGfxRendererMetal:
+        FlushMetal();
+        break;
+#endif
+
+    default:
+        break;
+    }
+}
+
+// Issue with eventId GPU_UPLOAD_EVENT_FLUSH — the D3D12/Vulkan ConfigureEvent
+// registrations are keyed by that id.
+UTEXPORT UnityRenderingEvent ut_gpu_get_flush_event()
+{
+    return s_Graphics ? OnGpuFlushEvent : nullptr;
 }
 
 UTEXPORT uint64_t ut_gpu_get_processed_count()

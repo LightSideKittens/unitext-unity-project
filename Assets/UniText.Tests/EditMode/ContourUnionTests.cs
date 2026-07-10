@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace LightSide.Tests
 {
     /// <summary>
-    /// Contract coverage for <see cref="ContourUnion.TryResolve"/> on synthetic quadratic
+    /// Contract coverage for <see cref="ContourUnionBurst.TryResolve"/> on synthetic quadratic
     /// geometry: clean input passes through resolved, holes survive, redundant same-winding
     /// shells are removed, degenerate input and the field valve bail to the legacy path, and
     /// resolution is idempotent. Numeric SDF-field comparison against the legacy rasterizer
@@ -48,7 +48,7 @@ namespace LightSide.Tests
         {
             fixed (int* rawContours = contourEnds)
             {
-                return ContourUnion.TryResolve(ref buf, 0, ref segCount, rawContours, ref contourCount);
+                return ContourUnionBurst.TryResolve(ref buf, 0, ref segCount, rawContours, ref contourCount);
             }
         }
 

@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using UnityEditor;
 using UnityEngine;
 using TMPro;
@@ -39,3 +41,5 @@ static class FontAssetCleaner
         AssetDatabase.SaveAssets();
     }
 }
+
+#endif
