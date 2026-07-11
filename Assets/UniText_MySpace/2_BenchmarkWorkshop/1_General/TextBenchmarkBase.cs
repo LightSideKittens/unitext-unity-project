@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using LightSide;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -40,6 +41,10 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     public bool runFullRebuildTest = true;
     public bool runLayoutRebuildTest = true;
     public bool runMeshRebuildTest = true;
+
+    /// <summary>Wraps each phase's measured iterations in a LightSide profiler capture and ships prof_{engine}_{phase}.txt/.json to Benchmarks/ (device: persistentDataPath). UniText needs UNITEXT_PROFILE for a deep tree; other engines report totals only. Captured runs carry zone overhead — compare their wall-clock only against other captured runs.</summary>
+    [Header("Profiling")]
+    public bool captureProfile;
 
     [Header("Inspection")]
     [SerializeField] protected BenchmarkInspectionPhase inspectionPhase = BenchmarkInspectionPhase.FullRebuildUnique;
@@ -444,6 +449,8 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
 
     protected override IEnumerator RunAllTests()
     {
+        PrepareCorpus(false);
+
         if (runCreationDestructionTest)
         {
             currentTest = $"{SystemName}: Creation/Destruction";
@@ -461,7 +468,6 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
         for (int i = 0; i < objectCount; i++)
             instances[i] = CreateInstance(i);
 
-        PrepareCorpus(false);
         for (int i = 0; i < objectCount; i++)
         {
             SetText(instances[i], corpus);
@@ -740,7 +746,7 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
         for (int iter = 0; iter < warmupIterations; iter++)
         {
             instances = new TInstance[objectCount];
-            for (int i = 0; i < objectCount; i++) instances[i] = CreateInstance(i);
+            for (int i = 0; i < objectCount; i++) { instances[i] = CreateInstance(i); SetText(instances[i], corpus); }
             yield return null;
             for (int i = 0; i < objectCount; i++) DestroyInstance(instances[i]);
             yield return null;
@@ -755,7 +761,7 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
             long allocBefore = Profiler.GetTotalAllocatedMemoryLong();
             instances = new TInstance[objectCount];
             stopwatch.Restart();
-            for (int i = 0; i < objectCount; i++) instances[i] = CreateInstance(i);
+            for (int i = 0; i < objectCount; i++) { instances[i] = CreateInstance(i); SetText(instances[i], corpus); }
             yield return waitForEndOfFrame;
             stopwatch.Stop();
             long alloc = Profiler.GetTotalAllocatedMemoryLong() - allocBefore;
@@ -821,17 +827,32 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
         using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
 
         if (phaseHookName != null) OnBeforePhaseIterations(phaseHookName);
-        for (int iter = 0; iter < iterations; iter++)
+        if (captureProfile) Prof.BeginCapture();
+        try
         {
-            long allocBefore = Profiler.GetTotalAllocatedMemoryLong();
-            stopwatch.Restart();
-            iterationStep(iter + warmupIterations);
-            yield return waitForEndOfFrame;
-            stopwatch.Stop();
-            long alloc = Profiler.GetTotalAllocatedMemoryLong() - allocBefore;
-            if (alloc > 0) metrics.totalAlloc += alloc;
-            metrics.managedAlloc += recorder.LastValue;
-            metrics.frameTimes.Add((float)stopwatch.Elapsed.TotalMilliseconds);
+            for (int iter = 0; iter < iterations; iter++)
+            {
+                long allocBefore = Profiler.GetTotalAllocatedMemoryLong();
+                stopwatch.Restart();
+                iterationStep(iter + warmupIterations);
+                yield return waitForEndOfFrame;
+                stopwatch.Stop();
+                long alloc = Profiler.GetTotalAllocatedMemoryLong() - allocBefore;
+                if (alloc > 0) metrics.totalAlloc += alloc;
+                metrics.managedAlloc += recorder.LastValue;
+                metrics.frameTimes.Add((float)stopwatch.Elapsed.TotalMilliseconds);
+                if (captureProfile) Prof.SampleFrame();
+            }
+        }
+        finally
+        {
+            if (captureProfile && Prof.Capturing)
+            {
+                var cap = Prof.EndCapture();
+                var tag = $"{SystemName.Replace(" ", "")}_{phaseHookName ?? reportName.Replace(" ", "")}_{corpusName}";
+                ProfTransport.Ship(cap.ToText(), $"prof_{tag}.txt");
+                ProfTransport.Ship(cap.ToJson(), $"prof_{tag}.json");
+            }
         }
         if (phaseHookName != null) OnAfterPhaseIterations(phaseHookName);
 

@@ -380,11 +380,11 @@ public class BenchmarkRunner : MonoBehaviour
 #if UNITY_EDITOR
         data.commit = RunGit("rev-parse HEAD") ?? data.commit;
         data.branch = RunGit("rev-parse --abbrev-ref HEAD") ?? data.branch;
-        data.dirty = !string.IsNullOrEmpty(RunGit("status --porcelain"));
+        data.dirty = GitDirty("diff-index --quiet HEAD");
 
         data.submoduleCommit = RunGit("-C Assets/UniText rev-parse HEAD") ?? data.submoduleCommit;
         data.submoduleBranch = RunGit("-C Assets/UniText rev-parse --abbrev-ref HEAD") ?? data.submoduleBranch;
-        data.submoduleDirty = !string.IsNullOrEmpty(RunGit("-C Assets/UniText status --porcelain"));
+        data.submoduleDirty = GitDirty("-C Assets/UniText diff-index --quiet HEAD");
 #endif
     }
 
@@ -408,6 +408,34 @@ public class BenchmarkRunner : MonoBehaviour
         catch
         {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Working-tree dirtiness via <c>git diff-index --quiet HEAD</c> (exit 1 = tracked changes present).
+    /// Used instead of <c>git status --porcelain</c> because status scans the whole tree (~3s on a large
+    /// Unity repo) while diff-index short-circuits on the first change (~40ms). Untracked-only changes do
+    /// not count as dirty. Bounded by a timeout + kill so a stalled git can never hang the run.
+    /// </summary>
+    static bool GitDirty(string args)
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo("git", args)
+            {
+                WorkingDirectory = Directory.GetParent(Application.dataPath).FullName,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            using var p = System.Diagnostics.Process.Start(psi);
+            if (!p.WaitForExit(3000)) { try { p.Kill(); } catch { } return false; }
+            return p.ExitCode == 1;
+        }
+        catch
+        {
+            return false;
         }
     }
 #endif

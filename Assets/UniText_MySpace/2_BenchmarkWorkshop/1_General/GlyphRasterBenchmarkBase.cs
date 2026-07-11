@@ -185,21 +185,30 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
             Prof.BeginCapture();
         }
 
-        Rasterize();
-        if (HasE2E) yield return AwaitAsyncCompletion(0f);
-
-        if (captureProfile)
+        try
         {
-            var capture = Prof.EndCapture();
-            if (captureAlloc) ProfExactAlloc.End();
-            ProfTransport.Ship(capture.ToJson(), $"profile_{EngineName}.json");
+            Rasterize();
+            if (HasE2E) yield return AwaitAsyncCompletion(0f);
+
+            if (captureProfile)
+            {
+                var capture = Prof.EndCapture();
+                ProfExactAlloc.End();
+                ProfTransport.Ship(capture.ToJson(), $"profile_{EngineName}.json");
+            }
+
+            if (sampling)
+            {
+                ProfSampler.Disarm();
+                ProfSampler.Drain();
+                ProfTransport.Ship(ProfSampler.BuildSampledCapture().ToChromeTrace(), $"profile_{EngineName}_sampled.trace.json");
+            }
         }
-
-        if (sampling)
+        finally
         {
-            ProfSampler.Disarm();
-            ProfSampler.Drain();
-            ProfTransport.Ship(ProfSampler.BuildSampledCapture().ToChromeTrace(), $"profile_{EngineName}_sampled.trace.json");
+            if (Prof.Capturing) Prof.EndCapture();
+            ProfExactAlloc.End();
+            if (ProfSampler.Sampling) ProfSampler.Disarm();
         }
     }
 

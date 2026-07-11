@@ -37,7 +37,7 @@ public static class BenchmarkJsonSerializer
                 ["fullRebuildUnique"] = "Every paragraph unique per iteration — the cold path for all engines.",
                 ["fullRebuildRichText"] = "Unique variants of the corpus saturated with markup (91 tag pairs: <b> <i> <u> <s> <color=#hex> <size=%> <sub> <sup> <uppercase> <lowercase>) parsed by all three engines with byte-identical syntax (UniText via registered tag styles, TMP/UIToolkit richText). The previous phase measures the same content tag-free, so the delta is the markup cost.",
                 ["meshRebuild"] = "Engine-incremental color change: UniText re-emits mesh only, TMP re-runs full layout, UIToolkit repaints tint — different work classes by design.",
-                ["corpus.multilingual"] = "Arabic/bidi/emoji showcase: UniText produces correct shaped output; TMP and legacy UIToolkit do not shape or reorder this text — visual output is NOT equivalent.",
+                ["corpus.multilingual"] = "Arabic/bidi/emoji showcase. UniText and UIToolkit both shape it (this project enables UITK's Advanced Text Generator: HarfBuzz+ICU, see UIToolkitProjectSettings) — like-for-like on shaping. TMP has no shaper — its output is NOT equivalent.",
                 ["corpus.latin"] = "Plain Latin text — every engine performs comparable work; the apples-to-apples case.",
                 ["glyphRasterization"] = "Clear the glyph atlas, time re-rasterizing the shared corpus. UIToolkit and TMP funnel through the same TextCore FreeType path (apples-to-apples). UniText rasterizes async on the GPU — its e2e time is a different-architecture reference, not a like-for-like figure."
             },
@@ -79,6 +79,18 @@ public static class BenchmarkJsonSerializer
             ["isDebugBuild"] = UnityEngine.Debug.isDebugBuild,
             ["unitextDebugDefine"] =
 #if UNITEXT_DEBUG
+                true,
+#else
+                false,
+#endif
+            ["unitextProfileDefine"] =
+#if UNITEXT_PROFILE
+                true,
+#else
+                false,
+#endif
+            ["lightsideDebugDefine"] =
+#if LIGHTSIDE_DEBUG
                 true
 #else
                 false

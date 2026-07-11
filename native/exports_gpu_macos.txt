@@ -1,3 +1,0 @@
-_ut_gpu_*
-_UnityPluginLoad
-_UnityPluginUnload

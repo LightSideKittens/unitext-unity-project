@@ -50,10 +50,13 @@ env:
 
   # HarfBuzz flags: HB_LEAN expanded without HB_NO_VAR (variable font axes needed)
   # and without HB_NO_MT (thread-safety for UniText.UseParallel).
-  # HB_MINI kept (disables AAT/legacy shapers).
+  # HB_NO_AAT (not HB_MINI): AAT is the one large safe saving; HB_MINI's HB_NO_LEGACY
+  # would also strip legacy kern, OT mark fallback and the bad-font blocklist (correctness).
+  # Size/memory flags are intentionally omitted — they disable HarfBuzz's GDEF/lookup/cmap
+  # caches and the OT kerning/ligature/contextual fast-paths, which is anti-perf for a shaper.
   # When upgrading HARFBUZZ_VERSION, review hb-config.hh for new HB_LEAN entries.
   HB_FLAGS: >-
-    -DHB_MINI
+    -DHB_NO_AAT
     -DHB_DISABLE_DEPRECATED
     -DHB_NO_ATEXIT
     -DHB_NO_BUFFER_MESSAGE
@@ -84,10 +87,6 @@ env:
     -DHB_NO_STYLE
     -DHB_NO_SUBSET_LAYOUT
     -DHB_NO_VERTICAL
-    -DHB_OPTIMIZE_SIZE
-    -DHB_OPTIMIZE_SIZE_MORE
-    -DHB_MINIMIZE_MEMORY_USAGE
-    -DHB_NO_UCD_UNASSIGNED
     -DNDEBUG
 
   # HarfBuzz flags for WebGL (more aggressive, no threading needed in WASM)
