@@ -410,6 +410,35 @@ EXPORT hb_face_t* ut_hb_font_get_face(hb_font_t* font) {
     return hb_font_get_face(font);
 }
 
+EXPORT int ut_hb_font_space_participates(hb_font_t* font) {
+    if (!font) return 0;
+    hb_face_t* face = hb_font_get_face(font);
+    hb_codepoint_t space_gid = 0;
+    if (!hb_font_get_nominal_glyph(font, 0x20u, &space_gid) || space_gid == 0)
+        return 0;
+
+    static const hb_tag_t tables[2] = { HB_OT_TAG_GSUB, HB_OT_TAG_GPOS };
+    hb_set_t* lookups = hb_set_create();
+    hb_set_t* glyphs = hb_set_create();
+    int participates = 0;
+    int t;
+
+    for (t = 0; t < 2 && !participates; ++t) {
+        hb_codepoint_t li = HB_SET_VALUE_INVALID;
+        hb_set_clear(lookups);
+        hb_ot_layout_collect_lookups(face, tables[t], NULL, NULL, NULL, lookups);
+        while (hb_set_next(lookups, &li)) {
+            hb_set_clear(glyphs);
+            hb_ot_layout_lookup_collect_glyphs(face, tables[t], li, glyphs, glyphs, glyphs, NULL);
+            if (hb_set_has(glyphs, space_gid)) { participates = 1; break; }
+        }
+    }
+
+    hb_set_destroy(lookups);
+    hb_set_destroy(glyphs);
+    return participates;
+}
+
 EXPORT hb_buffer_t* ut_hb_buffer_create(void) {
     return hb_buffer_create();
 }

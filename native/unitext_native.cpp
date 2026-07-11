@@ -375,6 +375,38 @@ UNITEXT_EXPORT hb_face_t* ut_hb_font_get_face(hb_font_t* font) {
     return hb_font_get_face(font);
 }
 
+// Returns 1 if the U+0020 space glyph appears in the coverage (before/input/after) of any
+// GSUB/GPOS lookup — i.e. a per-word shape cache would drop space-adjacent kerning/ligatures
+// (ccmp, dlig, frac, kern-with-space) for this font, so word-caching must be disabled for it.
+// Scanned once per face on the managed side and cached.
+UNITEXT_EXPORT int ut_hb_font_space_participates(hb_font_t* font) {
+    if (!font) return 0;
+    hb_face_t* face = hb_font_get_face(font);
+    hb_codepoint_t space_gid = 0;
+    if (!hb_font_get_nominal_glyph(font, 0x20u, &space_gid) || space_gid == 0)
+        return 0;
+
+    static const hb_tag_t tables[2] = { HB_OT_TAG_GSUB, HB_OT_TAG_GPOS };
+    hb_set_t* lookups = hb_set_create();
+    hb_set_t* glyphs = hb_set_create();
+    int participates = 0;
+
+    for (int t = 0; t < 2 && !participates; ++t) {
+        hb_set_clear(lookups);
+        hb_ot_layout_collect_lookups(face, tables[t], nullptr, nullptr, nullptr, lookups);
+        hb_codepoint_t li = HB_SET_VALUE_INVALID;
+        while (hb_set_next(lookups, &li)) {
+            hb_set_clear(glyphs);
+            hb_ot_layout_lookup_collect_glyphs(face, tables[t], li, glyphs, glyphs, glyphs, nullptr);
+            if (hb_set_has(glyphs, space_gid)) { participates = 1; break; }
+        }
+    }
+
+    hb_set_destroy(lookups);
+    hb_set_destroy(glyphs);
+    return participates;
+}
+
 UNITEXT_EXPORT hb_buffer_t* ut_hb_buffer_create() {
     return hb_buffer_create();
 }

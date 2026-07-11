@@ -78,6 +78,7 @@ EXPORTS
     ut_hb_font_get_glyph_h_advance
     ut_hb_font_get_glyph
     ut_hb_font_get_face
+    ut_hb_font_space_participates
     ut_hb_buffer_create
     ut_hb_buffer_destroy
     ut_hb_buffer_clear_contents

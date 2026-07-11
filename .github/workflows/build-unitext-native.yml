@@ -54,7 +54,11 @@ env:
   # would also strip legacy kern, OT mark fallback and the bad-font blocklist (correctness).
   # Size/memory flags are intentionally omitted — they disable HarfBuzz's GDEF/lookup/cmap
   # caches and the OT kerning/ligature/contextual fast-paths, which is anti-perf for a shaper.
+  # HB_NO_LAYOUT_COLLECT_GLYPHS is also omitted: the word-shape cache's per-face space-participation
+  # probe (ut_hb_font_space_participates) needs hb_ot_layout_lookup_collect_glyphs.
   # When upgrading HARFBUZZ_VERSION, review hb-config.hh for new HB_LEAN entries.
+  # Cache keys DON'T hash HB_FLAGS — any flag change here MUST bump CACHE_VERSION,
+  # or stale libs (missing/extra symbols) get reused and the unified link fails.
   HB_FLAGS: >-
     -DHB_NO_AAT
     -DHB_DISABLE_DEPRECATED
@@ -71,7 +75,6 @@ env:
     -DHB_NO_GETENV
     -DHB_NO_HINTING
     -DHB_NO_LAYOUT_FEATURE_PARAMS
-    -DHB_NO_LAYOUT_COLLECT_GLYPHS
     -DHB_NO_LAYOUT_RARELY_USED
     -DHB_NO_LAYOUT_UNUSED
     -DHB_NO_MATH
@@ -96,7 +99,7 @@ env:
   # BLEND2D_NO_JIT=ON for all platforms (consistent behavior, smaller size)
 
   # Cache version suffix
-  CACHE_VERSION: "v11"
+  CACHE_VERSION: "v12"
 
 jobs:
   # ============================================================================
