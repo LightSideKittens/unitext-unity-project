@@ -30,18 +30,22 @@ public class BenchmarkRunner : MonoBehaviour
         return; 
 #else
         Debug.Log("[BenchmarkRunner] Starting benchmarks...");
-        runner.StartCoroutine(runner.RunAllBenchmarks());
+        runner.StartCoroutine(runner.RunSuite(runText: true, runGlyph: true));
 #endif
     }
 #endif
 
     [ContextMenu("Run All Benchmarks")]
-    public void RunFromMenu()
-    {
-        StartCoroutine(RunAllBenchmarks());
-    }
+    public void RunFromMenu() => StartCoroutine(RunSuite(runText: true, runGlyph: true));
 
-    IEnumerator RunAllBenchmarks()
+    [ContextMenu("Run Text Pipeline Only")]
+    public void RunTextFromMenu() => StartCoroutine(RunSuite(runText: true, runGlyph: false));
+
+    [ContextMenu("Run Glyph Rasterization Only")]
+    public void RunGlyphFromMenu() => StartCoroutine(RunSuite(runText: false, runGlyph: true));
+
+    /// <summary>One combined result JSON is always written (the CI transport); <see cref="BenchmarkHistory"/> splits it into the per-suite site streams, so a text-only or glyph-only run persists only its own stream.</summary>
+    IEnumerator RunSuite(bool runText, bool runGlyph)
     {
         data = new BenchmarkRunData
         {
@@ -54,9 +58,10 @@ public class BenchmarkRunner : MonoBehaviour
 
         Debug.Log("[BenchmarkRunner] === BENCHMARK START ===");
 
-        yield return RunTextBenchmarks();
+        if (runText)
+            yield return RunTextBenchmarks();
 
-        if (CheckWatchdog())
+        if (runGlyph && CheckWatchdog())
         {
             yield return EngineCooldown();
             WarnIfSceneNotSterile();

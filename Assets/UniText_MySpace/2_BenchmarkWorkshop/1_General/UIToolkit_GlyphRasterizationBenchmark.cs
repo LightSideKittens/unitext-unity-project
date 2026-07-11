@@ -122,8 +122,8 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             previewContainer.style.display = DisplayStyle.None;
     }
 
-    protected override int CountGlyphs() => fontAsset.glyphTable.Count;
+    protected override int CountGlyphs() => FontAssetUtils.GlyphCount(fontAsset);
 
     protected override string Diagnostics(string label) =>
-        $"[Atlas {label}] '{fontAsset.name}': glyphs={fontAsset.glyphTable.Count} chars={fontAsset.characterTable.Count} atlasCount={fontAsset.atlasTextureCount}";
+        $"[Atlas {label}] '{fontAsset.name}': glyphs={FontAssetUtils.GlyphCount(fontAsset)} chars={FontAssetUtils.CharacterCount(fontAsset)} atlasCount={fontAsset.atlasTextureCount}";
 }

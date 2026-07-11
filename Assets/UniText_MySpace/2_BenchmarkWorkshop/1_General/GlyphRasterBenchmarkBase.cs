@@ -194,14 +194,14 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
             {
                 var capture = Prof.EndCapture();
                 ProfExactAlloc.End();
-                ProfTransport.Ship(capture.ToJson(), $"profile_{EngineName}.json");
+                ProfTransport.Ship(capture.ToJson(), $"prof/{BenchmarkRun.Id}/profile_{EngineName}.json");
             }
 
             if (sampling)
             {
                 ProfSampler.Disarm();
                 ProfSampler.Drain();
-                ProfTransport.Ship(ProfSampler.BuildSampledCapture().ToChromeTrace(), $"profile_{EngineName}_sampled.trace.json");
+                ProfTransport.Ship(ProfSampler.BuildSampledCapture().ToChromeTrace(), $"prof/{BenchmarkRun.Id}/profile_{EngineName}_sampled.trace.json");
             }
         }
         finally

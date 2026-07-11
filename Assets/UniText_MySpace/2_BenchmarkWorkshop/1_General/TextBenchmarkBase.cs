@@ -42,7 +42,7 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     public bool runLayoutRebuildTest = true;
     public bool runMeshRebuildTest = true;
 
-    /// <summary>Wraps each phase's measured iterations in a LightSide profiler capture and ships prof_{engine}_{phase}.txt/.json to Benchmarks/ (device: persistentDataPath). UniText needs UNITEXT_PROFILE for a deep tree; other engines report totals only. Captured runs carry zone overhead — compare their wall-clock only against other captured runs.</summary>
+    /// <summary>Wraps each phase's measured iterations in a LightSide profiler capture and ships prof_{engine}_{phase}.txt/.json to Benchmarks/prof/{runId}/ (device: persistentDataPath) so runs accumulate as history. UniText needs UNITEXT_PROFILE for a deep tree; other engines report totals only. Captured runs carry zone overhead — compare their wall-clock only against other captured runs.</summary>
     [Header("Profiling")]
     public bool captureProfile;
 
@@ -302,6 +302,7 @@ public abstract class TextBenchmarkBase : MonoBehaviour
 
     public IEnumerator RunBenchmarkCoroutine(bool silent)
     {
+        BenchmarkRun.Begin();
         ClearInspectionState();
         isRunning = true;
         results.Clear();
@@ -850,8 +851,8 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
             {
                 var cap = Prof.EndCapture();
                 var tag = $"{SystemName.Replace(" ", "")}_{phaseHookName ?? reportName.Replace(" ", "")}_{corpusName}";
-                ProfTransport.Ship(cap.ToText(), $"prof_{tag}.txt");
-                ProfTransport.Ship(cap.ToJson(), $"prof_{tag}.json");
+                ProfTransport.Ship(cap.ToText(), $"prof/{BenchmarkRun.Id}/prof_{tag}.txt");
+                ProfTransport.Ship(cap.ToJson(), $"prof/{BenchmarkRun.Id}/prof_{tag}.json");
             }
         }
         if (phaseHookName != null) OnAfterPhaseIterations(phaseHookName);

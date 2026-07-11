@@ -105,7 +105,7 @@ public class TMP_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
     {
         int total = 0;
         foreach (var font in fontAssets)
-            total += font.glyphTable.Count;
+            total += FontAssetUtils.GlyphCount(font);
         return total;
     }
 
@@ -117,7 +117,7 @@ public class TMP_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         {
             var textures = font.atlasTextures;
             long checksum = textures is { Length: > 0 } ? BenchmarkAtlasUtils.Checksum(textures[0]) : 0;
-            sb.Append($"'{font.name}': glyphs={font.glyphTable.Count} chars={font.characterTable.Count} atlasCount={textures?.Length ?? 0} pixelChecksum={checksum}  ");
+            sb.Append($"'{font.name}': glyphs={FontAssetUtils.GlyphCount(font)} chars={FontAssetUtils.CharacterCount(font)} atlasCount={textures?.Length ?? 0} pixelChecksum={checksum}  ");
         }
         return sb.ToString();
     }

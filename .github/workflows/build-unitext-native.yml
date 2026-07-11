@@ -135,7 +135,7 @@ jobs:
         run: pip install meson ninja
 
       - name: Install pkg-config
-        run: choco install pkgconfiglite -y
+        run: choco install pkgconfiglite -y --allow-empty-checksums
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
