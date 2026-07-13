@@ -44,6 +44,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
     protected string runStatus;
     protected string runStatusReason;
     bool gpuCompletionProbeLogged;
+    bool cleanupPending;
 
     public GlyphRasterData LastResults { get; private set; }
 
@@ -188,6 +189,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
     protected IEnumerator RunPass(string mode)
     {
         isRunning = true;
+        cleanupPending = true;
         report.Clear();
         LastResults = null;
         runStatus = "measured";
@@ -211,13 +213,6 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
             }
 
             AppendHeader(mode);
-            yield return PrepareRun();
-            if (runStatus is "unsupported" or "skipped" or "failed")
-            {
-                CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
-                    totalManagedAlloc, mode);
-                yield break;
-            }
 
             for (int iter = -warmupIterations; iter < iterations; iter++)
             {
@@ -227,6 +222,13 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
                 string beforeClear = Diagnostics("BEFORE clear");
                 ClearCaches();
                 yield return null;
+                yield return PrepareRun();
+                if (runStatus is "unsupported" or "skipped" or "failed")
+                {
+                    CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
+                        totalManagedAlloc, mode);
+                    yield break;
+                }
                 ResetExecutionDiagnostics();
                 string afterClear = Diagnostics("AFTER clear");
 
@@ -242,6 +244,8 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
                 {
                     if (runStatus == "measured")
                         SetRunStatus("failed", "Rasterization aborted before completion");
+                    var failedExecution = CaptureExecutionDiagnostics();
+                    if (failedExecution != null) executionSamples.Add(failedExecution);
                     CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
                         totalManagedAlloc, mode);
                     yield break;
@@ -300,21 +304,41 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         }
         finally
         {
+            CleanupRun();
+        }
+    }
+
+    void CleanupRun()
+    {
+        if (!cleanupPending) return;
+        cleanupPending = false;
+        try
+        {
+            Deactivate();
+        }
+        finally
+        {
             try
             {
-                Deactivate();
+                OnAfterRun();
             }
             finally
             {
-                try
-                {
-                    OnAfterRun();
-                }
-                finally
-                {
-                    isRunning = false;
-                }
+                isRunning = false;
             }
+        }
+    }
+
+    void OnDisable()
+    {
+        if (!cleanupPending) return;
+        try
+        {
+            StopAllCoroutines();
+        }
+        finally
+        {
+            CleanupRun();
         }
     }
 

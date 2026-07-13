@@ -110,6 +110,10 @@ InitTestScene*.unity*
 /tools/UniTextDocGen/obj/
 /Fonts/
 
+# Generated at build time by BenchmarkBuildStamp (bakes the commit into the player)
+Assets/UniText_MySpace/Resources/BenchmarkBuildInfo.json
+Assets/UniText_MySpace/Resources/BenchmarkBuildInfo.json.meta
+
 # Project-local extras
 /Additional/
 /Packages/com.unity.asset-store-tools/

@@ -90,22 +90,23 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     protected override void OnAfterRun()
     {
+        GlyphAtlasGpuRaster.submissionBudgetMs = savedBudgetMs;
+        UniTextBase.UseParallel = wasParallel;
+        GlyphAtlas.forceSingleThreaded = wasForceST;
+        GlyphAtlas.executionPathOverride = wasExecutionPath;
+        CatZones.MuteAll = wasMuted;
+        SystemFont.Disabled = wasSysDisabled;
+        EmojiFont.Disabled = wasEmojiDisabled;
+
         if (strokeStyles != null)
         {
             foreach (var (text, style) in strokeStyles)
                 text.RemoveStyle(style);
             strokeStyles = null;
         }
-        GlyphAtlasGpuRaster.submissionBudgetMs = savedBudgetMs;
-        UniTextBase.UseParallel = wasParallel;
-        GlyphAtlas.forceSingleThreaded = wasForceST;
-        CatZones.MuteAll = wasMuted;
-        SystemFont.Disabled = wasSysDisabled;
-        EmojiFont.Disabled = wasEmojiDisabled;
 
         UniTextFont.Core.DisposeAllLive();
         GlyphAtlas.DisposeTextInstances();
-        GlyphAtlas.executionPathOverride = wasExecutionPath;
     }
 
     protected override bool CollectTargets()
@@ -275,7 +276,10 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         foreach (var atlas in targetAtlases)
         {
             var snapshot = atlas.GetDiagnosticSnapshot();
-            if (!ValidateRequestedPath(snapshot, out var reason) && runStatus == "measured")
+            bool valid = ValidateRequestedPath(snapshot, out var reason);
+            if (valid)
+                valid = ValidateMaterialBinding(atlas, snapshot, out reason);
+            if (!valid && runStatus == "measured")
             {
                 abortRun = true;
                 SetRunStatus("mismatch", reason);
@@ -285,6 +289,26 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         }
         sample.rasterBackend = AggregateBackend(sample.atlases);
         return sample;
+    }
+
+    static bool ValidateMaterialBinding(GlyphAtlas atlas,
+        GlyphAtlas.DiagnosticSnapshot snapshot, out string reason)
+    {
+        var texture = atlas.AtlasTexture;
+        var material = snapshot.Label == nameof(UniTextRenderMode.MSDF)
+            ? UniTextMaterialCache.Msdf
+            : UniTextMaterialCache.Sdf;
+        if (texture != null && material != null
+                            && object.ReferenceEquals(material.mainTexture, texture))
+        {
+            reason = null;
+            return true;
+        }
+
+        reason = $"Atlas material binding mismatch for {snapshot.Label}: "
+                 + $"atlas={(texture != null ? ObjectUtils.GetInstanceIdCompat(texture) : 0)}, "
+                 + $"materialTexture={(material != null && material.mainTexture != null ? ObjectUtils.GetInstanceIdCompat(material.mainTexture) : 0)}";
+        return false;
     }
 
     bool ValidateRequestedPath(GlyphAtlas.DiagnosticSnapshot snapshot, out string reason)
@@ -364,7 +388,10 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
                  + $"sourceOverflowBytes={snapshot.GpuUploadSourceOverflowCurrentBytes}/"
                  + $"{snapshot.GpuUploadSourceOverflowBudgetBytes}, "
                  + $"sourceOverflowPeakBytes={snapshot.GpuUploadSourceOverflowPeakBytes}, "
-                 + $"sourceOverflowRetainedBytes={snapshot.GpuUploadSourceOverflowRetainedBytes}";
+                 + $"sourceOverflowRetainedBytes={snapshot.GpuUploadSourceOverflowRetainedBytes}, "
+                 + $"backpressureWaits={snapshot.GpuUploadBackpressureWaits}, "
+                 + $"backpressureWaitMs={snapshot.GpuUploadBackpressureWaitMilliseconds:F3}, "
+                 + $"backpressureMaxWaitMs={snapshot.GpuUploadBackpressureMaxWaitMilliseconds:F3}";
         return false;
     }
 
@@ -396,6 +423,9 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             gpuUploadSourceOverflowCurrentBytes = snapshot.GpuUploadSourceOverflowCurrentBytes,
             gpuUploadSourceOverflowPeakBytes = snapshot.GpuUploadSourceOverflowPeakBytes,
             gpuUploadSourceOverflowRetainedBytes = snapshot.GpuUploadSourceOverflowRetainedBytes,
+            gpuUploadBackpressureWaits = snapshot.GpuUploadBackpressureWaits,
+            gpuUploadBackpressureWaitMilliseconds = snapshot.GpuUploadBackpressureWaitMilliseconds,
+            gpuUploadBackpressureMaxWaitMilliseconds = snapshot.GpuUploadBackpressureMaxWaitMilliseconds,
             lastGpuUploadError = snapshot.LastGpuUploadError?.ToString()
         };
     }
@@ -428,7 +458,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             int contentSlices = BenchmarkAtlasUtils.ContentSliceCount(tex, atlas.PageCount);
             string content = contentSlices >= 0 ? $" contentSlices={contentSlices}" : "";
             var runtime = atlas.GetDiagnosticSnapshot();
-            sb.Append($"pages={atlas.PageCount} texSize={tex.width}x{tex.height}x{depth} texMB={storageMb}{content} pixelChecksum={BenchmarkAtlasUtils.Checksum(tex, atlas.PageCount)} requestedPath={runtime.RequestedPath} backend={runtime.Backend} prep={runtime.PreparationModes} storage={runtime.Storage} cpuMirror={runtime.HasCpuMirror} writes={runtime.WritePaths} gpuUploadBatches={runtime.GpuUploadBatches} copyRegions={runtime.CopyTextureRegions} readableApply={runtime.ReadableApplyFlushes} uploadFallbacks={runtime.GpuUploadFallbacks} sourceOverflows={runtime.GpuUploadSourceOverflows} sourceOverflowBytes={runtime.GpuUploadSourceOverflowCurrentBytes}/{runtime.GpuUploadSourceOverflowBudgetBytes} sourceOverflowPeakBytes={runtime.GpuUploadSourceOverflowPeakBytes} sourceOverflowRetainedBytes={runtime.GpuUploadSourceOverflowRetainedBytes} completion={completionMethod}  ");
+            sb.Append($"pages={atlas.PageCount} texSize={tex.width}x{tex.height}x{depth} texMB={storageMb}{content} pixelChecksum={BenchmarkAtlasUtils.Checksum(tex, atlas.PageCount)} requestedPath={runtime.RequestedPath} backend={runtime.Backend} prep={runtime.PreparationModes} storage={runtime.Storage} cpuMirror={runtime.HasCpuMirror} writes={runtime.WritePaths} gpuUploadBatches={runtime.GpuUploadBatches} copyRegions={runtime.CopyTextureRegions} readableApply={runtime.ReadableApplyFlushes} uploadFallbacks={runtime.GpuUploadFallbacks} sourceOverflows={runtime.GpuUploadSourceOverflows} sourceOverflowBytes={runtime.GpuUploadSourceOverflowCurrentBytes}/{runtime.GpuUploadSourceOverflowBudgetBytes} sourceOverflowPeakBytes={runtime.GpuUploadSourceOverflowPeakBytes} sourceOverflowRetainedBytes={runtime.GpuUploadSourceOverflowRetainedBytes} backpressureWaits={runtime.GpuUploadBackpressureWaits} backpressureWaitMs={runtime.GpuUploadBackpressureWaitMilliseconds:F3} backpressureMaxWaitMs={runtime.GpuUploadBackpressureMaxWaitMilliseconds:F3} completion={completionMethod}  ");
         }
         return sb.ToString();
     }
