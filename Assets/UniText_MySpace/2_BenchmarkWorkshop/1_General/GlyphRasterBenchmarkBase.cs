@@ -64,9 +64,11 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
 
     protected virtual string Diagnostics(string label) => "";
 
+    protected virtual GlyphExecutionSample CaptureExecutionDiagnostics() => null;
+
     protected virtual bool ShouldAbortRun() => false;
 
-    /// <summary>True when rasterization is async (UniText's GPU path) and <see cref="AwaitAsyncCompletion"/> yields a distinct end-to-end time. False for synchronous CPU rasterizers (TMP, UI Toolkit).</summary>
+    /// <summary>True when component activation completes after the immediate timed call and <see cref="AwaitAsyncCompletion"/> records a distinct component-to-atlas-ready latency.</summary>
     protected virtual bool HasE2E => false;
 
     protected virtual IEnumerator AwaitAsyncCompletion(float cpuMs)
@@ -94,6 +96,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         var frameTimes = new List<float>();
         var e2eTimes = HasE2E ? new List<float>() : null;
         var glyphCounts = new List<int>();
+        var executionSamples = new List<GlyphExecutionSample>();
         long totalManagedAlloc = 0;
 
         for (int iter = -warmupIterations; iter < iterations; iter++)
@@ -119,6 +122,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
             float e2eMs = lastE2eMs;
 
             int uniqueGlyphs = CountGlyphs() - glyphsBefore;
+            var execution = CaptureExecutionDiagnostics();
             string afterRaster = Diagnostics("AFTER raster");
             ShowPreview();
 
@@ -144,6 +148,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
                 frameTimes.Add(ms);
                 e2eTimes?.Add(e2eMs);
                 glyphCounts.Add(uniqueGlyphs);
+                if (execution != null) executionSamples.Add(execution);
                 totalManagedAlloc += gcRec.LastValue;
             }
         }
@@ -158,7 +163,18 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
             frameTimes = frameTimes,
             e2eTimes = e2eTimes,
             uniqueGlyphs = glyphCounts.Count > 0 ? glyphCounts[0] : 0,
-            managedAlloc = totalManagedAlloc
+            managedAlloc = totalManagedAlloc,
+            benchmark = new GlyphBenchmarkConfig
+            {
+                mode = mode,
+                iterations = iterations,
+                warmupIterations = warmupIterations,
+                previewFrames = previewFrames,
+                captureProfile = captureProfile,
+                captureAlloc = captureAlloc,
+                captureSample = captureSample
+            },
+            executionSamples = executionSamples
         };
 
         AppendResults(frameTimes, e2eTimes, glyphCounts, totalManagedAlloc, mode);
@@ -247,7 +263,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         {
             var sortedE2e = new List<float>(e2eTimes);
             sortedE2e.Sort();
-            report.AppendLine($"  Median e2e (CPU + GPU raster): {sortedE2e[sortedE2e.Count / 2]:F2} ms");
+            report.AppendLine($"  Median component-to-atlas-ready: {sortedE2e[sortedE2e.Count / 2]:F2} ms");
         }
         report.AppendLine($"  Unique glyphs: {typicalGlyphs}");
         report.AppendLine($"  Managed alloc: {TextBenchmarkBase.FormatBytes(managedAlloc)} (total across {iterations} runs)");

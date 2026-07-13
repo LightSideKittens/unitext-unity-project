@@ -20,7 +20,7 @@ public class TMP_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     public IEnumerator RunBenchmarkCoroutine() => RunPass(null);
 
-    /// <summary>Strips every fallback path (per-asset table + the two global TMP_Settings lists) so TMP rasterizes only the primary font's glyphs — matching UI Toolkit's TryAddCharacters, which never falls back.</summary>
+    /// <summary>Strips every fallback path (per-asset table + the two global TMP_Settings lists) so component activation can rasterize only the selected primary font.</summary>
     protected override void OnBeforeRun()
     {
         savedGlobalFallback = TMP_Settings.fallbackFontAssets;
@@ -30,6 +30,7 @@ public class TMP_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         TMP_Settings.defaultFontAsset = null;
     }
 
+    /// <summary>Restores the fallback settings, then empties the dynamic atlas the run rasterized so its grown texture stops occupying memory between runs; in the editor also persists the shrunk font (the atlas is a sub-asset that otherwise survives play mode and bloats the saved .asset).</summary>
     protected override void OnAfterRun()
     {
         TMP_Settings.fallbackFontAssets = savedGlobalFallback;
@@ -37,6 +38,17 @@ public class TMP_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         if (savedPerAssetFallback != null && fontAssets != null)
             for (int i = 0; i < fontAssets.Length && i < savedPerAssetFallback.Length; i++)
                 fontAssets[i].fallbackFontAssetTable = savedPerAssetFallback[i];
+
+        if (fontAssets != null)
+            foreach (var font in fontAssets)
+            {
+                if (font == null) continue;
+                font.ClearFontAssetData(true);
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(font);
+                UnityEditor.AssetDatabase.SaveAssetIfDirty(font);
+#endif
+            }
     }
 
     void Update()
@@ -109,6 +121,39 @@ public class TMP_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         return total;
     }
 
+    protected override GlyphExecutionSample CaptureExecutionDiagnostics()
+    {
+        var sample = new GlyphExecutionSample
+        {
+            trigger = "GameObject.SetActive(true)",
+            rasterBackend = "CpuTextCore",
+            threading = "mainThread",
+            completion = "synchronousCanvasUpdate",
+            fallback = "localGlobalAndDefaultDisabled"
+        };
+        foreach (var font in fontAssets)
+        {
+            var textures = font.atlasTextures;
+            if (textures == null) continue;
+            for (int i = 0; i < textures.Length; i++)
+            {
+                var texture = textures[i];
+                if (texture == null) continue;
+                sample.atlases.Add(new GlyphAtlasExecutionData
+                {
+                    mode = $"{font.name}:atlas{i}",
+                    backend = "CpuTextCore",
+                    storage = texture.GetType().Name,
+                    cpuMirror = texture.isReadable,
+                    gpuUploadTarget = false,
+                    preparation = "mainThread",
+                    writePaths = new List<string> { "textCoreInternal" }
+                });
+            }
+        }
+        return sample;
+    }
+
     protected override string Diagnostics(string label)
     {
         var sb = new StringBuilder();
@@ -117,7 +162,8 @@ public class TMP_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         {
             var textures = font.atlasTextures;
             long checksum = textures is { Length: > 0 } ? BenchmarkAtlasUtils.Checksum(textures[0]) : 0;
-            sb.Append($"'{font.name}': glyphs={FontAssetUtils.GlyphCount(font)} chars={FontAssetUtils.CharacterCount(font)} atlasCount={textures?.Length ?? 0} pixelChecksum={checksum}  ");
+            bool cpuMirror = textures is { Length: > 0 } && textures[0] != null && textures[0].isReadable;
+            sb.Append($"'{font.name}': glyphs={FontAssetUtils.GlyphCount(font)} chars={FontAssetUtils.CharacterCount(font)} atlasCount={textures?.Length ?? 0} pixelChecksum={checksum} trigger=GameObject-enable raster=CPU-TextCore completion=Canvas-sync cpuMirror={cpuMirror} fallback=local/global/default-off  ");
         }
         return sb.ToString();
     }

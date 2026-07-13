@@ -58,7 +58,13 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
             panelRenderer.UnregisterUIReloadCallback(OnUIReload);
     }
 
-    protected override void OnBeforeAllTests() { }
+    protected override void OnBeforeAllTests()
+    {
+        EnsurePanelRenderer();
+        if (!UIToolkitFontIsolation.Validate(panelRenderer?.panelSettings, null, out var error))
+            throw new System.InvalidOperationException($"UI Toolkit font isolation failed: {error}");
+        Debug.Log("[UIToolkit] Font fallback isolation: local=none, global=none, default=none, emoji=off, Dynamic OS=off.");
+    }
     protected override void OnAfterAllTests() { }
 
     protected override bool ValidateSetup()
@@ -98,6 +104,10 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
         }
 
         label ??= new Label();
+        label.emojiFallbackSupport = false;
+#if UNITY_6000_0_OR_NEWER
+        label.style.unityTextGenerator = TextGeneratorType.Advanced;
+#endif
         label.style.position = Position.Absolute;
         label.style.left = 10;
         label.style.top = 10 + index * 50;

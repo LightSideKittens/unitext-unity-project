@@ -14,6 +14,9 @@ public class BenchmarkConfig : MonoBehaviour
     public int iterations = 10;
     public int warmupIterations = 3;
 
+    [Min(0), Tooltip("Identical untimed cycles after each phase. One cycle exposes repeat growth; more cycles make the leak trend more reliable.")]
+    public int memoryProbeRepeats = 1;
+
     [Header("Glyph rasterization")]
     [Tooltip("Text the glyph-rasterization benchmark clears and re-renders. Leave empty to use the text baked on each engine's own benchmark object.")]
     [SerializeField, TextArea(3, 10)] string glyphRasterCorpus;

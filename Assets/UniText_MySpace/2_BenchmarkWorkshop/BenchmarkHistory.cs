@@ -2,54 +2,54 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Committed benchmark history under &lt;project&gt;/Benchmarks. A run's combined JSON is split by suite
-/// into two independent streams — <c>run-text-*.js</c> and <c>run-glyph-*.js</c> — each pushing into its
-/// own global and indexed by its own <c>{suite}-runs-index.js</c>, so the file:// viewer shows the text
-/// pipeline and glyph rasterization as separate tabs. Editor runs save automatically; CI artifacts (one
-/// combined JSON) come in through the import menu and are split the same way.
+/// Persists benchmark streams for the local history viewer and keeps its generated run index synchronized
+/// with <c>Benchmarks/runs/</c> while the Unity editor is open.
 /// </summary>
+[InitializeOnLoad]
 public static class BenchmarkHistory
 {
-    static readonly string[] Suites = { "text", "glyph" };
+    const long rebuildDelayTicks = TimeSpan.TicksPerMillisecond * 250;
 
     static string ProjectRoot => Directory.GetParent(Application.dataPath).FullName;
     static string BenchmarksDir => Path.Combine(ProjectRoot, "Benchmarks");
     static string RunsDir => Path.Combine(BenchmarksDir, "runs");
+    static string IndexPath => Path.Combine(BenchmarksDir, "runs-index.js");
 
-    /// <summary>The kept section per suite, and the section stripped out of that suite's file.</summary>
-    static (string keep, string drop) Sections(string suite) =>
-        suite == "glyph" ? ("glyphRasterization", "textBenchmarks") : ("textBenchmarks", "glyphRasterization");
+    static readonly FileSystemWatcher watcher;
+    static long indexChangeTicks;
 
-    static string RunsGlobal(string suite) => suite == "glyph" ? "__unitextGlyphRuns" : "__unitextTextRuns";
-    static string IndexGlobal(string suite) => suite == "glyph" ? "__unitextGlyphIndex" : "__unitextTextIndex";
-    static string IndexFile(string suite) => $"{suite}-runs-index.js";
-
-    /// <summary>Splits one run's combined JSON into the per-suite streams; a suite with no data is skipped.</summary>
-    public static void SaveRun(string json)
+    static BenchmarkHistory()
     {
-        var root = JObject.Parse(json);
-        var stamp = $"{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Application.platform}-{Sanitize(SystemInfo.deviceName)}";
-        foreach (var suite in Suites)
-            SaveStream(suite, root, $"run-{suite}-{stamp}.js");
+        Directory.CreateDirectory(RunsDir);
         RebuildIndex();
+
+        watcher = new FileSystemWatcher(RunsDir, "run-*.js")
+        {
+            NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite
+        };
+        watcher.Created += QueueIndexRebuild;
+        watcher.Changed += QueueIndexRebuild;
+        watcher.Deleted += QueueIndexRebuild;
+        watcher.Renamed += QueueIndexRebuild;
+        watcher.EnableRaisingEvents = true;
+
+        EditorApplication.update += RebuildChangedIndex;
+        AssemblyReloadEvents.beforeAssemblyReload += DisposeWatcher;
+        EditorApplication.quitting += DisposeWatcher;
     }
 
-    static void SaveStream(string suite, JObject root, string fileName)
+    /// <summary>Writes a combined benchmark result into the per-suite files consumed by the history viewer.</summary>
+    public static void SaveRun(string json)
     {
-        var (keep, drop) = Sections(suite);
-        if (root[keep] is not JObject section || section.Count == 0) return;
-
-        var clone = (JObject)root.DeepClone();
-        clone.Remove(drop);
-        clone["suite"] = suite;
-        WriteRunFile(suite, fileName, clone.ToString(Formatting.Indented));
-        Debug.Log($"[BenchmarkHistory] {suite} run saved to Benchmarks/runs/{fileName}");
+        var stamp = BenchmarkStreams.Stamp(Application.platform.ToString(), SystemInfo.deviceName);
+        WriteStreams(json, stamp);
+        RebuildIndex();
     }
 
     [MenuItem("Tools/UniText/Benchmarks/Import Run JSON...")]
@@ -58,60 +58,69 @@ public static class BenchmarkHistory
         var path = EditorUtility.OpenFilePanel("Import benchmark run", "", "json");
         if (string.IsNullOrEmpty(path)) return;
 
-        var root = JObject.Parse(File.ReadAllText(path));
-        var stamp = $"imported-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Sanitize(Path.GetFileNameWithoutExtension(path))}";
-        foreach (var suite in Suites)
-            SaveStream(suite, root, $"run-{suite}-{stamp}.js");
+        var stamp = $"imported-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{BenchmarkStreams.Sanitize(Path.GetFileNameWithoutExtension(path))}";
+        WriteStreams(File.ReadAllText(path), stamp);
         RebuildIndex();
     }
 
+    static void WriteStreams(string json, string stamp)
+    {
+        Directory.CreateDirectory(RunsDir);
+        foreach (var f in BenchmarkStreams.Split(json, stamp))
+        {
+            File.WriteAllText(Path.Combine(RunsDir, f.fileName), f.contents);
+            Debug.Log($"[BenchmarkHistory] {f.suite} run saved to Benchmarks/runs/{f.fileName}");
+        }
+    }
+
+    /// <summary>Regenerates the viewer index from every top-level <c>run-*.js</c> file in the runs directory.</summary>
     [MenuItem("Tools/UniText/Benchmarks/Rebuild History Index")]
     public static void RebuildIndex()
     {
-        foreach (var suite in Suites)
-            RebuildIndex(suite);
-    }
-
-    static void RebuildIndex(string suite)
-    {
         Directory.CreateDirectory(RunsDir);
 
-        var files = Directory.GetFiles(RunsDir, $"run-{suite}-*.js");
+        var files = Directory.GetFiles(RunsDir, "run-*.js", SearchOption.TopDirectoryOnly);
         Array.Sort(files, StringComparer.OrdinalIgnoreCase);
 
         var sb = new StringBuilder();
-        sb.AppendLine($"window.{IndexGlobal(suite)} = [");
+        sb.AppendLine("window.__unitextBenchIndex = [");
         foreach (var f in files)
-            sb.AppendLine($"  \"runs/{Path.GetFileName(f)}\",");
+            sb.Append("  ").Append(JsonConvert.SerializeObject($"runs/{Path.GetFileName(f)}")).AppendLine(",");
         sb.AppendLine("];");
 
-        File.WriteAllText(Path.Combine(BenchmarksDir, IndexFile(suite)), sb.ToString());
+        var contents = sb.ToString();
+        if (!File.Exists(IndexPath) || File.ReadAllText(IndexPath) != contents)
+            File.WriteAllText(IndexPath, contents, new UTF8Encoding(false));
     }
 
     [MenuItem("Tools/UniText/Benchmarks/Open History Page")]
     static void OpenHistoryPage()
     {
+        RebuildIndex();
         var page = Path.Combine(BenchmarksDir, "index.html");
         if (File.Exists(page)) Application.OpenURL("file:///" + page.Replace('\\', '/'));
         else Debug.LogWarning($"[BenchmarkHistory] Viewer not found at {page}");
     }
 
-    static void WriteRunFile(string suite, string fileName, string json)
+    static void QueueIndexRebuild(object sender, FileSystemEventArgs args) =>
+        Interlocked.Exchange(ref indexChangeTicks, DateTime.UtcNow.Ticks);
+
+    static void RebuildChangedIndex()
     {
-        Directory.CreateDirectory(RunsDir);
-        var g = RunsGlobal(suite);
-        var content = $"window.{g} = window.{g} || [];\n" +
-                      $"window.{g}.push(\n" + json + "\n);\n";
-        File.WriteAllText(Path.Combine(RunsDir, fileName), content);
+        var changedAt = Interlocked.Read(ref indexChangeTicks);
+        if (changedAt == 0 || DateTime.UtcNow.Ticks - changedAt < rebuildDelayTicks) return;
+        if (Interlocked.CompareExchange(ref indexChangeTicks, 0, changedAt) != changedAt) return;
+
+        try
+        {
+            RebuildIndex();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[BenchmarkHistory] Failed to rebuild run index: {e.Message}");
+        }
     }
 
-    static string Sanitize(string s)
-    {
-        if (string.IsNullOrEmpty(s)) return "unknown";
-        var sb = new StringBuilder(s.Length);
-        foreach (var c in s)
-            sb.Append(char.IsLetterOrDigit(c) || c == '-' || c == '_' ? c : '-');
-        return sb.ToString();
-    }
+    static void DisposeWatcher() => watcher.Dispose();
 }
 #endif

@@ -6,7 +6,6 @@ using System.Text;
 using LightSide;
 using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 /// <summary>Stable states from the shared text benchmark flow that can be left alive for editor inspection.</summary>
@@ -36,13 +35,16 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     public int iterations = 10;
     public int warmupIterations = 3;
 
+    [Min(0), Tooltip("Identical untimed cycles run after each measured phase to distinguish a retained plateau from continued growth.")]
+    public int memoryProbeRepeats = 1;
+
     [Header("Test Control")]
     public bool runCreationDestructionTest = true;
     public bool runFullRebuildTest = true;
     public bool runLayoutRebuildTest = true;
     public bool runMeshRebuildTest = true;
 
-    /// <summary>Wraps each phase's measured iterations in a LightSide profiler capture and ships prof_{engine}_{phase}.txt/.json to Benchmarks/prof/{runId}/ (device: persistentDataPath) so runs accumulate as history. UniText needs UNITEXT_PROFILE for a deep tree; other engines report totals only. Captured runs carry zone overhead — compare their wall-clock only against other captured runs.</summary>
+    /// <summary>Runs a separate untimed copy of each phase after its memory probes and ships prof_{engine}_{phase}.txt/.json to Benchmarks/prof/{runId}/ (device: persistentDataPath). Keeping capture buffers outside the timed and memory windows prevents profiler capacity from being attributed to the text engine. UniText needs UNITEXT_PROFILE for a deep tree; other engines report totals only.</summary>
     [Header("Profiling")]
     public bool captureProfile;
 
@@ -74,6 +76,8 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     protected readonly Stopwatch stopwatch = new();
     protected readonly WaitForEndOfFrame waitForEndOfFrame = new();
 
+    MemorySampler memorySampler;
+
     public TestResults Results => testResults;
     public bool IsRunning => isRunning;
     public string InspectionReport => inspectionReport;
@@ -87,18 +91,105 @@ public abstract class TextBenchmarkBase : MonoBehaviour
 
     #region Data Structures
 
+    [Serializable]
+    public struct MemorySnapshot
+    {
+        public long resident;
+        public long used;
+        public long reserved;
+        public long gcUsed;
+        public long gcReserved;
+        public long buffers;
+
+        internal static MemorySnapshot Max(MemorySnapshot a, MemorySnapshot b) => new()
+        {
+            resident = MaxValue(a.resident, b.resident),
+            used = MaxValue(a.used, b.used),
+            reserved = MaxValue(a.reserved, b.reserved),
+            gcUsed = MaxValue(a.gcUsed, b.gcUsed),
+            gcReserved = MaxValue(a.gcReserved, b.gcReserved),
+            buffers = MaxValue(a.buffers, b.buffers)
+        };
+
+        internal static MemorySnapshot Invalid() => new()
+        {
+            resident = -1,
+            used = -1,
+            reserved = -1,
+            gcUsed = -1,
+            gcReserved = -1,
+            buffers = -1
+        };
+
+        static long MaxValue(long a, long b)
+        {
+            if (a < 0) return b;
+            if (b < 0) return a;
+            return Math.Max(a, b);
+        }
+    }
+
+    [Serializable]
+    public struct MemoryCycle
+    {
+        public MemorySnapshot before;
+        public MemorySnapshot peak;
+        public MemorySnapshot end;
+        public MemorySnapshot afterCollect;
+        public long managedAlloc;
+    }
+
+    [Serializable]
+    public struct PhaseMemoryMetrics
+    {
+        public bool available;
+        public MemorySnapshot beforeWarmup;
+        public MemorySnapshot normalizedBaseline;
+        public MemorySnapshot afterWarmup;
+        public MemorySnapshot measuredPeak;
+        public MemorySnapshot measuredEnd;
+        public MemorySnapshot normalizedEnd;
+        public MemorySnapshot afterMeasured;
+        public MemorySnapshot beforeProbes;
+        public List<MemoryCycle> probes;
+
+        internal static PhaseMemoryMetrics Create() => new()
+        {
+            beforeWarmup = MemorySnapshot.Invalid(),
+            normalizedBaseline = MemorySnapshot.Invalid(),
+            afterWarmup = MemorySnapshot.Invalid(),
+            measuredPeak = MemorySnapshot.Invalid(),
+            measuredEnd = MemorySnapshot.Invalid(),
+            normalizedEnd = MemorySnapshot.Invalid(),
+            afterMeasured = MemorySnapshot.Invalid(),
+            beforeProbes = MemorySnapshot.Invalid(),
+            probes = new List<MemoryCycle>()
+        };
+    }
+
+    [Serializable]
+    public struct RunMemoryMetrics
+    {
+        public bool available;
+        public MemorySnapshot baseline;
+        public MemorySnapshot peak;
+        public MemorySnapshot beforeCleanup;
+        public MemorySnapshot afterCleanup;
+    }
+
     public struct TestMetrics
     {
         public List<float> frameTimes;
-        public long totalAlloc;
         public long managedAlloc;
         public int gcGen0;
         public int gcGen1;
         public int gcGen2;
+        public PhaseMemoryMetrics memory;
 
         public static TestMetrics Create() => new()
         {
             frameTimes = new List<float>(),
+            memory = PhaseMemoryMetrics.Create()
         };
 
         public float MedianFrameTime
@@ -137,6 +228,7 @@ public abstract class TextBenchmarkBase : MonoBehaviour
         public TestMetrics layoutNoWrapNoAuto;
         public TestMetrics layoutNoWrapAuto;
         public TestMetrics meshRebuild;
+        public RunMemoryMetrics memory;
 
         public static TestResults Create() => new()
         {
@@ -149,8 +241,66 @@ public abstract class TextBenchmarkBase : MonoBehaviour
             layoutWrapAuto = TestMetrics.Create(),
             layoutNoWrapNoAuto = TestMetrics.Create(),
             layoutNoWrapAuto = TestMetrics.Create(),
-            meshRebuild = TestMetrics.Create()
+            meshRebuild = TestMetrics.Create(),
+            memory = new RunMemoryMetrics()
         };
+    }
+
+    sealed class MemorySampler : IDisposable
+    {
+        ProfilerRecorder resident;
+        ProfilerRecorder used;
+        ProfilerRecorder reserved;
+        ProfilerRecorder gcUsed;
+        ProfilerRecorder gcReserved;
+        ProfilerRecorder gcAllocated;
+        ProfilerRecorder buffers;
+
+        public MemorySnapshot Peak { get; private set; }
+        public bool ManagedAllocationAvailable => gcAllocated.Valid;
+
+        public MemorySampler()
+        {
+            resident = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "System Used Memory", 1);
+            used = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Used Memory", 1);
+            reserved = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Reserved Memory", 1);
+            gcUsed = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Used Memory", 1);
+            gcReserved = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Reserved Memory", 1);
+            gcAllocated = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame", 1);
+            buffers = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Used Buffers Bytes", 1);
+            Peak = MemorySnapshot.Invalid();
+        }
+
+        public MemorySnapshot Read()
+        {
+            var snapshot = new MemorySnapshot
+            {
+                resident = Value(resident),
+                used = Value(used),
+                reserved = Value(reserved),
+                gcUsed = Value(gcUsed),
+                gcReserved = Value(gcReserved),
+                buffers = Value(buffers)
+            };
+            Peak = MemorySnapshot.Max(Peak, snapshot);
+            return snapshot;
+        }
+
+        public long ManagedAllocatedCurrentFrame => gcAllocated.Valid ? Math.Max(0, gcAllocated.CurrentValue) : -1;
+
+        public void Dispose()
+        {
+            resident.Dispose();
+            used.Dispose();
+            reserved.Dispose();
+            gcUsed.Dispose();
+            gcReserved.Dispose();
+            gcAllocated.Dispose();
+            buffers.Dispose();
+        }
+
+        static long Value(ProfilerRecorder recorder) => recorder.Valid ? recorder.CurrentValue : -1;
+
     }
 
     #endregion
@@ -275,6 +425,9 @@ public abstract class TextBenchmarkBase : MonoBehaviour
         if (!isRunning) return;
         StopAllCoroutines();
         TeardownContainer();
+        ReleaseWorkload();
+        memorySampler?.Dispose();
+        memorySampler = null;
         isRunning = false;
         Debug.Log("Benchmark stopped.");
     }
@@ -306,6 +459,9 @@ public abstract class TextBenchmarkBase : MonoBehaviour
         ClearInspectionState();
         isRunning = true;
         results.Clear();
+        bool beforeAll = false;
+        bool containerReady = false;
+        bool completed = false;
 
         var cfg = BenchmarkConfig.Instance;
         if (cfg != null)
@@ -313,27 +469,101 @@ public abstract class TextBenchmarkBase : MonoBehaviour
             objectCount = cfg.objectCount;
             iterations = cfg.iterations;
             warmupIterations = cfg.warmupIterations;
+            memoryProbeRepeats = cfg.memoryProbeRepeats;
         }
 
-        OnBeforeAllTests();
-        SetupContainer();
+        memorySampler?.Dispose();
+        ProfCounters.Release();
+        Prof.ReleaseCaptureBuffers();
+        memorySampler = new MemorySampler();
         testResults = TestResults.Create();
-
-        if (!silent)
-            AppendHeader();
-
-        yield return RunAllTests();
-
-        if (!silent)
+        try
         {
-            AppendResults();
-            Debug.Log(results.ToString());
-        }
+            yield return CollectAndSettle();
+            testResults.memory.baseline = ReadMemory();
+            testResults.memory.available = MemoryAvailable(testResults.memory.baseline);
 
-        TeardownContainer();
-        OnAfterAllTests();
-        isRunning = false;
-        currentTest = "Complete";
+            beforeAll = true;
+            OnBeforeAllTests();
+            containerReady = true;
+            SetupContainer();
+            LogMemory("Start");
+
+            if (!silent)
+                AppendHeader();
+
+            yield return RunAllTests();
+
+            if (!silent)
+            {
+                AppendResults();
+                Debug.Log(results.ToString());
+            }
+
+            testResults.memory.beforeCleanup = ReadMemory();
+            TeardownContainer();
+            containerReady = false;
+            OnAfterAllTests();
+            beforeAll = false;
+            ReleaseWorkload();
+            yield return CollectAndSettle();
+            testResults.memory.afterCleanup = ReadMemory();
+            testResults.memory.peak = memorySampler.Peak;
+            LogMemory("Cleanup");
+            ShipRunMemoryProfile(testResults.memory);
+            completed = true;
+            currentTest = "Complete";
+        }
+        finally
+        {
+            if (!completed)
+            {
+                if (containerReady)
+                {
+                    try { TeardownContainer(); }
+                    catch (Exception e) { Debug.LogException(e); }
+                }
+                if (beforeAll)
+                {
+                    try { OnAfterAllTests(); }
+                    catch (Exception e) { Debug.LogException(e); }
+                }
+                ReleaseWorkload();
+                currentTest = "Failed";
+            }
+            if (captureProfile)
+            {
+                if (Prof.Capturing) Prof.EndCapture(false);
+                ProfCounters.Release();
+                Prof.ReleaseCaptureBuffers();
+            }
+            memorySampler?.Dispose();
+            memorySampler = null;
+            isRunning = false;
+        }
+    }
+
+    protected IEnumerator CollectAndSettle()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        for (int i = 0; i < 5; i++)
+            yield return waitForEndOfFrame;
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        for (int i = 0; i < 2; i++)
+            yield return waitForEndOfFrame;
+    }
+
+    void ReleaseWorkload()
+    {
+        testStrings = null;
+        uniqueTestStrings = null;
+        richTestStrings = null;
+        corpus = null;
+        richCorpus = null;
     }
 
     #endregion
@@ -355,14 +585,14 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     {
         results.AppendLine($"\n[{SystemName}] Creation/Destruction");
         results.AppendLine($"  Create: {testResults.creation.TotalTime:F2}ms | Destroy: {testResults.destruction.TotalTime:F2}ms");
-        results.AppendLine($"  Alloc: {FormatBytes(testResults.creation.totalAlloc)} (Managed: {FormatBytes(testResults.creation.managedAlloc)}) | GC: Gen0={testResults.creation.gcGen0}, Gen1={testResults.creation.gcGen1}, Gen2={testResults.creation.gcGen2}");
+        results.AppendLine($"  Managed traffic: create {FormatCounter(testResults.creation.managedAlloc)}, destroy {FormatCounter(testResults.destruction.managedAlloc)} | GC: Gen0={testResults.creation.gcGen0}, Gen1={testResults.creation.gcGen1}, Gen2={testResults.creation.gcGen2}");
     }
 
     protected void AppendSingleTestResult(string testName, TestMetrics metrics)
     {
         results.AppendLine($"\n[{SystemName}] {testName}");
         results.AppendLine($"  Time: {metrics.TotalTime:F2}ms");
-        results.AppendLine($"  Alloc: {FormatBytes(metrics.totalAlloc)} (Managed: {FormatBytes(metrics.managedAlloc)}) | GC: Gen0={metrics.gcGen0}, Gen1={metrics.gcGen1}, Gen2={metrics.gcGen2}");
+        results.AppendLine($"  Managed traffic: {FormatCounter(metrics.managedAlloc)} | GC: Gen0={metrics.gcGen0}, Gen1={metrics.gcGen1}, Gen2={metrics.gcGen2}");
     }
 
     private void AppendResults()
@@ -377,6 +607,89 @@ public abstract class TextBenchmarkBase : MonoBehaviour
         if (bytes < 1024 * 1024) return $"{bytes / 1024f:F1} KB";
         return $"{bytes / (1024f * 1024f):F2} MB";
     }
+
+    protected void LogMemory(string phase)
+    {
+        var memory = ReadMemory();
+
+        Debug.Log($"[BenchmarkMemory] {SystemName}/{corpusName}/{phase}: " +
+                  $"Resident={FormatCounter(memory.resident)}, Used={FormatCounter(memory.used)}, " +
+                  $"Reserved={FormatCounter(memory.reserved)}, " +
+                  $"GC={FormatCounter(memory.gcUsed)}/{FormatCounter(memory.gcReserved)}, " +
+                  $"Buffers={FormatCounter(memory.buffers)}");
+    }
+
+    protected MemorySnapshot ReadMemory()
+    {
+        if (memorySampler != null) return memorySampler.Read();
+        return new MemorySnapshot
+        {
+            resident = ReadCounter("System Used Memory"),
+            used = ReadCounter("Total Used Memory"),
+            reserved = ReadCounter("Total Reserved Memory"),
+            gcUsed = ReadCounter("GC Used Memory"),
+            gcReserved = ReadCounter("GC Reserved Memory"),
+            buffers = ReadCounter(ProfilerCategory.Render, "Used Buffers Bytes")
+        };
+    }
+
+    static long ReadCounter(string name) => ReadCounter(ProfilerCategory.Memory, name);
+
+    static long ReadCounter(ProfilerCategory category, string name) =>
+        ProfCounters.TryGetCurrentValue(category, name, out var value) ? value : -1;
+
+    static string FormatCounter(long value) => value >= 0 ? FormatBytes(value) : "n/a";
+
+    protected void AddManagedAllocation(ref long total)
+    {
+        var value = memorySampler?.ManagedAllocatedCurrentFrame ?? -1;
+        if (value < 0)
+        {
+            total = -1;
+            return;
+        }
+        if (total >= 0) total += value;
+    }
+
+    protected long ManagedAllocationInitialValue =>
+        memorySampler?.ManagedAllocationAvailable == true ? 0 : -1;
+
+    protected static bool MemoryAvailable(MemorySnapshot memory) =>
+        memory.resident >= 0 || memory.used >= 0 || memory.gcUsed >= 0 || memory.buffers >= 0;
+
+    protected void ShipPhaseMemoryProfile(string phase, string profilePhase, string checkpoint,
+        PhaseMemoryMetrics memory)
+    {
+        var tag = ProfileTag(profilePhase);
+        var run = BenchmarkRun.Id;
+        ProfTransport.Ship(BenchmarkJsonSerializer.SerializeMemoryProfile(SystemName, corpusName, phase, run, checkpoint, memory),
+            ProfilePath(tag, $"_memory-{checkpoint}.json"));
+        ProfTransport.Ship(BenchmarkJsonSerializer.SerializeMemoryProfileText(SystemName, corpusName, phase, run, checkpoint, memory),
+            ProfilePath(tag, $"_memory-{checkpoint}.txt"));
+    }
+
+    void ShipRunMemoryProfile(RunMemoryMetrics memory)
+    {
+        var tag = ProfileTag("Run");
+        var run = BenchmarkRun.Id;
+        ProfTransport.Ship(BenchmarkJsonSerializer.SerializeRunMemoryProfile(SystemName, corpusName, run, memory),
+            ProfilePath(tag, "_memory.json"));
+        ProfTransport.Ship(BenchmarkJsonSerializer.SerializeRunMemoryProfileText(SystemName, corpusName, run, memory),
+            ProfilePath(tag, "_memory.txt"));
+    }
+
+    protected string ProfileTag(string phase) =>
+        $"{ProfilePart(SystemName)}_{ProfilePart(phase)}_{ProfilePart(corpusName)}";
+
+    protected static string ProfilePath(string tag, string suffix)
+    {
+        var run = BenchmarkRun.Id;
+        return $"prof/{run}/{run}_prof_{tag}{suffix}";
+    }
+
+    static string ProfilePart(string value) => string.IsNullOrEmpty(value)
+        ? "unknown"
+        : value.Replace(" ", "").Replace("/", "-").Replace("\\", "-").Replace(":", "-");
 
     #endregion
 
@@ -744,43 +1057,109 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
 
     private IEnumerator RunCreationDestruction()
     {
+        var creation = TestMetrics.Create();
+        var destruction = TestMetrics.Create();
+        creation.managedAlloc = ManagedAllocationInitialValue;
+        destruction.managedAlloc = ManagedAllocationInitialValue;
+        creation.frameTimes.Capacity = Math.Max(0, iterations);
+        destruction.frameTimes.Capacity = Math.Max(0, iterations);
+        creation.memory.probes.Capacity = Math.Max(0, memoryProbeRepeats);
+        yield return CollectAndSettle();
+        creation.memory.beforeWarmup = ReadMemory();
+        creation.memory.available = MemoryAvailable(creation.memory.beforeWarmup);
+        ShipPhaseMemoryProfile("Creation/Destruction", "Creation-Destruction", "started", creation.memory);
+        yield return CollectAndSettle();
+        creation.memory.normalizedBaseline = ReadMemory();
+
         for (int iter = 0; iter < warmupIterations; iter++)
         {
             instances = new TInstance[objectCount];
             for (int i = 0; i < objectCount; i++) { instances[i] = CreateInstance(i); SetText(instances[i], corpus); }
             yield return null;
+            ReadMemory();
             for (int i = 0; i < objectCount; i++) DestroyInstance(instances[i]);
+            instances = null;
             yield return null;
+            ReadMemory();
             yield return null;
         }
 
+        yield return CollectAndSettle();
+        creation.memory.afterWarmup = ReadMemory();
+        creation.memory.measuredPeak = creation.memory.afterWarmup;
         int gc0 = GC.CollectionCount(0), gc1 = GC.CollectionCount(1), gc2 = GC.CollectionCount(2);
-        using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
 
         for (int iter = 0; iter < iterations; iter++)
         {
-            long allocBefore = Profiler.GetTotalAllocatedMemoryLong();
             instances = new TInstance[objectCount];
             stopwatch.Restart();
             for (int i = 0; i < objectCount; i++) { instances[i] = CreateInstance(i); SetText(instances[i], corpus); }
             yield return waitForEndOfFrame;
             stopwatch.Stop();
-            long alloc = Profiler.GetTotalAllocatedMemoryLong() - allocBefore;
-            if (alloc > 0) testResults.creation.totalAlloc += alloc;
-            testResults.creation.managedAlloc += recorder.LastValue;
-            testResults.creation.frameTimes.Add((float)stopwatch.Elapsed.TotalMilliseconds);
+            AddManagedAllocation(ref creation.managedAlloc);
+            creation.frameTimes.Add((float)stopwatch.Elapsed.TotalMilliseconds);
+            creation.memory.measuredPeak = MemorySnapshot.Max(creation.memory.measuredPeak, ReadMemory());
 
             stopwatch.Restart();
             for (int i = 0; i < objectCount; i++) DestroyInstance(instances[i]);
             yield return waitForEndOfFrame;
             stopwatch.Stop();
-            testResults.destruction.frameTimes.Add((float)stopwatch.Elapsed.TotalMilliseconds);
+            AddManagedAllocation(ref destruction.managedAlloc);
+            destruction.frameTimes.Add((float)stopwatch.Elapsed.TotalMilliseconds);
+            instances = null;
+            creation.memory.measuredPeak = MemorySnapshot.Max(creation.memory.measuredPeak, ReadMemory());
             yield return null;
         }
 
-        testResults.creation.gcGen0 = GC.CollectionCount(0) - gc0;
-        testResults.creation.gcGen1 = GC.CollectionCount(1) - gc1;
-        testResults.creation.gcGen2 = GC.CollectionCount(2) - gc2;
+        creation.gcGen0 = GC.CollectionCount(0) - gc0;
+        creation.gcGen1 = GC.CollectionCount(1) - gc1;
+        creation.gcGen2 = GC.CollectionCount(2) - gc2;
+        creation.memory.measuredEnd = ReadMemory();
+        creation.memory.normalizedEnd = creation.memory.measuredEnd;
+        yield return CollectAndSettle();
+        creation.memory.afterMeasured = ReadMemory();
+        testResults.creation = creation;
+        testResults.destruction = destruction;
+        ShipPhaseMemoryProfile("Creation/Destruction", "Creation-Destruction", "measured", creation.memory);
+
+        yield return CollectAndSettle();
+        creation.memory.beforeProbes = ReadMemory();
+        for (int repeat = 0; repeat < memoryProbeRepeats; repeat++)
+        {
+            var before = ReadMemory();
+            var cycle = new MemoryCycle
+            {
+                before = before,
+                peak = before,
+                managedAlloc = ManagedAllocationInitialValue
+            };
+            for (int iter = 0; iter < iterations; iter++)
+            {
+                instances = new TInstance[objectCount];
+                for (int i = 0; i < objectCount; i++) { instances[i] = CreateInstance(i); SetText(instances[i], corpus); }
+                yield return waitForEndOfFrame;
+                AddManagedAllocation(ref cycle.managedAlloc);
+                cycle.peak = MemorySnapshot.Max(cycle.peak, ReadMemory());
+
+                for (int i = 0; i < objectCount; i++) DestroyInstance(instances[i]);
+                yield return waitForEndOfFrame;
+                AddManagedAllocation(ref cycle.managedAlloc);
+                instances = null;
+                cycle.peak = MemorySnapshot.Max(cycle.peak, ReadMemory());
+            }
+
+            cycle.end = ReadMemory();
+            yield return CollectAndSettle();
+            cycle.afterCollect = ReadMemory();
+            creation.memory.probes.Add(cycle);
+            testResults.creation = creation;
+            ShipPhaseMemoryProfile("Creation/Destruction", "Creation-Destruction",
+                $"probes{creation.memory.probes.Count}", creation.memory);
+            yield return CollectAndSettle();
+        }
+
+        testResults.creation = creation;
+        LogMemory("Creation/Destruction");
     }
 
     private IEnumerator RunLayoutVariation(bool wordWrap, bool autoSize, string name, Action<TestMetrics> setResult)
@@ -808,7 +1187,7 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
 
     /// <summary>
     /// The one measured-phase envelope: warmup, then <see cref="iterations"/> timed frames of
-    /// <paramref name="iterationStep"/> with per-frame alloc + managed-GC + gen-count bookkeeping.
+    /// <paramref name="iterationStep"/> with managed-allocation traffic, GC and memory-lifecycle bookkeeping.
     /// Every rebuild/layout/mesh phase runs through here so their timing windows can never drift apart.
     /// The measured index continues past the warmup indices (<c>iter + warmupIterations</c>) so the first
     /// timed frame applies a value different from the last warmup — otherwise the engine dedups the
@@ -817,51 +1196,153 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
     protected IEnumerator RunMeasuredPhase(string reportName, Action<int> warmupStep, Action<int> iterationStep,
         Action<TestMetrics> commit, string phaseHookName = null)
     {
+        var metrics = TestMetrics.Create();
+        metrics.managedAlloc = ManagedAllocationInitialValue;
+        metrics.frameTimes.Capacity = Math.Max(0, iterations);
+        metrics.memory.probes.Capacity = Math.Max(0, memoryProbeRepeats);
+        var profilePhase = phaseHookName ?? reportName;
+        LogMemory($"{reportName}/Start");
+        yield return CollectAndSettle();
+        metrics.memory.beforeWarmup = ReadMemory();
+        metrics.memory.available = MemoryAvailable(metrics.memory.beforeWarmup);
+        ShipPhaseMemoryProfile(reportName, profilePhase, "started", metrics.memory);
+        yield return CollectAndSettle();
+        int anchorIndex = Math.Max(0, warmupIterations - 1);
+        int iterationStartIndex = warmupIterations > 0 ? warmupIterations : 1;
+        warmupStep(anchorIndex);
+        yield return waitForEndOfFrame;
+        yield return CollectAndSettle();
+        metrics.memory.normalizedBaseline = ReadMemory();
         for (int w = 0; w < warmupIterations; w++)
         {
             warmupStep(w);
             yield return null;
+            ReadMemory();
         }
+        warmupStep(anchorIndex);
+        yield return waitForEndOfFrame;
+        ReadMemory();
 
-        var metrics = TestMetrics.Create();
-        int gc0 = GC.CollectionCount(0), gc1 = GC.CollectionCount(1), gc2 = GC.CollectionCount(2);
-        using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
-
-        if (phaseHookName != null) OnBeforePhaseIterations(phaseHookName);
-        if (captureProfile) Prof.BeginCapture();
+        bool phaseHookActive = phaseHookName != null;
         try
         {
+            if (phaseHookActive) OnBeforePhaseIterations(phaseHookName);
+            yield return CollectAndSettle();
+            metrics.memory.afterWarmup = ReadMemory();
+            metrics.memory.measuredPeak = metrics.memory.afterWarmup;
+            int gc0 = GC.CollectionCount(0), gc1 = GC.CollectionCount(1), gc2 = GC.CollectionCount(2);
+
             for (int iter = 0; iter < iterations; iter++)
             {
-                long allocBefore = Profiler.GetTotalAllocatedMemoryLong();
                 stopwatch.Restart();
-                iterationStep(iter + warmupIterations);
+                iterationStep(iter + iterationStartIndex);
                 yield return waitForEndOfFrame;
                 stopwatch.Stop();
-                long alloc = Profiler.GetTotalAllocatedMemoryLong() - allocBefore;
-                if (alloc > 0) metrics.totalAlloc += alloc;
-                metrics.managedAlloc += recorder.LastValue;
+                AddManagedAllocation(ref metrics.managedAlloc);
                 metrics.frameTimes.Add((float)stopwatch.Elapsed.TotalMilliseconds);
-                if (captureProfile) Prof.SampleFrame();
+                metrics.memory.measuredPeak = MemorySnapshot.Max(metrics.memory.measuredPeak, ReadMemory());
+            }
+            metrics.memory.measuredEnd = ReadMemory();
+            metrics.gcGen0 = GC.CollectionCount(0) - gc0;
+            metrics.gcGen1 = GC.CollectionCount(1) - gc1;
+            metrics.gcGen2 = GC.CollectionCount(2) - gc2;
+            warmupStep(anchorIndex);
+            yield return waitForEndOfFrame;
+            metrics.memory.normalizedEnd = ReadMemory();
+        }
+        finally
+        {
+            if (phaseHookActive) OnAfterPhaseIterations(phaseHookName);
+        }
+
+        yield return CollectAndSettle();
+        metrics.memory.afterMeasured = ReadMemory();
+        LogMemory(reportName);
+        commit(metrics);
+        ShipPhaseMemoryProfile(reportName, profilePhase, "measured", metrics.memory);
+
+        yield return CollectAndSettle();
+        metrics.memory.beforeProbes = ReadMemory();
+        for (int repeat = 0; repeat < memoryProbeRepeats; repeat++)
+        {
+            var before = ReadMemory();
+            var cycle = new MemoryCycle
+            {
+                before = before,
+                peak = before,
+                managedAlloc = ManagedAllocationInitialValue
+            };
+            for (int iter = 0; iter < iterations; iter++)
+            {
+                iterationStep(iter + iterationStartIndex);
+                yield return waitForEndOfFrame;
+                AddManagedAllocation(ref cycle.managedAlloc);
+                cycle.peak = MemorySnapshot.Max(cycle.peak, ReadMemory());
+            }
+
+            warmupStep(anchorIndex);
+            yield return waitForEndOfFrame;
+            AddManagedAllocation(ref cycle.managedAlloc);
+            cycle.end = ReadMemory();
+            cycle.peak = MemorySnapshot.Max(cycle.peak, cycle.end);
+            yield return CollectAndSettle();
+            cycle.afterCollect = ReadMemory();
+            metrics.memory.probes.Add(cycle);
+            commit(metrics);
+            ShipPhaseMemoryProfile(reportName, profilePhase, $"probes{metrics.memory.probes.Count}", metrics.memory);
+            yield return CollectAndSettle();
+        }
+
+        commit(metrics);
+        if (captureProfile)
+        {
+            yield return CapturePhaseProfile(profilePhase, iterationStep, warmupStep, anchorIndex,
+                iterationStartIndex);
+            yield return CollectAndSettle();
+        }
+        AppendSingleTestResult(reportName, metrics);
+    }
+
+    IEnumerator CapturePhaseProfile(string profilePhase, Action<int> iterationStep, Action<int> restoreStep,
+        int anchorIndex, int iterationStartIndex)
+    {
+        ProfCapture capture = null;
+        try
+        {
+            ProfCounters.Arm();
+            Prof.BeginCapture();
+            for (int iter = 0; iter < iterations; iter++)
+            {
+                iterationStep(iter + iterationStartIndex);
+                yield return waitForEndOfFrame;
+                Prof.SampleFrame();
+                ProfCounters.Sample();
             }
         }
         finally
         {
-            if (captureProfile && Prof.Capturing)
+            capture = Prof.Capturing ? Prof.EndCapture(false) : null;
+            if (ProfCounters.Armed)
             {
-                var cap = Prof.EndCapture();
-                var tag = $"{SystemName.Replace(" ", "")}_{phaseHookName ?? reportName.Replace(" ", "")}_{corpusName}";
-                ProfTransport.Ship(cap.ToText(), $"prof/{BenchmarkRun.Id}/prof_{tag}.txt");
-                ProfTransport.Ship(cap.ToJson(), $"prof/{BenchmarkRun.Id}/prof_{tag}.json");
+                ProfCounters.Disarm();
+                if (capture != null) ProfCounters.AttachTo(capture);
             }
         }
-        if (phaseHookName != null) OnAfterPhaseIterations(phaseHookName);
 
-        metrics.gcGen0 = GC.CollectionCount(0) - gc0;
-        metrics.gcGen1 = GC.CollectionCount(1) - gc1;
-        metrics.gcGen2 = GC.CollectionCount(2) - gc2;
-
-        commit(metrics);
-        AppendSingleTestResult(reportName, metrics);
+        restoreStep(anchorIndex);
+        yield return waitForEndOfFrame;
+        try
+        {
+            if (capture == null) yield break;
+            var tag = ProfileTag(profilePhase);
+            ProfTransport.Ship(capture.ToText(), ProfilePath(tag, ".txt"));
+            ProfTransport.Ship(capture.ToJson(), ProfilePath(tag, ".json"));
+        }
+        finally
+        {
+            capture = null;
+            ProfCounters.Release();
+            Prof.ReleaseCaptureBuffers();
+        }
     }
 }

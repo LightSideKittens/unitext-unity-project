@@ -67,7 +67,7 @@ namespace LightSide.Tests
                 Assert.AreEqual(4, segCount, "clean geometry must pass through unchanged");
                 Assert.AreEqual(1, contourCount);
                 for (int i = 0; i < segCount; i++)
-                    Assert.AreNotEqual(0, buf.data[i].isInternal & GlyphCurveCache.Segment.FlagResolved,
+                    Assert.AreNotEqual(0, buf.data[i].rasterFlags & GlyphCurveCache.Segment.FlagResolved,
                         "every segment of a resolved glyph carries FlagResolved");
             }
             finally { buf.Return(); }

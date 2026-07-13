@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Generate GitHub Step Summary from benchmarkResults.json."""
+"""Generate GitHub Step Summary from benchmarkResults.json, and emit the viewer's per-suite site streams."""
 
 import json
 import sys
 import os
+import re
+import datetime
 
 
 def fmt_ms(val):
@@ -17,7 +19,9 @@ def fmt_ms(val):
 
 def fmt_bytes(val):
     """Format bytes to human-readable."""
-    if val is None or val == 0:
+    if val is None:
+        return "—"
+    if val == 0:
         return "0 B"
     if val < 0:
         return f"-{fmt_bytes(-val)}"
@@ -52,12 +56,12 @@ def get_total(bench, test_name):
     return test.get("totalMs", 0)
 
 
-def get_alloc(bench, test_name):
-    """Get totalAlloc from a benchmark test."""
+def get_managed_alloc(bench, test_name):
+    """Get managed allocation traffic from a benchmark test."""
     test = bench.get(test_name)
     if test is None:
         return None
-    return test.get("totalAlloc", 0)
+    return test.get("managedAlloc", 0)
 
 
 def get_gc(bench, test_name):
@@ -71,6 +75,41 @@ def get_gc(bench, test_name):
     return f"{gc[0]}/{gc[1]}/{gc[2]}"
 
 
+def emit_streams(data, commit, branch, dirpath):
+    """Write the viewer's per-suite site streams (run-text-*.js / run-glyph-*.js) — the Python mirror of
+    the runtime BenchmarkStreams.Split, so a CI run's combined JSON becomes drop-in files for Benchmarks/runs.
+    Backfills the real commit/branch (which the on-device build could not read) when the JSON lacks them."""
+    os.makedirs(dirpath, exist_ok=True)
+    meta = data.setdefault("meta", {})
+    if commit and commit not in ("?", "") and meta.get("commit") in (None, "", "unknown"):
+        meta["commit"] = commit
+    if branch and branch not in ("?", "") and meta.get("branch") in (None, "", "unknown"):
+        meta["branch"] = branch
+
+    si = data.get("systemInfo", {})
+    plat = si.get("platform", "Unknown")
+    dev = re.sub(r"[^A-Za-z0-9_-]", "-", si.get("deviceName") or "unknown")
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%S") + f"-{plat}-{dev}"
+
+    suites = [
+        ("text", "textBenchmarks", "glyphRasterization", "__unitextTextRuns"),
+        ("glyph", "glyphRasterization", "textBenchmarks", "__unitextGlyphRuns"),
+    ]
+    for suite, keep, drop, g in suites:
+        section = data.get(keep)
+        if not isinstance(section, dict) or len(section) == 0:
+            continue
+        clone = dict(data)
+        clone.pop(drop, None)
+        clone["suite"] = suite
+        body = json.dumps(clone, indent=2)
+        content = f"window.{g} = window.{g} || [];\nwindow.{g}.push(\n{body}\n);\n"
+        out = os.path.join(dirpath, f"run-{suite}-{stamp}.js")
+        with open(out, "w", encoding="utf-8") as f:
+            f.write(content)
+        print(f"Emitted {out}", file=sys.stderr)
+
+
 def main():
     import argparse
 
@@ -78,6 +117,7 @@ def main():
     parser.add_argument("json_path", help="Path to benchmarkResults.json")
     parser.add_argument("--commit", default="?", help="Git commit SHA")
     parser.add_argument("--branch", default="?", help="Git branch name")
+    parser.add_argument("--streams-dir", default=None, help="If set, emit run-{suite}-*.js here and skip the summary")
     args = parser.parse_args()
 
     path = args.json_path
@@ -90,6 +130,10 @@ def main():
 
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
+
+    if args.streams_dir:
+        emit_streams(data, args.commit, args.branch, args.streams_dir)
+        return
 
     commit_sha = args.commit[:8] if len(args.commit) > 8 else args.commit
     branch = args.branch
@@ -170,15 +214,15 @@ def main():
     print("")
 
     # Allocation table
-    print("### Memory Allocation")
+    print("### Managed Allocation Traffic")
     print("")
     print("| Phase | UniText | TMP | UIToolkit |")
     print("|-------|---------|-----|-----------|")
 
     for label, key in tests:
-        u = get_alloc(uni_st, key)
-        t = get_alloc(tmp, key)
-        ui = get_alloc(uitk, key)
+        u = get_managed_alloc(uni_st, key)
+        t = get_managed_alloc(tmp, key)
+        ui = get_managed_alloc(uitk, key)
         print(f"| {label} | {fmt_bytes(u)} | {fmt_bytes(t)} | {fmt_bytes(ui)} |")
 
     print("")

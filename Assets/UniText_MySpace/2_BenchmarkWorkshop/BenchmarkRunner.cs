@@ -57,6 +57,7 @@ public class BenchmarkRunner : MonoBehaviour
             yield return null;
 
         Debug.Log("[BenchmarkRunner] === BENCHMARK START ===");
+        Debug.Log(BenchmarkJsonSerializer.EnvironmentSummary());
 
         if (runText)
             yield return RunTextBenchmarks();
@@ -68,9 +69,9 @@ public class BenchmarkRunner : MonoBehaviour
             yield return RunGlyphRasterizationBenchmarks();
         }
 
+        var json = BenchmarkJsonSerializer.Serialize(data, out var gpuUploadSummary);
         Debug.Log("[BenchmarkRunner] === BENCHMARK COMPLETE ===");
-
-        var json = BenchmarkJsonSerializer.Serialize(data);
+        Debug.Log(gpuUploadSummary);
         OutputResults(json);
     }
 
@@ -83,6 +84,7 @@ public class BenchmarkRunner : MonoBehaviour
             data.objectCount = cfg != null ? cfg.objectCount : uniTextBench.objectCount;
             data.iterations = cfg != null ? cfg.iterations : uniTextBench.iterations;
             data.warmupIterations = cfg != null ? cfg.warmupIterations : uniTextBench.warmupIterations;
+            data.memoryProbeRepeats = cfg != null ? cfg.memoryProbeRepeats : uniTextBench.memoryProbeRepeats;
 
             Debug.Log("[BenchmarkRunner] Running UniText (Single-Threaded)...");
             yield return SafeRun("unitextSingleThreaded",
@@ -241,12 +243,13 @@ public class BenchmarkRunner : MonoBehaviour
         bool done = false;
         Exception caught = null;
 
-        StartCoroutine(WrapCoroutine(coroutine, () => done = true, ex => { caught = ex; done = true; }));
+        var running = StartCoroutine(WrapCoroutine(coroutine, () => done = true, ex => { caught = ex; done = true; }));
 
         while (!done)
         {
             if (!CheckWatchdog())
             {
+                StopCoroutine(running);
                 data.errors.Add($"{name}: watchdog timeout");
                 yield break;
             }
@@ -271,15 +274,22 @@ public class BenchmarkRunner : MonoBehaviour
 
     static IEnumerator WrapCoroutine(IEnumerator inner, Action onDone, Action<Exception> onError)
     {
-        while (true)
+        try
         {
-            bool hasNext;
-            try { hasNext = inner.MoveNext(); }
-            catch (Exception e) { onError(e); yield break; }
-            if (!hasNext) break;
-            yield return inner.Current;
+            while (true)
+            {
+                bool hasNext;
+                try { hasNext = inner.MoveNext(); }
+                catch (Exception e) { onError(e); yield break; }
+                if (!hasNext) break;
+                yield return inner.Current;
+            }
+            onDone();
         }
-        onDone();
+        finally
+        {
+            (inner as IDisposable)?.Dispose();
+        }
     }
 
     bool CheckWatchdog()
@@ -298,6 +308,7 @@ public class BenchmarkRunner : MonoBehaviour
         bench.objectCount = data.objectCount;
         bench.iterations = data.iterations;
         bench.warmupIterations = data.warmupIterations;
+        bench.memoryProbeRepeats = data.memoryProbeRepeats;
     }
 
     /// <summary>Second pass over every engine with the plain-Latin corpus — the apples-to-apples case (result keys get a ".latin" suffix). Creation/destruction is skipped there: it does not depend on text content.</summary>
@@ -390,7 +401,26 @@ public class BenchmarkRunner : MonoBehaviour
         data.submoduleCommit = RunGit("-C Assets/UniText rev-parse HEAD") ?? data.submoduleCommit;
         data.submoduleBranch = RunGit("-C Assets/UniText rev-parse --abbrev-ref HEAD") ?? data.submoduleBranch;
         data.submoduleDirty = GitDirty("-C Assets/UniText diff-index --quiet HEAD");
+#else
+        ApplyBakedBuildInfo(data);
 #endif
+    }
+
+    /// <summary>Player builds have no git and cannot see the runner's env; <see cref="BenchmarkBuildStamp"/> baked the commit into Resources at build time.</summary>
+    static void ApplyBakedBuildInfo(BenchmarkRunData data)
+    {
+        var asset = Resources.Load<TextAsset>(BenchmarkBuildInfo.ResourceName);
+        if (asset == null) return;
+
+        var info = JsonUtility.FromJson<BenchmarkBuildInfo>(asset.text);
+        if (info == null) return;
+
+        if (!string.IsNullOrEmpty(info.commit)) data.commit = info.commit;
+        if (!string.IsNullOrEmpty(info.branch)) data.branch = info.branch;
+        data.dirty = info.dirty;
+        if (!string.IsNullOrEmpty(info.submoduleCommit)) data.submoduleCommit = info.submoduleCommit;
+        if (!string.IsNullOrEmpty(info.submoduleBranch)) data.submoduleBranch = info.submoduleBranch;
+        data.submoduleDirty = info.submoduleDirty;
     }
 
 #if UNITY_EDITOR
@@ -470,6 +500,8 @@ public class BenchmarkRunner : MonoBehaviour
         File.WriteAllText(jsonPath, json);
         Debug.Log($"[BenchmarkRunner] Results saved to: {jsonPath}");
 
+        WriteSiteStreams(json);
+
 #if UNITY_EDITOR
         BenchmarkHistory.SaveRun(json);
 #endif
@@ -491,6 +523,26 @@ public class BenchmarkRunner : MonoBehaviour
 #if !UNITY_EDITOR && !UNITY_WEBGL
         Application.Quit(0);
 #endif
+    }
+
+    /// <summary>Device parity for the viewer files: the editor persists split streams to Benchmarks/runs via <see cref="BenchmarkHistory"/>, so player builds emit them next to benchmarkResults.json in persistentDataPath — ready to drop into Benchmarks/runs.</summary>
+    void WriteSiteStreams(string json)
+    {
+        if (Application.isEditor) return;
+        try
+        {
+            var stamp = BenchmarkStreams.Stamp(Application.platform.ToString(), SystemInfo.deviceName);
+            foreach (var f in BenchmarkStreams.Split(json, stamp))
+            {
+                var path = Path.Combine(Application.persistentDataPath, f.fileName);
+                File.WriteAllText(path, f.contents);
+                Debug.Log($"[BenchmarkRunner] Site stream saved: {path}");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[BenchmarkRunner] Failed to write site streams: {e}");
+        }
     }
 
     #endregion

@@ -1,4 +1,6 @@
-﻿namespace SRDebugger.UI.Controls
+﻿using System;
+
+namespace SRDebugger.UI.Controls
 {
     using Internal;
     using SRF;
@@ -10,7 +12,7 @@
 
         [RequiredField] public Toggle SelectionModeToggle;
 
-        public OptionDefinition Option;
+        [NonSerialized] public OptionDefinition Option;
 
         public bool SelectionModeEnabled
         {

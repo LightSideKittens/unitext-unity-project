@@ -1,13 +1,13 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!21 &-547565808485517322
+--- !u!21 &-6532612988950522916
 Material:
   serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: NotoSans-Regular Atlas Material
+  m_Name: RubikStorm-Regular Atlas Material
   m_Shader: {fileID: 4800000, guid: 68e6db2ebdc24f95958faec2be5558d6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -36,7 +36,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 1313391320529089262}
+        m_Texture: {fileID: 1377248547502407804}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OutlineTex:
@@ -63,7 +63,7 @@ Material:
     - _GlowOffset: 0
     - _GlowOuter: 0.05
     - _GlowPower: 0.75
-    - _GradientScale: 33
+    - _GradientScale: 65
     - _LightAngle: 3.1416
     - _MaskSoftnessX: 0
     - _MaskSoftnessY: 0
@@ -73,9 +73,9 @@ Material:
     - _OutlineWidth: 0
     - _PerspectiveFilter: 0.875
     - _Reflectivity: 10
-    - _ScaleRatioA: 0.969697
-    - _ScaleRatioB: 0.7878788
-    - _ScaleRatioC: 0.7878788
+    - _ScaleRatioA: 0.9846154
+    - _ScaleRatioB: 0.8
+    - _ScaleRatioC: 0.8
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -119,40 +119,40 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
-  m_Name: NotoSans-Regular SDF
+  m_Name: GRB_RubikStorm-Regular_TMP
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_FontAsset
   m_Version: 1.1.0
   m_FaceInfo:
     m_FaceIndex: 0
-    m_FamilyName: Noto Sans
+    m_FamilyName: Rubik Storm
     m_StyleName: Regular
-    m_PointSize: 64
+    m_PointSize: 128
     m_Scale: 1
     m_UnitsPerEM: 1000
-    m_LineHeight: 87.168
-    m_AscentLine: 68.416
-    m_CapLine: 46
-    m_MeanLine: 35
+    m_LineHeight: 151.68
+    m_AscentLine: 119.68
+    m_CapLine: 93
+    m_MeanLine: 69
     m_Baseline: 0
-    m_DescentLine: -18.752
-    m_SuperscriptOffset: 68.416
+    m_DescentLine: -32
+    m_SuperscriptOffset: 119.68
     m_SuperscriptSize: 0.5
-    m_SubscriptOffset: -18.752
+    m_SubscriptOffset: -32
     m_SubscriptSize: 0.5
-    m_UnderlineOffset: -8
-    m_UnderlineThickness: 3.2
-    m_StrikethroughOffset: 14
-    m_StrikethroughThickness: 3.2
-    m_TabWidth: 17
-  m_Material: {fileID: -547565808485517322}
-  m_SourceFontFileGUID: 1047c68ed35c0804bb928b5f9847c032
+    m_UnderlineOffset: -12.8
+    m_UnderlineThickness: 6.4
+    m_StrikethroughOffset: 27.6
+    m_StrikethroughThickness: 6.4
+    m_TabWidth: 24
+  m_Material: {fileID: -6532612988950522916}
+  m_SourceFontFileGUID: 2307c507b83a972448fbb287b48374f5
   m_CreationSettings:
     sourceFontFileName: 
-    sourceFontFileGUID: 1047c68ed35c0804bb928b5f9847c032
+    sourceFontFileGUID: 2307c507b83a972448fbb287b48374f5
     faceIndex: 0
     pointSizeSamplingMode: 0
-    pointSize: 64
-    padding: 32
+    pointSize: 128
+    padding: 64
     paddingMode: 2
     packingMode: 0
     atlasWidth: 2048
@@ -165,21 +165,21 @@ MonoBehaviour:
     fontStyleModifier: 0
     renderMode: 4165
     includeFontFeatures: 0
-  m_SourceFontFile: {fileID: 12800000, guid: 1047c68ed35c0804bb928b5f9847c032, type: 3}
+  m_SourceFontFile: {fileID: 12800000, guid: 2307c507b83a972448fbb287b48374f5, type: 3}
   m_SourceFontFilePath: 
   m_AtlasPopulationMode: 1
   InternalDynamicOS: 0
   m_GlyphTable: []
   m_CharacterTable: []
   m_AtlasTextures:
-  - {fileID: 1313391320529089262}
+  - {fileID: 1377248547502407804}
   m_AtlasTextureIndex: 0
   m_IsMultiAtlasTexturesEnabled: 1
-  m_GetFontFeatures: 1
+  m_GetFontFeatures: 0
   m_ClearDynamicDataOnBuild: 1
   m_AtlasWidth: 2048
   m_AtlasHeight: 2048
-  m_AtlasPadding: 32
+  m_AtlasPadding: 64
   m_AtlasRenderMode: 4165
   m_UsedGlyphRects: []
   m_FreeGlyphRects:
@@ -194,10 +194,7 @@ MonoBehaviour:
     m_MarkToBaseAdjustmentRecords: []
     m_MarkToMarkAdjustmentRecords: []
   m_ShouldReimportFontFeatures: 0
-  m_FallbackFontAssetTable:
-  - {fileID: 11400000, guid: 9213d3d7afe9fe548986ef25e27dc719, type: 2}
-  - {fileID: 11400000, guid: a9fd4db9e0d961f4e9f338ca2fe4ec43, type: 2}
-  - {fileID: 11400000, guid: bcdbf91193f097d4f96571491b8ab193, type: 2}
+  m_FallbackFontAssetTable: []
   m_FontWeightTable:
   - regularTypeface: {fileID: 0}
     italicTypeface: {fileID: 0}
@@ -253,13 +250,13 @@ MonoBehaviour:
     kerningPairs: []
   fallbackFontAssets: []
   atlas: {fileID: 0}
---- !u!28 &1313391320529089262
+--- !u!28 &1377248547502407804
 Texture2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: NotoSans-Regular Atlas
+  m_Name: RubikStorm-Regular Atlas
   m_ImageContentsHash:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000

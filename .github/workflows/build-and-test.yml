@@ -233,6 +233,18 @@ jobs:
           unity_version: ${{ inputs.unity_version }}
           timeout: ${{ inputs.test_timeout }}
 
+      - name: Emit viewer site streams
+        if: always()
+        shell: bash
+        run: |
+          if [ -f benchmarkResults.json ]; then
+            python3 .github/scripts/benchmark-summary.py \
+              benchmarkResults.json \
+              --commit "${{ github.sha }}" \
+              --branch "${{ github.ref_name }}" \
+              --streams-dir benchmark-streams
+          fi
+
       - name: Upload Benchmark Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -240,6 +252,7 @@ jobs:
           name: BenchmarkResults-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: |
             benchmarkResults*.json
+            benchmark-streams/
             benchmark.log
           retention-days: 30
 
