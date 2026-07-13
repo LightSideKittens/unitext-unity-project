@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using LightSide;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
@@ -11,7 +12,7 @@ using Debug = UnityEngine.Debug;
 /// </summary>
 public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 {
-    const double RenderTimeoutSeconds = 5.0;
+    const double RenderTimeoutSeconds = 30.0;
 
     [Tooltip("Dynamic TextCore FontAsset under test. Assigned per font by BenchmarkFontSelector.")]
     public FontAsset fontAsset;
@@ -29,7 +30,7 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
     int rasterPanelVersion;
     int renderSequence;
     int rasterRenderSequence;
-    double renderCompletedAt;
+    int rasterGlyphCount;
     readonly WaitForEndOfFrame waitForEndOfFrame = new();
 
     protected override string EngineName => "UIToolkit";
@@ -57,11 +58,13 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
     {
         if (fontAsset == null)
         {
+            SetRunStatus("skipped", "No FontAsset is assigned");
             Debug.LogError("[UIToolkit GlyphRaster] No FontAsset - assign one on the BenchmarkFontSelector's font list (uiToolkitFont).");
             return false;
         }
         if (fontAsset.atlasPopulationMode != AtlasPopulationMode.Dynamic)
         {
+            SetRunStatus("unsupported", $"'{fontAsset.name}' is not a Dynamic FontAsset");
             Debug.LogWarning($"[UIToolkit GlyphRaster] '{fontAsset.name}' is not a Dynamic FontAsset - it cannot re-rasterize after a clear; skipping.");
             return false;
         }
@@ -69,6 +72,7 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         glyphText = BenchmarkConfig.Instance != null ? BenchmarkConfig.Instance.GlyphRasterText : null;
         if (string.IsNullOrEmpty(glyphText))
         {
+            SetRunStatus("skipped", "No glyph corpus is configured");
             Debug.LogError("[UIToolkit GlyphRaster] No glyph corpus - set the Glyph Rasterization text on the BenchmarkConfig in the scene.");
             return false;
         }
@@ -76,18 +80,20 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         EnsurePreviewPanel();
         if (panelRenderer == null || panelRenderer.panelSettings == null || root == null)
         {
+            SetRunStatus("skipped", "No live PanelRenderer root is available");
             Debug.LogError("[UIToolkit GlyphRaster] No live PanelRenderer root is available.");
             return false;
         }
         if (!UIToolkitFontIsolation.Validate(panelRenderer.panelSettings, fontAsset, out var fallbackError))
         {
+            SetRunStatus("failed", fallbackError);
             Debug.LogError($"[UIToolkit GlyphRaster] Font isolation failed: {fallbackError}");
             return false;
         }
 
         EnsurePreviewElements();
         abortRun = false;
-        Debug.Log("[UIToolkit GlyphRaster] Trigger=Label display enable; fallback local/global/default/emoji/Dynamic OS=off; completion=panel render.");
+        Debug.Log("[UIToolkit GlyphRaster] Trigger=Label display enable; fallback local/global/default/sprite/emoji/Dynamic OS=off; completion=panel render + selected FontAsset population + async GPU readback.");
         return true;
     }
 
@@ -147,7 +153,6 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     void OnGenerateVisualContent(MeshGenerationContext _)
     {
-        renderCompletedAt = Time.realtimeSinceStartupAsDouble;
         renderSequence++;
     }
 
@@ -162,12 +167,13 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 #endif
     }
 
-    protected override void ClearCaches() => fontAsset.ClearFontAssetData(true);
+    protected override void ClearCaches() => fontAsset.ClearFontAssetData(false);
 
     protected override void Rasterize()
     {
         rasterPanelVersion = panelVersion;
         rasterRenderSequence = renderSequence;
+        rasterGlyphCount = FontAssetUtils.GlyphCount(fontAsset);
         previewContainer.style.display = DisplayStyle.Flex;
         previewLabel.MarkDirtyRepaint();
     }
@@ -176,7 +182,8 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
     {
         double dispatchStart = Time.realtimeSinceStartupAsDouble - cpuMs / 1000.0;
         double timeoutAt = Time.realtimeSinceStartupAsDouble + RenderTimeoutSeconds;
-        while (renderSequence == rasterRenderSequence && Time.realtimeSinceStartupAsDouble < timeoutAt)
+        while ((renderSequence == rasterRenderSequence || FontAssetUtils.GlyphCount(fontAsset) <= rasterGlyphCount)
+               && Time.realtimeSinceStartupAsDouble < timeoutAt)
         {
             if (panelVersion != rasterPanelVersion)
             {
@@ -197,14 +204,27 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             AbortPanelMeasurement($"no Label render occurred within {RenderTimeoutSeconds:F0} seconds");
             yield break;
         }
+        if (FontAssetUtils.GlyphCount(fontAsset) <= rasterGlyphCount)
+        {
+            AbortPanelMeasurement($"the Label rendered without populating the selected FontAsset within {RenderTimeoutSeconds:F0} seconds");
+            yield break;
+        }
 
-        lastE2eMs = (float)((renderCompletedAt - dispatchStart) * 1000.0);
+        var textures = new List<Texture>();
+        var atlases = fontAsset.atlasTextures;
+        if (atlases != null)
+            for (int i = 0; i < atlases.Length; i++)
+                if (atlases[i] != null)
+                    textures.Add(atlases[i]);
+        yield return AwaitGpuTextureCompletion(dispatchStart, textures,
+            AbortPanelMeasurement);
     }
 
     void AbortPanelMeasurement(string reason)
     {
         abortRun = true;
         lastE2eMs = float.NaN;
+        SetRunStatus("failed", reason);
         Debug.LogWarning($"[UIToolkit GlyphRaster] Aborted: {reason}.");
     }
 
@@ -231,8 +251,8 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             trigger = "VisualElement.display=Flex",
             rasterBackend = "CpuTextCore",
             threading = "mainThread",
-            completion = "panelRender",
-            fallback = "localGlobalDefaultEmojiAndDynamicOsDisabled"
+            completion = "panelRenderAndAsyncGpuReadback",
+            fallback = "localGlobalDefaultSpriteEmojiAndDynamicOsDisabled"
         };
         var textures = fontAsset.atlasTextures;
         if (textures != null)
@@ -243,6 +263,7 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
                 sample.atlases.Add(new GlyphAtlasExecutionData
                 {
                     mode = $"atlas{i}",
+                    requestedPath = "engineNative",
                     backend = "CpuTextCore",
                     storage = texture.GetType().Name,
                     cpuMirror = texture.isReadable,
@@ -260,8 +281,9 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         if (label == "AFTER raster" && glyphs == 0)
         {
             abortRun = true;
+            SetRunStatus("failed", "The Label rendered without populating the selected FontAsset");
             Debug.LogWarning("[UIToolkit GlyphRaster] The Label rendered without populating the selected FontAsset; the pass is invalid.");
         }
-        return $"[Atlas {label}] '{fontAsset.name}': glyphs={glyphs} chars={FontAssetUtils.CharacterCount(fontAsset)} atlasCount={fontAsset.atlasTextureCount} trigger=Label.display raster=CPU-TextCore completion=panel-render cpuMirror={fontAsset.atlasTexture != null && fontAsset.atlasTexture.isReadable} fallback=local/global/default/emoji/DynamicOS-off";
+        return $"[Atlas {label}] '{fontAsset.name}': glyphs={glyphs} chars={FontAssetUtils.CharacterCount(fontAsset)} atlasCount={fontAsset.atlasTextureCount} trigger=Label.display raster=CPU-TextCore completion=panel-render+asyncGpuReadback cpuMirror={fontAsset.atlasTexture != null && fontAsset.atlasTexture.isReadable} fallback=local/global/default/sprite/emoji/DynamicOS-off";
     }
 }

@@ -6,7 +6,9 @@ using System.Text;
 using LightSide;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
@@ -39,6 +41,9 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
     protected readonly Stopwatch sw = new();
     protected readonly StringBuilder report = new();
     protected float lastE2eMs;
+    protected string runStatus;
+    protected string runStatusReason;
+    bool gpuCompletionProbeLogged;
 
     public GlyphRasterData LastResults { get; private set; }
 
@@ -56,6 +61,18 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
 
     protected virtual void OnBeforeRun() { }
     protected virtual void OnAfterRun() { }
+    protected virtual string RequestedPath => "engineNative";
+
+    protected virtual IEnumerator PrepareRun()
+    {
+        yield break;
+    }
+
+    protected void SetRunStatus(string status, string reason)
+    {
+        runStatus = status;
+        runStatusReason = reason;
+    }
 
     /// <summary>Turn the workload off before clearing so nothing re-rasterizes during the clear frame. No-op for engines that rasterize a font asset directly.</summary>
     protected virtual void Deactivate() { }
@@ -63,6 +80,8 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
     protected virtual void ShowPreview() { }
 
     protected virtual string Diagnostics(string label) => "";
+
+    protected virtual void ResetExecutionDiagnostics() { }
 
     protected virtual GlyphExecutionSample CaptureExecutionDiagnostics() => null;
 
@@ -77,96 +96,244 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         yield break;
     }
 
+    /// <summary>Extends the component-trigger interval to one common GPU completion boundary by reading one texel from every atlas layer without stalling the CPU thread.</summary>
+    protected IEnumerator AwaitGpuTextureCompletion(double dispatchStart,
+        IReadOnlyList<Texture> textures, System.Action<string> abort)
+    {
+        if (textures == null || textures.Count == 0)
+        {
+            abort("No atlas texture was created");
+            yield break;
+        }
+        if (!SystemInfo.supportsAsyncGPUReadback)
+        {
+            abort("Async GPU readback is unsupported");
+            yield break;
+        }
+
+        var requests = new List<AsyncGPUReadbackRequest>(textures.Count);
+        bool queueFailed = false;
+        for (int i = 0; i < textures.Count; i++)
+        {
+            var texture = textures[i];
+            if (texture == null) continue;
+            try
+            {
+                if (!SystemInfo.IsFormatSupported(texture.graphicsFormat, FormatUsage.ReadPixels))
+                {
+                    queueFailed = true;
+                    Debug.LogWarning($"[{EngineName} GlyphRaster] Async readback completion probe does not support {texture.graphicsFormat}.");
+                    continue;
+                }
+                int depth = texture is RenderTexture renderTexture ? renderTexture.volumeDepth
+                    : texture is Texture2DArray array ? array.depth
+                    : 1;
+                requests.Add(AsyncGPUReadback.Request(texture, 0, 0, 1, 0, 1, 0, depth));
+            }
+            catch (System.Exception exception)
+            {
+                queueFailed = true;
+                Debug.LogWarning($"[{EngineName} GlyphRaster] Async readback completion probe could not be queued: {exception.GetType().Name}.");
+            }
+        }
+
+        if (requests.Count == 0)
+        {
+            abort("No completion probe could be queued");
+            yield break;
+        }
+        if (!gpuCompletionProbeLogged)
+        {
+            gpuCompletionProbeLogged = true;
+            Debug.Log($"[{EngineName} GlyphRaster] Using a 1x1-per-layer async readback probe for GPU completion timing.");
+        }
+
+        const double timeoutSeconds = 15.0;
+        double timeoutAt = Time.realtimeSinceStartupAsDouble + timeoutSeconds;
+        var completed = new bool[requests.Count];
+        bool failed = queueFailed;
+        while (true)
+        {
+            bool done = true;
+            for (int i = 0; i < requests.Count; i++)
+            {
+                if (completed[i]) continue;
+                var request = requests[i];
+                if (!request.done)
+                {
+                    done = false;
+                    continue;
+                }
+                failed |= request.hasError;
+                completed[i] = true;
+            }
+            double now = Time.realtimeSinceStartupAsDouble;
+            if (now >= timeoutAt)
+            {
+                abort($"Completion probe exceeded {timeoutSeconds:F0} seconds");
+                yield break;
+            }
+            if (done)
+            {
+                if (failed)
+                    abort("Completion probe failed");
+                else
+                    lastE2eMs = (float)((now - dispatchStart) * 1000.0);
+                yield break;
+            }
+            yield return null;
+        }
+    }
+
     protected IEnumerator RunPass(string mode)
     {
         isRunning = true;
         report.Clear();
         LastResults = null;
-        OnBeforeRun();
-
-        if (!CollectTargets())
-        {
-            OnAfterRun();
-            isRunning = false;
-            yield break;
-        }
-
-        AppendHeader(mode);
-
+        runStatus = "measured";
+        runStatusReason = null;
         var frameTimes = new List<float>();
         var e2eTimes = HasE2E ? new List<float>() : null;
         var glyphCounts = new List<int>();
         var executionSamples = new List<GlyphExecutionSample>();
         long totalManagedAlloc = 0;
-
-        for (int iter = -warmupIterations; iter < iterations; iter++)
+        try
         {
-            Deactivate();
-            yield return null;
+            OnBeforeRun();
 
-            string beforeClear = Diagnostics("BEFORE clear");
-            ClearCaches();
-            yield return null;
-            string afterClear = Diagnostics("AFTER clear");
-
-            int glyphsBefore = CountGlyphs();
-            using var gcRec = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
-
-            sw.Restart();
-            Rasterize();
-            sw.Stop();
-
-            float ms = (float)sw.Elapsed.TotalMilliseconds;
-            lastE2eMs = ms;
-            if (HasE2E) yield return AwaitAsyncCompletion(ms);
-            float e2eMs = lastE2eMs;
-
-            int uniqueGlyphs = CountGlyphs() - glyphsBefore;
-            var execution = CaptureExecutionDiagnostics();
-            string afterRaster = Diagnostics("AFTER raster");
-            ShowPreview();
-
-            bool isWarmup = iter < 0;
-            string tag = isWarmup ? "warmup" : $"iter {iter + 1}";
-            Debug.Log($"[{EngineName} GlyphRaster{(mode != null ? $" {mode}" : "")}] {tag}: {ms:F2}ms" +
-                      (HasE2E ? $" (e2e {e2eMs:F2}ms)" : "") + $", +{uniqueGlyphs} glyphs\n  {beforeClear}\n  {afterClear}\n  {afterRaster}");
-
-            if (ShouldAbortRun())
+            if (!CollectTargets())
             {
-                Deactivate();
-                OnAfterRun();
-                isRunning = false;
+                if (runStatus == "measured")
+                    SetRunStatus("skipped", "Target collection rejected the run");
+                CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
+                    totalManagedAlloc, mode);
                 yield break;
             }
 
-            int holdFrames = Mathf.Max(0, previewFrames);
-            for (int frame = 0; frame < holdFrames; frame++)
+            AppendHeader(mode);
+            yield return PrepareRun();
+            if (runStatus is "unsupported" or "skipped" or "failed")
+            {
+                CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
+                    totalManagedAlloc, mode);
+                yield break;
+            }
+
+            for (int iter = -warmupIterations; iter < iterations; iter++)
+            {
+                Deactivate();
                 yield return null;
 
-            if (!isWarmup)
+                string beforeClear = Diagnostics("BEFORE clear");
+                ClearCaches();
+                yield return null;
+                ResetExecutionDiagnostics();
+                string afterClear = Diagnostics("AFTER clear");
+
+                int glyphsBefore = CountGlyphs();
+                using var gcRec = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
+
+                sw.Restart();
+                Rasterize();
+                sw.Stop();
+
+                float ms = (float)sw.Elapsed.TotalMilliseconds;
+                if (ShouldAbortRun())
+                {
+                    if (runStatus == "measured")
+                        SetRunStatus("failed", "Rasterization aborted before completion");
+                    CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
+                        totalManagedAlloc, mode);
+                    yield break;
+                }
+                lastE2eMs = ms;
+                if (HasE2E) yield return AwaitAsyncCompletion(ms);
+                float e2eMs = lastE2eMs;
+
+                int uniqueGlyphs = CountGlyphs() - glyphsBefore;
+                var execution = CaptureExecutionDiagnostics();
+                string afterRaster = Diagnostics("AFTER raster");
+                ShowPreview();
+
+                bool isWarmup = iter < 0;
+                string tag = isWarmup ? "warmup" : $"iter {iter + 1}";
+                Debug.Log($"[{EngineName} GlyphRaster{(mode != null ? $" {mode}" : "")}] {tag}: {ms:F2}ms" +
+                          (HasE2E ? $" (e2e {e2eMs:F2}ms)" : "") + $", +{uniqueGlyphs} glyphs\n  {beforeClear}\n  {afterClear}\n  {afterRaster}");
+
+                if (ShouldAbortRun())
+                {
+                    if (runStatus == "measured")
+                        SetRunStatus("failed", "Run aborted before completion");
+                    if (execution != null)
+                        executionSamples.Add(execution);
+                    if (!isWarmup && runStatus == "mismatch")
+                    {
+                        frameTimes.Add(ms);
+                        if (!float.IsNaN(e2eMs) && !float.IsInfinity(e2eMs))
+                            e2eTimes?.Add(e2eMs);
+                        glyphCounts.Add(uniqueGlyphs);
+                        totalManagedAlloc += gcRec.LastValue;
+                    }
+                    CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
+                        totalManagedAlloc, mode);
+                    yield break;
+                }
+
+                int holdFrames = Mathf.Max(0, previewFrames);
+                for (int frame = 0; frame < holdFrames; frame++)
+                    yield return null;
+
+                if (!isWarmup)
+                {
+                    frameTimes.Add(ms);
+                    e2eTimes?.Add(e2eMs);
+                    glyphCounts.Add(uniqueGlyphs);
+                    if (execution != null) executionSamples.Add(execution);
+                    totalManagedAlloc += gcRec.LastValue;
+                }
+            }
+
+            if (captureProfile || captureSample) yield return CaptureProfilePass();
+
+            CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
+                totalManagedAlloc, mode);
+        }
+        finally
+        {
+            try
             {
-                frameTimes.Add(ms);
-                e2eTimes?.Add(e2eMs);
-                glyphCounts.Add(uniqueGlyphs);
-                if (execution != null) executionSamples.Add(execution);
-                totalManagedAlloc += gcRec.LastValue;
+                Deactivate();
+            }
+            finally
+            {
+                try
+                {
+                    OnAfterRun();
+                }
+                finally
+                {
+                    isRunning = false;
+                }
             }
         }
+    }
 
-        if (captureProfile || captureSample) yield return CaptureProfilePass();
-
-        Deactivate();
-        OnAfterRun();
-
+    void CompleteResults(List<float> frameTimes, List<float> e2eTimes,
+        List<int> glyphCounts, List<GlyphExecutionSample> executionSamples,
+        long totalManagedAlloc, string mode)
+    {
         LastResults = new GlyphRasterData
         {
             frameTimes = frameTimes,
             e2eTimes = e2eTimes,
             uniqueGlyphs = glyphCounts.Count > 0 ? glyphCounts[0] : 0,
             managedAlloc = totalManagedAlloc,
+            status = runStatus,
+            statusReason = runStatusReason,
             benchmark = new GlyphBenchmarkConfig
             {
                 mode = mode,
+                requestedPath = RequestedPath,
                 iterations = iterations,
                 warmupIterations = warmupIterations,
                 previewFrames = previewFrames,
@@ -178,9 +345,10 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         };
 
         AppendResults(frameTimes, e2eTimes, glyphCounts, totalManagedAlloc, mode);
+        if (runStatus != "measured")
+            report.AppendLine($"  Status: {runStatus}{(string.IsNullOrEmpty(runStatusReason) ? "" : $" — {runStatusReason}")}");
         lastResult = report.ToString();
         Debug.Log(lastResult);
-        isRunning = false;
     }
 
     /// <summary>One extra rasterization, off the timing stats, recorded through the instrumentation sink (<see cref="Prof"/>) and/or the native statistical sampler (<see cref="ProfSampler"/>). Instrumentation gives a deep tree only when the engine assembly is IL-woven; sampling needs no weaving and costs nothing per call. Outputs are saved beside the results.</summary>
@@ -190,6 +358,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         yield return null;
         ClearCaches();
         yield return null;
+        ResetExecutionDiagnostics();
 
         bool sampling = captureSample && ProfSampler.Available;
         if (sampling) { ProfSampler.Clear(); ProfSampler.Arm(); }
@@ -243,7 +412,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
 
         var sorted = new List<float>(frameTimes);
         sorted.Sort();
-        float median = sorted[sorted.Count / 2];
+        float median = BenchmarkStatistics.MedianSorted(sorted);
         float sum = 0;
         for (int i = 0; i < sorted.Count; i++) sum += sorted[i];
         int typicalGlyphs = glyphCounts[0];
@@ -251,7 +420,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         report.AppendLine();
         for (int i = 0; i < frameTimes.Count; i++)
             report.AppendLine($"  Run {i + 1}: {frameTimes[i]:F2} ms" +
-                              (e2eTimes != null ? $"   e2e {e2eTimes[i]:F2} ms" : "") + $"   ({glyphCounts[i]} glyphs)");
+                              (e2eTimes != null && i < e2eTimes.Count ? $"   e2e {e2eTimes[i]:F2} ms" : "") + $"   ({glyphCounts[i]} glyphs)");
 
         report.AppendLine();
         if (mode != null) report.AppendLine($"  Mode: {mode}");
@@ -263,7 +432,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         {
             var sortedE2e = new List<float>(e2eTimes);
             sortedE2e.Sort();
-            report.AppendLine($"  Median component-to-atlas-ready: {sortedE2e[sortedE2e.Count / 2]:F2} ms");
+            report.AppendLine($"  Median component-to-atlas-ready: {BenchmarkStatistics.MedianSorted(sortedE2e):F2} ms");
         }
         report.AppendLine($"  Unique glyphs: {typicalGlyphs}");
         report.AppendLine($"  Managed alloc: {TextBenchmarkBase.FormatBytes(managedAlloc)} (total across {iterations} runs)");

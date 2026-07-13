@@ -41,16 +41,10 @@ public class BenchmarkFontSelector : MonoBehaviour
             var toggle = Instantiate(togglePrefab, content.transform);
             toggle.group = content;
 
-            var label = toggle.GetComponentInChildren<TMP_Text>(true);
             string name = fonts[i].uniTextFont != null ? fonts[i].uniTextFont.name
                 : fonts[i].tmpFont != null ? fonts[i].tmpFont.name
                 : $"Font {i}";
-            if (label != null) label.text = name;
-            else
-            {
-                var legacyLabel = toggle.GetComponentInChildren<Text>(true);
-                if (legacyLabel != null) legacyLabel.text = name;
-            }
+            SetLabel(toggle, $"Font: {name}");
 
             int index = i;
             toggle.onValueChanged.AddListener(isOn =>
@@ -62,6 +56,17 @@ public class BenchmarkFontSelector : MonoBehaviour
 
         if (fonts.Count > 0)
             Apply(fonts[0]);
+    }
+
+    internal static void SetLabel(Toggle toggle, string text)
+    {
+        var label = toggle.GetComponentInChildren<TMP_Text>(true);
+        if (label != null) label.text = text;
+        else
+        {
+            var legacyLabel = toggle.GetComponentInChildren<Text>(true);
+            if (legacyLabel != null) legacyLabel.text = text;
+        }
     }
 
     public void Apply(BenchmarkFontPair pair)

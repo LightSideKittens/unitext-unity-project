@@ -4,6 +4,7 @@ using System.Text;
 using LightSide;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Unity.Burst;
 using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -13,13 +14,15 @@ public static class BenchmarkJsonSerializer
 {
     public static string Serialize(BenchmarkRunData data) => Serialize(data, out _);
 
-    internal static string Serialize(BenchmarkRunData data, out string gpuUploadSummary)
+    internal static string Serialize(BenchmarkRunData data, out string postRunSummary)
     {
         var gpuUpload = SerializeGpuUpload();
-        gpuUploadSummary = "[Benchmark GpuUpload Post-Run] " + gpuUpload.ToString(Formatting.None);
+        var power = SerializePowerState("postRun");
+        postRunSummary = "[Benchmark GpuUpload Post-Run] " + gpuUpload.ToString(Formatting.None)
+                         + "\n[Benchmark Power Post-Run] " + power.ToString(Formatting.None);
         var root = new JObject
         {
-            ["version"] = "1.3",
+            ["version"] = "1.4",
             ["timestamp"] = data.timestamp,
             ["meta"] = new JObject
             {
@@ -32,7 +35,7 @@ public static class BenchmarkJsonSerializer
                 ["submoduleDirty"] = data.submoduleDirty,
                 ["source"] = data.source
             },
-            ["systemInfo"] = SerializeSystemInfo(gpuUpload),
+            ["systemInfo"] = SerializeSystemInfo(gpuUpload, power),
             ["config"] = new JObject
             {
                 ["objectCount"] = data.objectCount,
@@ -51,8 +54,8 @@ public static class BenchmarkJsonSerializer
                 ["corpus.multilingual"] = "Arabic/bidi/emoji showcase. UniText and UIToolkit both shape it (this project enables UITK's Advanced Text Generator: HarfBuzz+ICU, see UIToolkitProjectSettings) — like-for-like on shaping. TMP has no shaper — its output is NOT equivalent.",
                 ["corpus.latin"] = "Plain Latin text — every engine performs comparable work; the apples-to-apples case.",
                 ["memory"] = "Resident is the OS-reported app footprint. Retained is positive post-GC growth between equal live states across warmup and measured work; phase setup net change is reported separately. GC reclaimed is managed garbage at the state-normalized checkpoint. Repeat growth is a leak candidate from an identical state-normalized untimed cycle, not proof of a leak. Deep profiler capture runs separately after these checkpoints.",
-                ["glyphRasterization"] = "Every engine starts from a cleared atlas and a disabled pre-created text component, then rasterization is triggered only by enabling that component. CPU trigger/dispatch and component-to-atlas-ready latency are separated where completion is deferred. The recorded execution samples are authoritative for CPU/GPU raster, atlas write path, CPU mirror residency, GpuUpload use, and completion method.",
-                ["fontIsolation"] = "UI Toolkit uses explicit Panel Text Settings with local/global/default/sprite/emoji/Dynamic OS fallbacks disabled; TMP and UniText disable their corresponding fallback sources for the glyph suite."
+                ["glyphRasterization"] = "Every engine starts with cleared glyph/character tables, retained allocated atlas storage, and a disabled pre-created text component; rasterization is triggered only by enabling that component. CPU trigger/dispatch is reported separately, while every engine uses the same one-texel-per-atlas-layer AsyncGPUReadback boundary for component-to-GPU-atlas-ready latency. The recorded execution samples are authoritative for CPU/GPU raster, atlas write path, CPU mirror residency, GpuUpload use, and completion method.",
+                ["fontIsolation"] = "UI Toolkit uses explicit Panel Text Settings with local/global/default/sprite/emoji/Dynamic OS fallbacks disabled and validated; TMP temporarily disables local/global/default/sprite/emoji fallbacks; UniText disables system-font and emoji fallback sources for the glyph suite."
             },
             ["errors"] = new JArray(data.errors.ToArray())
         };
@@ -60,7 +63,7 @@ public static class BenchmarkJsonSerializer
         return root.ToString(Formatting.Indented);
     }
 
-    static JObject SerializeSystemInfo(JObject gpuUpload)
+    static JObject SerializeSystemInfo(JObject gpuUpload, JObject power)
     {
         string backend;
 #if ENABLE_IL2CPP
@@ -89,10 +92,15 @@ public static class BenchmarkJsonSerializer
             ["screenWidth"] = Screen.width,
             ["screenHeight"] = Screen.height,
             ["screenDpi"] = Screen.dpi,
+            ["screenRefreshRateHz"] = RefreshRateHz(),
             ["targetFrameRate"] = Application.targetFrameRate,
             ["vSyncCount"] = QualitySettings.vSyncCount,
             ["colorSpace"] = QualitySettings.activeColorSpace.ToString(),
+            ["qualityLevel"] = QualityLevelName(),
+            ["renderPipeline"] = RenderPipelineName(),
             ["unityVersion"] = Application.unityVersion,
+            ["applicationVersion"] = Application.version,
+            ["buildGuid"] = Application.buildGUID,
             ["scriptingBackend"] = backend,
             ["platform"] = Application.platform.ToString(),
             ["isEditor"] = Application.isEditor,
@@ -100,6 +108,16 @@ public static class BenchmarkJsonSerializer
             ["isDebugBuild"] = UnityEngine.Debug.isDebugBuild,
             ["jobWorkerCount"] = JobsUtility.JobWorkerCount,
             ["jobWorkerMaximumCount"] = JobsUtility.JobWorkerMaximumCount,
+            ["jobCompilerEnabled"] = JobsUtility.JobCompilerEnabled,
+            ["jobDebuggerEnabled"] = JobsUtility.JobDebuggerEnabled,
+            ["burst"] = new JObject
+            {
+                ["enabled"] = BurstCompiler.IsEnabled,
+                ["compilationEnabled"] = BurstCompiler.Options.EnableBurstCompilation,
+                ["safetyChecks"] = BurstCompiler.Options.EnableBurstSafetyChecks,
+                ["synchronousCompilation"] = BurstCompiler.Options.EnableBurstCompileSynchronously,
+                ["debug"] = BurstCompiler.Options.EnableBurstDebug
+            },
             ["graphicsCapabilities"] = new JObject
             {
                 ["computeShaders"] = SystemInfo.supportsComputeShaders,
@@ -112,6 +130,7 @@ public static class BenchmarkJsonSerializer
                 ["asyncGpuReadback"] = SystemInfo.supportsAsyncGPUReadback
             },
             ["gpuUpload"] = gpuUpload,
+            ["power"] = power,
             ["unitextDebugDefine"] =
 #if UNITEXT_DEBUG
                 true,
@@ -133,21 +152,38 @@ public static class BenchmarkJsonSerializer
         };
     }
 
+    static double RefreshRateHz()
+    {
+#if UNITY_2022_2_OR_NEWER
+        return Screen.currentResolution.refreshRateRatio.value;
+#else
+        return Screen.currentResolution.refreshRate;
+#endif
+    }
+
+    static string QualityLevelName()
+    {
+        int level = QualitySettings.GetQualityLevel();
+        return level >= 0 && level < QualitySettings.names.Length ? QualitySettings.names[level] : level.ToString();
+    }
+
+    static string RenderPipelineName() => GraphicsSettings.currentRenderPipeline != null
+        ? GraphicsSettings.currentRenderPipeline.GetType().FullName
+        : "BuiltIn";
+
     static JObject SerializeGpuUpload()
     {
         bool supported = GpuUpload.IsSupported;
-        bool ready = supported && GpuUpload.IsReady;
         var obj = new JObject
         {
             ["observation"] = "postRunProbe",
             ["probeMayInitializeBackend"] = true,
-            ["supported"] = supported,
-            ["ready"] = ready,
-            ["poolGeneration"] = GpuUpload.PoolGeneration.ToString()
+            ["supported"] = supported
         };
         if (!supported) return obj;
 
         var info = GpuUpload.Info;
+        obj["physicalPoolInstalled"] = info.MaxConcurrentSubmissions > 0;
         obj["renderer"] = info.Renderer.ToString();
         obj["abi"] = $"{info.AbiMajor}.{info.AbiMinor}";
         obj["capabilities"] = info.Capabilities.ToString();
@@ -163,6 +199,8 @@ public static class BenchmarkJsonSerializer
                 ["submissionsAccepted"] = stats.SubmissionsAccepted.ToString(),
                 ["submissionsRejected"] = stats.SubmissionsRejected.ToString(),
                 ["submissionsEncoded"] = stats.SubmissionsEncoded.ToString(),
+                ["duplicateCallbacks"] = stats.DuplicateCallbacks.ToString(),
+                ["staleCallbacks"] = stats.StaleCallbacks.ToString(),
                 ["backpressureCount"] = stats.BackpressureCount.ToString(),
                 ["encodedPayloadBytes"] = stats.EncodedPayloadBytes.ToString(),
                 ["poolNodes"] = stats.PoolNodes.ToString(),
@@ -174,21 +212,85 @@ public static class BenchmarkJsonSerializer
         return obj;
     }
 
+    static JObject SerializePowerState(string observation)
+    {
+        var obj = new JObject
+        {
+            ["observation"] = observation,
+            ["batteryLevel"] = SystemInfo.batteryLevel,
+            ["batteryStatus"] = SystemInfo.batteryStatus.ToString()
+        };
+#if UNITY_ANDROID
+        if (!Application.isEditor)
+        {
+            try
+            {
+                using var version = new AndroidJavaClass("android.os.Build$VERSION");
+                int apiLevel = version.GetStatic<int>("SDK_INT");
+                using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
+                using var power = activity.Call<AndroidJavaObject>("getSystemService", "power");
+                obj["androidApiLevel"] = apiLevel;
+                obj["powerSaveMode"] = power.Call<bool>("isPowerSaveMode");
+                if (apiLevel >= 29)
+                {
+                    int status = power.Call<int>("getCurrentThermalStatus");
+                    obj["thermalStatusCode"] = status;
+                    obj["thermalStatus"] = AndroidThermalStatus(status);
+                }
+                else obj["thermalStatus"] = "notAvailableBeforeApi29";
+            }
+            catch (Exception exception)
+            {
+                obj["androidProbeError"] = exception.GetType().Name + ": " + exception.Message;
+            }
+        }
+#endif
+        return obj;
+    }
+
+    static string AndroidThermalStatus(int status) => status switch
+    {
+        0 => "none",
+        1 => "light",
+        2 => "moderate",
+        3 => "severe",
+        4 => "critical",
+        5 => "emergency",
+        6 => "shutdown",
+        _ => "unknown"
+    };
+
     internal static string EnvironmentSummary()
     {
+        var power = SerializePowerState("start");
         var sb = new StringBuilder(512);
         sb.AppendLine("[Benchmark Environment]");
         sb.Append("Unity ").Append(Application.unityVersion).Append(" | ").Append(Application.platform)
           .Append(" | ").Append(Application.isEditor ? "Editor" : "Player")
           .Append(" | ").Append(UnityEngine.Debug.isDebugBuild ? "Debug" : "Release").AppendLine();
+        sb.Append("Build: app=").Append(Application.version).Append(" | guid=").Append(Application.buildGUID)
+          .Append(" | quality=").Append(QualityLevelName())
+          .Append(" | pipeline=").Append(RenderPipelineName())
+          .Append(" | colorSpace=").Append(QualitySettings.activeColorSpace).AppendLine();
         sb.Append("CPU: ").Append(SystemInfo.processorType).Append(" | logical=").Append(SystemInfo.processorCount)
           .Append(" | MHz=").Append(SystemInfo.processorFrequency)
-          .Append(" | jobs=").Append(JobsUtility.JobWorkerCount).Append('/').Append(JobsUtility.JobWorkerMaximumCount).AppendLine();
+          .Append(" | jobs=").Append(JobsUtility.JobWorkerCount).Append('/').Append(JobsUtility.JobWorkerMaximumCount)
+          .Append(" | jobCompiler=").Append(JobsUtility.JobCompilerEnabled)
+          .Append(" | jobDebugger=").Append(JobsUtility.JobDebuggerEnabled)
+          .Append(" | Burst=").Append(BurstCompiler.IsEnabled)
+          .Append(" | safety=").Append(BurstCompiler.Options.EnableBurstSafetyChecks).AppendLine();
         sb.Append("GPU: ").Append(SystemInfo.graphicsDeviceName).Append(" | ").Append(SystemInfo.graphicsDeviceType)
           .Append(" | ").Append(SystemInfo.renderingThreadingMode)
           .Append(" | graphicsMT=").Append(SystemInfo.graphicsMultiThreaded).AppendLine();
         sb.Append("Frame pacing: target=").Append(Application.targetFrameRate).Append(" | vSync=").Append(QualitySettings.vSyncCount)
+          .Append(" | refresh=").Append(RefreshRateHz().ToString("F3"))
           .Append(" | resolution=").Append(Screen.width).Append('x').Append(Screen.height).AppendLine();
+        sb.Append("Power at start: battery=").Append(power["batteryLevel"])
+          .Append(" | status=").Append(power["batteryStatus"])
+          .Append(" | saver=").Append(power["powerSaveMode"] ?? "notRecorded")
+          .Append(" | thermal=").Append(power["thermalStatus"] ?? "notRecorded")
+          .Append(" | probeError=").Append(power["androidProbeError"] ?? "none").AppendLine();
         sb.Append("Graphics gates: compute=").Append(SystemInfo.supportsComputeShaders)
           .Append(" | texture2DArray=").Append(SystemInfo.supports2DArrayTextures)
           .Append(" | computeBuffers=").Append(SystemInfo.maxComputeBufferInputsCompute)
@@ -232,7 +334,7 @@ public static class BenchmarkJsonSerializer
         var sorted = new List<float>(times);
         sorted.Sort();
 
-        float median = sorted.Count > 0 ? sorted[sorted.Count / 2] : 0;
+        float median = BenchmarkStatistics.MedianSorted(sorted);
         float min = sorted.Count > 0 ? sorted[0] : 0;
         float max = sorted.Count > 0 ? sorted[sorted.Count - 1] : 0;
 
@@ -483,7 +585,7 @@ public static class BenchmarkJsonSerializer
         var sorted = new List<float>(d.frameTimes);
         sorted.Sort();
 
-        float median = sorted.Count > 0 ? sorted[sorted.Count / 2] : 0;
+        float median = BenchmarkStatistics.MedianSorted(sorted);
         float min = sorted.Count > 0 ? sorted[0] : 0;
         float max = sorted.Count > 0 ? sorted[sorted.Count - 1] : 0;
         float sum = 0;
@@ -493,6 +595,7 @@ public static class BenchmarkJsonSerializer
 
         var obj = new JObject
         {
+            ["status"] = string.IsNullOrEmpty(d.status) ? "measured" : d.status,
             ["frameTimes"] = new JArray(d.frameTimes.ToArray()),
             ["median"] = median,
             ["min"] = min,
@@ -502,20 +605,24 @@ public static class BenchmarkJsonSerializer
             ["perGlyphMedianUs"] = perGlyphUs,
             ["managedAlloc"] = d.managedAlloc
         };
+        if (!string.IsNullOrEmpty(d.statusReason))
+            obj["statusReason"] = d.statusReason;
 
         if (d.e2eTimes is { Count: > 0 })
         {
             var sortedE2e = new List<float>(d.e2eTimes);
             sortedE2e.Sort();
+            float e2eMedian = BenchmarkStatistics.MedianSorted(sortedE2e);
             obj["e2eTimes"] = new JArray(d.e2eTimes.ToArray());
-            obj["e2eMedian"] = sortedE2e[sortedE2e.Count / 2];
-            obj["perGlyphE2eMedianUs"] = d.uniqueGlyphs > 0 ? (sortedE2e[sortedE2e.Count / 2] * 1000.0) / d.uniqueGlyphs : 0;
+            obj["e2eMedian"] = e2eMedian;
+            obj["perGlyphE2eMedianUs"] = d.uniqueGlyphs > 0 ? (e2eMedian * 1000.0) / d.uniqueGlyphs : 0;
         }
 
         if (d.benchmark != null)
             obj["benchmark"] = new JObject
             {
                 ["mode"] = d.benchmark.mode,
+                ["requestedPath"] = d.benchmark.requestedPath,
                 ["iterations"] = d.benchmark.iterations,
                 ["warmupIterations"] = d.benchmark.warmupIterations,
                 ["previewFrames"] = d.benchmark.previewFrames,
@@ -559,6 +666,7 @@ public static class BenchmarkJsonSerializer
         var obj = new JObject
         {
             ["mode"] = atlas.mode,
+            ["requestedPath"] = atlas.requestedPath,
             ["backend"] = atlas.backend,
             ["storage"] = atlas.storage,
             ["preparation"] = atlas.preparation,
@@ -612,11 +720,13 @@ public class GlyphRasterData
 {
     public List<float> frameTimes;
 
-    /// <summary>End-to-end times (CPU dispatch + GPU raster completion); empty for engines whose rasterization is fully synchronous inside <see cref="frameTimes"/>.</summary>
+    /// <summary>Component-trigger to GPU-atlas-ready times; schema 1.4 uses a common async readback boundary, while legacy synchronous results may leave this empty.</summary>
     public List<float> e2eTimes;
 
     public int uniqueGlyphs;
     public long managedAlloc;
+    public string status;
+    public string statusReason;
     public GlyphBenchmarkConfig benchmark;
     public List<GlyphExecutionSample> executionSamples;
 }
@@ -624,6 +734,7 @@ public class GlyphRasterData
 public sealed class GlyphBenchmarkConfig
 {
     public string mode;
+    public string requestedPath;
     public int iterations;
     public int warmupIterations;
     public int previewFrames;
@@ -646,6 +757,7 @@ public sealed class GlyphExecutionSample
 public sealed class GlyphAtlasExecutionData
 {
     public string mode;
+    public string requestedPath;
     public string backend;
     public string storage;
     public string preparation;

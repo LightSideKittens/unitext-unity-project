@@ -199,7 +199,7 @@ public abstract class TextBenchmarkBase : MonoBehaviour
                 if (frameTimes == null || frameTimes.Count == 0) return 0;
                 var sorted = new List<float>(frameTimes);
                 sorted.Sort();
-                return sorted[sorted.Count / 2];
+                return BenchmarkStatistics.MedianSorted(sorted);
             }
         }
 

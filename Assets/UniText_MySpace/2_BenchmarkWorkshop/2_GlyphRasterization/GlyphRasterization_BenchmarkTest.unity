@@ -1174,6 +1174,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1282149555}
   - component: {fileID: 1282149556}
+  - component: {fileID: 1282149557}
   m_Layer: 5
   m_Name: GlyphBenchmarks
   m_TagString: Untagged
@@ -1228,6 +1229,19 @@ MonoBehaviour:
     tmpFont: {fileID: 11400000, guid: 8a7e9dff7567e9e4fa82d5d6657ef3a7, type: 2}
   togglePrefab: {fileID: 111576881}
   content: {fileID: 2064333361}
+--- !u!114 &1282149557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1282149554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8e92f86b9254a198cb1d249c39a7f04, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UniText.Test::BenchmarkGlyphPathSelector
+  selectedPath: 0
 --- !u!1 &1560505929
 GameObject:
   m_ObjectHideFlags: 0
@@ -1717,10 +1731,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d177d5ea98981841832191c2711b7f0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UniText.Test::UniText_ColdStartBenchmark
+  m_EditorClassIdentifier: UniText.Test::UniText_GlyphRasterizationBenchmark
   iterations: 3
   warmupIterations: 1
-  forceCPURasterization: 0
   isRunning: 0
   lastResult: 
 --- !u!1 &1936506588
@@ -2093,7 +2106,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1936405356}
-        m_TargetAssemblyTypeName: UniText_ColdStartBenchmark, UniText.Test
+        m_TargetAssemblyTypeName: UniText_GlyphRasterizationBenchmark, UniText.Test
         m_MethodName: RunBenchmark
         m_Mode: 1
         m_Arguments:

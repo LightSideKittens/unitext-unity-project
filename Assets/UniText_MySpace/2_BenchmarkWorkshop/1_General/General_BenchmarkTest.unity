@@ -904,7 +904,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d177d5ea98981841832191c2711b7f0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UniText.Test::UniText_ColdStartBenchmark
+  m_EditorClassIdentifier: UniText.Test::UniText_GlyphRasterizationBenchmark
   iterations: 3
   warmupIterations: 1
   previewFrames: 30
@@ -913,7 +913,6 @@ MonoBehaviour:
   captureSample: 0
   isRunning: 0
   lastResult: 
-  forceCPURasterization: 0
   dumpPhases: 1
   gpuSubmissionBudgetMsOverride: 0
 --- !u!224 &638130716
@@ -1638,7 +1637,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 638130715}
-        m_TargetAssemblyTypeName: UniText_ColdStartBenchmark, UniText.Test
+        m_TargetAssemblyTypeName: UniText_GlyphRasterizationBenchmark, UniText.Test
         m_MethodName: RunBenchmark
         m_Mode: 1
         m_Arguments:
@@ -3248,6 +3247,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2125554561}
   - component: {fileID: 2125554562}
+  - component: {fileID: 2125554563}
   m_Layer: 5
   m_Name: GlyphBenchmarks
   m_TagString: Untagged
@@ -3300,6 +3300,19 @@ MonoBehaviour:
     uiToolkitFont: {fileID: 11400000, guid: 3a0f0962a815a2c469d3cac75d6d4af8, type: 2}
   togglePrefab: {fileID: 1827253832}
   content: {fileID: 984426637}
+--- !u!114 &2125554563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2125554560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8e92f86b9254a198cb1d249c39a7f04, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UniText.Test::BenchmarkGlyphPathSelector
+  selectedPath: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -9,8 +9,10 @@ using UnityEngine;
 public class BenchmarkRunner : MonoBehaviour
 {
     const float WatchdogTimeout = 600f;
+    const double InteractiveSelectionSeconds = 10.0;
 
     BenchmarkRunData data;
+    bool suiteRunning;
 
 #if UNITEXT_BENCHMARK
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -29,20 +31,68 @@ public class BenchmarkRunner : MonoBehaviour
 #if UNITY_EDITOR
         return; 
 #else
-        Debug.Log("[BenchmarkRunner] Starting benchmarks...");
-        runner.StartCoroutine(runner.RunSuite(runText: true, runGlyph: true));
+        runner.StartCoroutine(runner.AutoStart());
 #endif
     }
 #endif
 
+    /// <summary>Starts both suites unless another benchmark suite is already running.</summary>
     [ContextMenu("Run All Benchmarks")]
-    public void RunFromMenu() => StartCoroutine(RunSuite(runText: true, runGlyph: true));
+    public void RunFromMenu() => StartSuite(runText: true, runGlyph: true);
 
+    /// <summary>Starts only the text-pipeline suite unless another benchmark suite is already running.</summary>
     [ContextMenu("Run Text Pipeline Only")]
-    public void RunTextFromMenu() => StartCoroutine(RunSuite(runText: true, runGlyph: false));
+    public void RunTextFromMenu() => StartSuite(runText: true, runGlyph: false);
 
+    /// <summary>Starts only the glyph suite using the currently selected path unless another suite is already running.</summary>
     [ContextMenu("Run Glyph Rasterization Only")]
-    public void RunGlyphFromMenu() => StartCoroutine(RunSuite(runText: false, runGlyph: true));
+    public void RunGlyphFromMenu() => StartSuite(runText: false, runGlyph: true);
+
+    IEnumerator AutoStart()
+    {
+        var selector = ObjectUtils.FindAny<BenchmarkGlyphPathSelector>();
+        if (selector != null && !string.IsNullOrEmpty(selector.LaunchOverrideError))
+        {
+            Debug.LogError($"[BenchmarkRunner] {selector.LaunchOverrideError}; aborting unattended run.");
+            Application.Quit(2);
+            yield break;
+        }
+        if (!Application.isBatchMode && selector != null && !selector.HasLaunchOverride)
+        {
+            Debug.Log($"[BenchmarkRunner] Waiting up to {InteractiveSelectionSeconds:F0} seconds for glyph path selection; a Run button starts immediately.");
+            double deadline = Time.realtimeSinceStartupAsDouble + InteractiveSelectionSeconds;
+            while (!suiteRunning && Time.realtimeSinceStartupAsDouble < deadline)
+                yield return null;
+        }
+        if (!suiteRunning)
+            StartSuite(runText: true, runGlyph: true);
+    }
+
+    void StartSuite(bool runText, bool runGlyph)
+    {
+        if (suiteRunning) return;
+        var selector = ObjectUtils.FindAny<BenchmarkGlyphPathSelector>();
+        if (runGlyph && selector != null && !string.IsNullOrEmpty(selector.LaunchOverrideError))
+        {
+            Debug.LogError($"[BenchmarkRunner] {selector.LaunchOverrideError}; select a valid path before starting.");
+            return;
+        }
+        suiteRunning = true;
+        Debug.Log("[BenchmarkRunner] Starting benchmarks...");
+        StartCoroutine(GuardedRunSuite(runText, runGlyph));
+    }
+
+    IEnumerator GuardedRunSuite(bool runText, bool runGlyph)
+    {
+        try
+        {
+            yield return RunSuite(runText, runGlyph);
+        }
+        finally
+        {
+            suiteRunning = false;
+        }
+    }
 
     /// <summary>One combined result JSON is always written (the CI transport); <see cref="BenchmarkHistory"/> splits it into the per-suite site streams, so a text-only or glyph-only run persists only its own stream.</summary>
     IEnumerator RunSuite(bool runText, bool runGlyph)
@@ -69,9 +119,9 @@ public class BenchmarkRunner : MonoBehaviour
             yield return RunGlyphRasterizationBenchmarks();
         }
 
-        var json = BenchmarkJsonSerializer.Serialize(data, out var gpuUploadSummary);
+        var json = BenchmarkJsonSerializer.Serialize(data, out var postRunSummary);
         Debug.Log("[BenchmarkRunner] === BENCHMARK COMPLETE ===");
-        Debug.Log(gpuUploadSummary);
+        Debug.Log(postRunSummary);
         OutputResults(json);
     }
 
@@ -159,24 +209,28 @@ public class BenchmarkRunner : MonoBehaviour
 
     IEnumerator RunGlyphRasterizationBenchmarks()
     {
-        var selector = ObjectUtils.FindAny<BenchmarkFontSelector>();
-        if (selector != null && selector.Fonts.Count > 0)
+        var pathSelector = ObjectUtils.FindAny<BenchmarkGlyphPathSelector>();
+        var path = pathSelector != null ? pathSelector.SelectedPath : BenchmarkGlyphRasterPath.Auto;
+        Debug.Log($"[BenchmarkRunner] Glyph path: {BenchmarkGlyphRasterPaths.Token(path)}");
+
+        var fontSelector = ObjectUtils.FindAny<BenchmarkFontSelector>();
+        if (fontSelector != null && fontSelector.Fonts.Count > 0)
         {
-            foreach (var pair in selector.Fonts)
+            foreach (var pair in fontSelector.Fonts)
             {
-                selector.Apply(pair);
+                fontSelector.Apply(pair);
                 yield return null;
-                yield return RunGlyphForFont(pair.Name);
+                yield return RunGlyphForFont(pair.Name, path);
                 if (!CheckWatchdog()) yield break;
             }
         }
         else
         {
-            yield return RunGlyphForFont("default");
+            yield return RunGlyphForFont("default", path);
         }
     }
 
-    IEnumerator RunGlyphForFont(string font)
+    IEnumerator RunGlyphForFont(string font, BenchmarkGlyphRasterPath path)
     {
         var uniGlyph = ObjectUtils.FindAny<UniText_GlyphRasterizationBenchmark>();
         if (uniGlyph != null)
@@ -192,7 +246,7 @@ public class BenchmarkRunner : MonoBehaviour
             {
                 Debug.Log($"[BenchmarkRunner] Running UniText Glyph Rasterization ({v.key}, {font})...");
                 yield return SafeRun($"unitextGlyph.{v.key}.{font}",
-                    () => uniGlyph.RunBenchmarkCoroutine(v.singleThreaded, v.maxStroke),
+                    () => uniGlyph.RunBenchmarkCoroutine(v.singleThreaded, v.maxStroke, path),
                     () => StoreGlyph(v.key, font, uniGlyph.LastResults));
                 if (!CheckWatchdog()) yield break;
             }
