@@ -359,7 +359,12 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         reason = $"Requested {expectedPath}, actual backend={snapshot.Backend}, storage={snapshot.Storage}, "
                  + $"writes={snapshot.WritePaths}, cpuMirror={snapshot.HasCpuMirror}, "
                  + $"gpuUploadTarget={snapshot.HasGpuUploadTarget}, cpuForced={snapshot.CpuRasterizationForced}, "
-                 + $"uploadFallbacks={snapshot.GpuUploadFallbacks}";
+                 + $"uploadFallbacks={snapshot.GpuUploadFallbacks}, "
+                 + $"sourceOverflows={snapshot.GpuUploadSourceOverflows}, "
+                 + $"sourceOverflowBytes={snapshot.GpuUploadSourceOverflowCurrentBytes}/"
+                 + $"{snapshot.GpuUploadSourceOverflowBudgetBytes}, "
+                 + $"sourceOverflowPeakBytes={snapshot.GpuUploadSourceOverflowPeakBytes}, "
+                 + $"sourceOverflowRetainedBytes={snapshot.GpuUploadSourceOverflowRetainedBytes}";
         return false;
     }
 
@@ -386,6 +391,11 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             copyTextureRegions = snapshot.CopyTextureRegions,
             readableApplyFlushes = snapshot.ReadableApplyFlushes,
             gpuUploadFallbacks = snapshot.GpuUploadFallbacks,
+            gpuUploadSourceOverflows = snapshot.GpuUploadSourceOverflows,
+            gpuUploadSourceOverflowBudgetBytes = snapshot.GpuUploadSourceOverflowBudgetBytes,
+            gpuUploadSourceOverflowCurrentBytes = snapshot.GpuUploadSourceOverflowCurrentBytes,
+            gpuUploadSourceOverflowPeakBytes = snapshot.GpuUploadSourceOverflowPeakBytes,
+            gpuUploadSourceOverflowRetainedBytes = snapshot.GpuUploadSourceOverflowRetainedBytes,
             lastGpuUploadError = snapshot.LastGpuUploadError?.ToString()
         };
     }
@@ -418,7 +428,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             int contentSlices = BenchmarkAtlasUtils.ContentSliceCount(tex, atlas.PageCount);
             string content = contentSlices >= 0 ? $" contentSlices={contentSlices}" : "";
             var runtime = atlas.GetDiagnosticSnapshot();
-            sb.Append($"pages={atlas.PageCount} texSize={tex.width}x{tex.height}x{depth} texMB={storageMb}{content} pixelChecksum={BenchmarkAtlasUtils.Checksum(tex, atlas.PageCount)} requestedPath={runtime.RequestedPath} backend={runtime.Backend} prep={runtime.PreparationModes} storage={runtime.Storage} cpuMirror={runtime.HasCpuMirror} writes={runtime.WritePaths} gpuUploadBatches={runtime.GpuUploadBatches} copyRegions={runtime.CopyTextureRegions} readableApply={runtime.ReadableApplyFlushes} uploadFallbacks={runtime.GpuUploadFallbacks} completion={completionMethod}  ");
+            sb.Append($"pages={atlas.PageCount} texSize={tex.width}x{tex.height}x{depth} texMB={storageMb}{content} pixelChecksum={BenchmarkAtlasUtils.Checksum(tex, atlas.PageCount)} requestedPath={runtime.RequestedPath} backend={runtime.Backend} prep={runtime.PreparationModes} storage={runtime.Storage} cpuMirror={runtime.HasCpuMirror} writes={runtime.WritePaths} gpuUploadBatches={runtime.GpuUploadBatches} copyRegions={runtime.CopyTextureRegions} readableApply={runtime.ReadableApplyFlushes} uploadFallbacks={runtime.GpuUploadFallbacks} sourceOverflows={runtime.GpuUploadSourceOverflows} sourceOverflowBytes={runtime.GpuUploadSourceOverflowCurrentBytes}/{runtime.GpuUploadSourceOverflowBudgetBytes} sourceOverflowPeakBytes={runtime.GpuUploadSourceOverflowPeakBytes} sourceOverflowRetainedBytes={runtime.GpuUploadSourceOverflowRetainedBytes} completion={completionMethod}  ");
         }
         return sb.ToString();
     }

@@ -22,7 +22,7 @@ public static class BenchmarkJsonSerializer
                          + "\n[Benchmark Power Post-Run] " + power.ToString(Formatting.None);
         var root = new JObject
         {
-            ["version"] = "1.4",
+            ["version"] = "1.5",
             ["timestamp"] = data.timestamp,
             ["meta"] = new JObject
             {
@@ -173,6 +173,10 @@ public static class BenchmarkJsonSerializer
 
     static JObject SerializeGpuUpload()
     {
+        bool rHalfTexture2DArray = GpuUpload.Supports(GraphicsFormat.R16_SFloat,
+            TextureDimension.Tex2DArray);
+        bool rgbaHalfTexture2DArray = GpuUpload.Supports(GraphicsFormat.R16G16B16A16_SFloat,
+            TextureDimension.Tex2DArray);
         bool supported = GpuUpload.IsSupported;
         var obj = new JObject
         {
@@ -190,8 +194,8 @@ public static class BenchmarkJsonSerializer
         obj["graphicsDeviceEpoch"] = info.GraphicsDeviceEpoch.ToString();
         obj["maxStagingBytes"] = info.MaxStagingBytes.ToString();
         obj["maxConcurrentSubmissions"] = info.MaxConcurrentSubmissions;
-        obj["rHalfTexture2DArray"] = GpuUpload.Supports(GraphicsFormat.R16_SFloat, TextureDimension.Tex2DArray);
-        obj["rgbaHalfTexture2DArray"] = GpuUpload.Supports(GraphicsFormat.R16G16B16A16_SFloat, TextureDimension.Tex2DArray);
+        obj["rHalfTexture2DArray"] = rHalfTexture2DArray;
+        obj["rgbaHalfTexture2DArray"] = rgbaHalfTexture2DArray;
 
         if (GpuUpload.TryGetStats(out var stats, out var error))
             obj["stats"] = new JObject
@@ -205,7 +209,10 @@ public static class BenchmarkJsonSerializer
                 ["encodedPayloadBytes"] = stats.EncodedPayloadBytes.ToString(),
                 ["poolNodes"] = stats.PoolNodes.ToString(),
                 ["poolNodesFree"] = stats.PoolNodesFree.ToString(),
-                ["poolNodesInFlight"] = stats.PoolNodesInFlight.ToString()
+                ["poolNodesInFlight"] = stats.PoolNodesInFlight.ToString(),
+                ["poolStagingCapacityBytes"] = stats.PoolStagingCapacityBytes.ToString(),
+                ["poolStagingFreeBytes"] = stats.PoolStagingFreeBytes.ToString(),
+                ["poolStagingInFlightBytes"] = stats.PoolStagingInFlightBytes.ToString()
             };
         else
             obj["statsError"] = error.ToString();
@@ -680,6 +687,11 @@ public static class BenchmarkJsonSerializer
         Add(obj, "copyTextureRegions", atlas.copyTextureRegions);
         Add(obj, "readableApplyFlushes", atlas.readableApplyFlushes);
         Add(obj, "gpuUploadFallbacks", atlas.gpuUploadFallbacks);
+        Add(obj, "gpuUploadSourceOverflows", atlas.gpuUploadSourceOverflows);
+        Add(obj, "gpuUploadSourceOverflowBudgetBytes", atlas.gpuUploadSourceOverflowBudgetBytes);
+        Add(obj, "gpuUploadSourceOverflowCurrentBytes", atlas.gpuUploadSourceOverflowCurrentBytes);
+        Add(obj, "gpuUploadSourceOverflowPeakBytes", atlas.gpuUploadSourceOverflowPeakBytes);
+        Add(obj, "gpuUploadSourceOverflowRetainedBytes", atlas.gpuUploadSourceOverflowRetainedBytes);
         if (!string.IsNullOrEmpty(atlas.lastGpuUploadError))
             obj["lastGpuUploadError"] = atlas.lastGpuUploadError;
         return obj;
@@ -691,6 +703,11 @@ public static class BenchmarkJsonSerializer
     }
 
     static void Add(JObject obj, string name, int? value)
+    {
+        if (value.HasValue) obj[name] = value.Value;
+    }
+
+    static void Add(JObject obj, string name, long? value)
     {
         if (value.HasValue) obj[name] = value.Value;
     }
@@ -720,7 +737,7 @@ public class GlyphRasterData
 {
     public List<float> frameTimes;
 
-    /// <summary>Component-trigger to GPU-atlas-ready times; schema 1.4 uses a common async readback boundary, while legacy synchronous results may leave this empty.</summary>
+    /// <summary>Component-trigger to GPU-atlas-ready times; schema 1.5 uses a common async readback boundary, while older synchronous results may leave this empty.</summary>
     public List<float> e2eTimes;
 
     public int uniqueGlyphs;
@@ -770,5 +787,10 @@ public sealed class GlyphAtlasExecutionData
     public int? copyTextureRegions;
     public int? readableApplyFlushes;
     public int? gpuUploadFallbacks;
+    public int? gpuUploadSourceOverflows;
+    public long? gpuUploadSourceOverflowBudgetBytes;
+    public long? gpuUploadSourceOverflowCurrentBytes;
+    public long? gpuUploadSourceOverflowPeakBytes;
+    public long? gpuUploadSourceOverflowRetainedBytes;
     public string lastGpuUploadError;
 }

@@ -61,12 +61,9 @@ public class BenchmarkFontSelector : MonoBehaviour
     internal static void SetLabel(Toggle toggle, string text)
     {
         var label = toggle.GetComponentInChildren<TMP_Text>(true);
-        if (label != null) label.text = text;
-        else
-        {
-            var legacyLabel = toggle.GetComponentInChildren<Text>(true);
-            if (legacyLabel != null) legacyLabel.text = text;
-        }
+        if (label == null)
+            throw new InvalidOperationException($"Toggle template {toggle.name} requires a TMP_Text label");
+        label.text = text;
     }
 
     public void Apply(BenchmarkFontPair pair)
