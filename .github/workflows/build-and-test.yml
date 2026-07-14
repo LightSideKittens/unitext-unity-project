@@ -282,7 +282,7 @@ jobs:
             benchmark-streams/
             screenshots/
             device-logs/
-            crash-logs/
+            firebase-results-url.txt
             benchmark.log
           retention-days: 30
 
