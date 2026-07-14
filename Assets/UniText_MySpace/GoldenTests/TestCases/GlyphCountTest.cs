@@ -6,8 +6,10 @@ using UnityEngine;
 public class GlyphCountTest : BaseTestCase
 {
     [SerializeField] private string testName = "Smoke_GlyphCount";
+#pragma warning disable 414
     [Tooltip("Minimum number of real (non-.notdef) glyphs the component must render.")]
     [SerializeField] private int minGlyphCount = 1;
+#pragma warning restore 414
 
     public override string TestName => testName;
 
@@ -16,10 +18,7 @@ public class GlyphCountTest : BaseTestCase
     public override bool TryVerify(UniText uniText, out string error)
     {
         error = null;
-#if UNITY_WEBGL
-        return true;
-#endif
-#if UNITEXT_TESTS
+#if UNITEXT_TESTS && !UNITY_WEBGL
         var rendered = uniText.TestRenderedGlyphCount;
         if (rendered < minGlyphCount)
             error = $"Expected at least {minGlyphCount} real glyphs, got {rendered}";

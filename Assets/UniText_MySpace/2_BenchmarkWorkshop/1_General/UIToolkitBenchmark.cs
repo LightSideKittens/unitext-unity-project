@@ -6,9 +6,6 @@ using Debug = UnityEngine.Debug;
 public class UIToolkitBenchmark : TextBenchmarkBase<Label>
 {
     [Header("UI Toolkit")]
-#if UNITY_6000_5_OR_NEWER
-    public PanelRenderer panelRenderer;
-#endif
     public PanelSettings panelSettings;
 
     [Tooltip("UXML template containing a Label to clone")]
@@ -20,16 +17,33 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
     const float UGuiRectWidth = 1068.9f;
 
     VisualElement container;
-    VisualElement root;
+
+    /// <summary>Raised when the live panel rebuilds its root mid-run (world-space UI reload on 6000.5+);
+    /// consumers re-attach their elements and invalidate any in-flight measurement.</summary>
+#pragma warning disable 67
+    public event System.Action RootReloaded;
+#pragma warning restore 67
+
+    /// <summary>The panel component is runtime-ensured, never serialized: the newest presentation path the
+    /// editor offers (world-space PanelRenderer on 6000.5+, UIDocument before) — a scene asset must stay
+    /// loadable on every supported Unity version.</summary>
 #if UNITY_6000_5_OR_NEWER
+    PanelRenderer panelRenderer;
+    VisualElement root;
     bool reloadHooked;
-#endif
 
     internal VisualElement RootElement => root;
+    internal PanelSettings ActivePanelSettings => panelRenderer != null ? panelRenderer.panelSettings : null;
+#else
+    UIDocument uiDocument;
 
-    private void Start() => EnsurePanelRenderer();
+    internal VisualElement RootElement => uiDocument != null ? uiDocument.rootVisualElement : null;
+    internal PanelSettings ActivePanelSettings => uiDocument != null ? uiDocument.panelSettings : null;
+#endif
 
-    private void EnsurePanelRenderer()
+    private void Start() => EnsurePanel();
+
+    private void EnsurePanel()
     {
 #if UNITY_6000_5_OR_NEWER
         if (panelRenderer == null)
@@ -47,6 +61,16 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
             panelRenderer.RegisterUIReloadCallback(OnUIReload);
             reloadHooked = true;
         }
+#else
+        if (uiDocument == null)
+        {
+            uiDocument = GetComponent<UIDocument>();
+            if (uiDocument == null)
+                uiDocument = gameObject.AddComponent<UIDocument>();
+        }
+
+        if (panelSettings != null && uiDocument.panelSettings == null)
+            uiDocument.panelSettings = panelSettings;
 #endif
     }
 
@@ -57,6 +81,7 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
         root = rootElement;
         if (container != null)
             rootElement.Add(container);
+        RootReloaded?.Invoke();
     }
 
     private void OnDestroy()
@@ -68,26 +93,19 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
 
     protected override void OnBeforeAllTests()
     {
-#if UNITY_6000_5_OR_NEWER
-        EnsurePanelRenderer();
-        if (!UIToolkitFontIsolation.Validate(panelRenderer?.panelSettings, null, out var error))
+        EnsurePanel();
+        if (!UIToolkitFontIsolation.Validate(ActivePanelSettings, null, out var error))
             throw new System.InvalidOperationException($"UI Toolkit font isolation failed: {error}");
         Debug.Log("[UIToolkit] Font fallback isolation: local=none, global=none, default=none, emoji=off, Dynamic OS=off.");
-#endif
     }
     protected override void OnAfterAllTests() { }
 
     protected override bool ValidateSetup()
     {
-#if UNITY_6000_5_OR_NEWER
-        EnsurePanelRenderer();
-        if (panelRenderer != null && panelRenderer.panelSettings != null) return true;
-        Debug.LogError("PanelRenderer or PanelSettings not assigned!");
+        EnsurePanel();
+        if (ActivePanelSettings != null) return true;
+        Debug.LogError("UI Toolkit panel or PanelSettings not assigned!");
         return false;
-#else
-        Debug.LogWarning("[UIToolkit] World-space PanelRenderer requires Unity 6000.5+; UIToolkit benchmark skipped.");
-        return false;
-#endif
     }
 
     protected override void SetupContainer()
@@ -96,7 +114,7 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
         container.style.position = Position.Absolute;
         container.style.width = Length.Percent(100);
         container.style.height = Length.Percent(100);
-        root?.Add(container);
+        RootElement?.Add(container);
     }
 
     protected override void TeardownContainer()
@@ -178,7 +196,7 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
         if (test != null)
             test.RunBenchmark();
         else
-            Debug.LogError("No UIToolkitBenchmark found in scene. Add UIToolkitBenchmark component to a GameObject with PanelRenderer.");
+            Debug.LogError("No UIToolkitBenchmark found in scene. Add UIToolkitBenchmark component to a GameObject with UIDocument.");
     }
 #endif
 }

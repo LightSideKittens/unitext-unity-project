@@ -36,10 +36,12 @@ WRAPPER_HARFBUZZ_SYMBOLS = {
     'hb_face_make_immutable',
     'hb_font_create', 'hb_font_destroy', 'hb_font_get_face',
     'hb_font_get_glyph', 'hb_font_get_glyph_h_advance',
+    'hb_font_get_nominal_glyph',
     'hb_font_set_variations',
     'hb_font_make_immutable',
     'hb_font_create_sub_font',
     'hb_ot_font_set_funcs',
+    'hb_ot_layout_collect_lookups', 'hb_ot_layout_lookup_collect_glyphs',
     'hb_ot_var_get_axis_count', 'hb_ot_var_get_axis_infos',
     'hb_buffer_create', 'hb_buffer_destroy', 'hb_buffer_clear_contents',
     'hb_buffer_set_direction', 'hb_buffer_set_script',
@@ -48,6 +50,8 @@ WRAPPER_HARFBUZZ_SYMBOLS = {
     'hb_buffer_add_codepoints', 'hb_buffer_get_length',
     'hb_buffer_get_glyph_infos', 'hb_buffer_get_glyph_positions',
     'hb_language_from_string',
+    'hb_set_create', 'hb_set_destroy', 'hb_set_clear',
+    'hb_set_has', 'hb_set_next',
     'hb_shape',
 }
 

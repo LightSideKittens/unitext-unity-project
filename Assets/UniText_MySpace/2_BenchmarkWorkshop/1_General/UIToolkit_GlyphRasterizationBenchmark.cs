@@ -17,18 +17,10 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
     [Tooltip("Dynamic TextCore FontAsset under test. Assigned per font by BenchmarkFontSelector.")]
     public FontAsset fontAsset;
 
-#if UNITY_6000_5_OR_NEWER
-    [Tooltip("Live PanelRenderer whose Label activation triggers the measured UI Toolkit rasterization.")]
-    public PanelRenderer panelRenderer;
-#endif
-
     string glyphText;
-    VisualElement root;
+    UIToolkitBenchmark visualBenchmark;
     VisualElement previewContainer;
     Label previewLabel;
-#if UNITY_6000_5_OR_NEWER
-    bool reloadHooked;
-#endif
     bool abortRun;
     int panelVersion;
     int rasterPanelVersion;
@@ -36,6 +28,8 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
     int rasterRenderSequence;
     int rasterGlyphCount;
     readonly WaitForEndOfFrame waitForEndOfFrame = new();
+
+    VisualElement Root => visualBenchmark != null ? visualBenchmark.RootElement : null;
 
     protected override string EngineName => "UIToolkit";
     protected override bool HasE2E => true;
@@ -46,10 +40,8 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     void OnDestroy()
     {
-#if UNITY_6000_5_OR_NEWER
-        if (reloadHooked && panelRenderer != null)
-            panelRenderer.UnregisterUIReloadCallback(OnUIReload);
-#endif
+        if (visualBenchmark != null)
+            visualBenchmark.RootReloaded -= OnRootReloaded;
         if (previewLabel != null)
             previewLabel.generateVisualContent -= OnGenerateVisualContent;
     }
@@ -62,11 +54,6 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     protected override bool CollectTargets()
     {
-#if !UNITY_6000_5_OR_NEWER
-        SetRunStatus("unsupported", "UI Toolkit world-space PanelRenderer requires Unity 6000.5+");
-        Debug.LogWarning("[UIToolkit GlyphRaster] World-space PanelRenderer requires Unity 6000.5+; skipping.");
-        return false;
-#else
         if (fontAsset == null)
         {
             SetRunStatus("skipped", "No FontAsset is assigned");
@@ -89,13 +76,13 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         }
 
         EnsurePreviewPanel();
-        if (panelRenderer == null || panelRenderer.panelSettings == null || root == null)
+        if (visualBenchmark == null || visualBenchmark.ActivePanelSettings == null || Root == null)
         {
-            SetRunStatus("skipped", "No live PanelRenderer root is available");
-            Debug.LogError("[UIToolkit GlyphRaster] No live PanelRenderer root is available.");
+            SetRunStatus("skipped", "No live UI Toolkit panel root is available");
+            Debug.LogError("[UIToolkit GlyphRaster] No live UI Toolkit panel root is available.");
             return false;
         }
-        if (!UIToolkitFontIsolation.Validate(panelRenderer.panelSettings, fontAsset, out var fallbackError))
+        if (!UIToolkitFontIsolation.Validate(visualBenchmark.ActivePanelSettings, fontAsset, out var fallbackError))
         {
             SetRunStatus("failed", fallbackError);
             Debug.LogError($"[UIToolkit GlyphRaster] Font isolation failed: {fallbackError}");
@@ -106,33 +93,22 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         abortRun = false;
         Debug.Log("[UIToolkit GlyphRaster] Trigger=Label display enable; fallback local/global/default/sprite/emoji/Dynamic OS=off; completion=panel render + selected FontAsset population + async GPU readback.");
         return true;
-#endif
     }
 
     void EnsurePreviewPanel()
     {
-#if UNITY_6000_5_OR_NEWER
-        var visualBenchmark = ObjectUtils.FindAny<UIToolkitBenchmark>();
-        if (root == null)
-            root = visualBenchmark?.RootElement;
-        if (panelRenderer == null)
-            panelRenderer = visualBenchmark?.panelRenderer ?? ObjectUtils.FindAny<PanelRenderer>();
-
-        if (panelRenderer == null || reloadHooked) return;
-        panelRenderer.RegisterUIReloadCallback(OnUIReload);
-        reloadHooked = true;
-#endif
+        if (visualBenchmark != null) return;
+        visualBenchmark = ObjectUtils.FindAny<UIToolkitBenchmark>();
+        if (visualBenchmark != null)
+            visualBenchmark.RootReloaded += OnRootReloaded;
     }
 
-#if UNITY_6000_5_OR_NEWER
-    void OnUIReload(PanelRenderer renderer, VisualElement rootElement)
+    void OnRootReloaded()
     {
         panelVersion++;
-        root = rootElement;
         if (previewContainer != null && previewContainer.parent == null)
-            root.Add(previewContainer);
+            Root.Add(previewContainer);
     }
-#endif
 
     void EnsurePreviewElements()
     {
@@ -166,7 +142,7 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         if (previewLabel.parent == null)
             previewContainer.Add(previewLabel);
         if (previewContainer.parent == null)
-            root.Add(previewContainer);
+            Root.Add(previewContainer);
     }
 
     void OnGenerateVisualContent(MeshGenerationContext _)
@@ -205,7 +181,7 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         {
             if (panelVersion != rasterPanelVersion)
             {
-                AbortPanelMeasurement("the PanelRenderer root reloaded during the measured pass");
+                AbortPanelMeasurement("the UI Toolkit panel root reloaded during the measured pass");
                 yield break;
             }
             yield return waitForEndOfFrame;
@@ -213,7 +189,7 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
         if (panelVersion != rasterPanelVersion)
         {
-            AbortPanelMeasurement("the PanelRenderer root reloaded during the measured pass");
+            AbortPanelMeasurement("the UI Toolkit panel root reloaded during the measured pass");
             yield break;
         }
 

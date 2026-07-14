@@ -23,23 +23,10 @@ public class TMPBenchmark : UGuiTextBenchmarkBase
         return $"{base.DescribeInspectionInstance(instance, index)}, textLen={text.text?.Length ?? 0}, fontSize={text.fontSize:F1}, color={text.color}, wrap={WrapState(text)}, autoSize={text.enableAutoSizing}, richText={text.richText}, font={text.font?.name ?? "null"}";
     }
 
-    static string WrapState(TMP_Text text)
-    {
-#if UNITY_2023_1_OR_NEWER
-        return text.textWrappingMode.ToString();
-#else
-        return text.enableWordWrapping.ToString();
-#endif
-    }
+    static string WrapState(TMP_Text text) => text.textWrappingMode.ToString();
 
-    protected override void SetWordWrap(Component instance, bool enabled)
-    {
-#if UNITY_2023_1_OR_NEWER
+    protected override void SetWordWrap(Component instance, bool enabled) =>
         ((TMP_Text)instance).textWrappingMode = enabled ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
-#else
-        ((TMP_Text)instance).enableWordWrapping = enabled;
-#endif
-    }
 
 #if UNITY_EDITOR
     [UnityEditor.MenuItem("UniText/Run TMP Benchmark")]
