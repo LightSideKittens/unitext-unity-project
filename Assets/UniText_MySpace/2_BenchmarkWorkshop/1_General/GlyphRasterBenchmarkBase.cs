@@ -97,6 +97,15 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         yield break;
     }
 
+    /// <summary>The probe infrastructure is unavailable (readback/format limits of the platform), which
+    /// invalidates only the e2e number — CPU timings stay measured. A missing atlas or a probe timeout
+    /// stays a hard abort: those are engine anomalies, not environment limits.</summary>
+    void DegradeE2e(string reason)
+    {
+        lastE2eMs = float.NaN;
+        Debug.LogWarning($"[{EngineName} GlyphRaster] {reason}; e2e unavailable, CPU timings kept.");
+    }
+
     /// <summary>Extends the component-trigger interval to one common GPU completion boundary by reading one texel from every atlas layer without stalling the CPU thread.</summary>
     protected IEnumerator AwaitGpuTextureCompletion(double dispatchStart,
         IReadOnlyList<Texture> textures, System.Action<string> abort)
@@ -108,7 +117,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         }
         if (!SystemInfo.supportsAsyncGPUReadback)
         {
-            abort("Async GPU readback is unsupported");
+            DegradeE2e("Async GPU readback is unsupported");
             yield break;
         }
 
@@ -140,7 +149,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
 
         if (requests.Count == 0)
         {
-            abort("No completion probe could be queued");
+            DegradeE2e("No completion probe could be queued");
             yield break;
         }
         if (!gpuCompletionProbeLogged)
@@ -177,7 +186,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
             if (done)
             {
                 if (failed)
-                    abort("Completion probe failed");
+                    DegradeE2e("Completion probe failed");
                 else
                     lastE2eMs = (float)((now - dispatchStart) * 1000.0);
                 yield break;
@@ -290,7 +299,8 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
                 if (!isWarmup)
                 {
                     frameTimes.Add(ms);
-                    e2eTimes?.Add(e2eMs);
+                    if (!float.IsNaN(e2eMs) && !float.IsInfinity(e2eMs))
+                        e2eTimes?.Add(e2eMs);
                     glyphCounts.Add(uniqueGlyphs);
                     if (execution != null) executionSamples.Add(execution);
                     totalManagedAlloc += gcRec.LastValue;

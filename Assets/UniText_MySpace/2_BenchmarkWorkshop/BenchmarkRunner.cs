@@ -646,6 +646,27 @@ public class BenchmarkRunner : MonoBehaviour
                     entry.Write(bytes, 0, bytes.Length);
                 }
             }
+
+            var logsDir = Path.Combine(Application.persistentDataPath, "Logs");
+            if (Directory.Exists(logsDir))
+            {
+                foreach (var logFile in Directory.GetFiles(logsDir, "*.log"))
+                {
+                    try
+                    {
+                        byte[] bytes;
+                        using (var stream = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        {
+                            bytes = new byte[stream.Length];
+                            int read = stream.Read(bytes, 0, bytes.Length);
+                            if (read != bytes.Length) System.Array.Resize(ref bytes, read);
+                        }
+                        using var entry = zip.CreateEntry("logs/" + Path.GetFileName(logFile)).Open();
+                        entry.Write(bytes, 0, bytes.Length);
+                    }
+                    catch (IOException) { }
+                }
+            }
         }
         return ms.ToArray();
     }
