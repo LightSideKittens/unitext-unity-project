@@ -492,6 +492,7 @@ runs:
             if [ "$DEV" = "firebase-results" ] || [ "$DEV" = "." ]; then DEV=$(basename "$PDIR"); fi
             DEST="./firebase-results/unpacked/bundle-${UNPACK_ID}-${DEV}"
             echo "Unpacking bundle: $f -> $DEST"
+            mkdir -p "$DEST"
             unzip -o "$f" -d "$DEST" </dev/null || echo "unzip failed (rc=$?), trying python zipfile"
             [ -e "$DEST" ] || python3 -m zipfile -e "$f" "$DEST" || echo "python zipfile also failed (rc=$?)"
             echo "--- unpacked contents of $DEST:"
@@ -541,6 +542,13 @@ runs:
           # Device-emitted viewer streams (run-*.js) ride the same bundles/results dirs.
           mkdir -p benchmark-streams
           find ./firebase-results -name "run-*.js" -type f -exec cp -f {} ./benchmark-streams/ \; 2>/dev/null || true
+
+          # Device engine logs (logs/*.log inside the archive) — prefixed with the bundle dir
+          # so multi-device runs keep them apart.
+          mkdir -p device-logs
+          find ./firebase-results -path "*/logs/*.log" -type f 2>/dev/null | while read -r L; do
+            cp -f "$L" "./device-logs/$(basename "$(dirname "$(dirname "$L")")")-$(basename "$L")" 2>/dev/null || true
+          done
         else
           TEST_FILES=$(echo "$RESULT_FILES" | grep -E "testResults\.xml|results_scenario_" || true)
           if [ -z "$TEST_FILES" ]; then echo "ERROR: No test results found"; exit 1; fi

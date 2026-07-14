@@ -281,6 +281,7 @@ jobs:
             benchmarkResults*.json
             benchmark-streams/
             screenshots/
+            device-logs/
             benchmark.log
           retention-days: 30
 

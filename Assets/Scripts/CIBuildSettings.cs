@@ -63,7 +63,15 @@ public static class CIBuildSettings
             SetBuildScene(BenchmarkScenePath);
             EnableBenchmark();
             DisableTests();
-            DisableDebug();
+            if (debugArg == "true")
+            {
+                EnableDebug();
+                Debug.Log("[CIBuildSettings] Benchmark build with UNITEXT_DEBUG — diagnostic run, timings are polluted by logging");
+            }
+            else
+            {
+                DisableDebug();
+            }
             Debug.Log("[CIBuildSettings] Benchmark build configured");
         }
         else
