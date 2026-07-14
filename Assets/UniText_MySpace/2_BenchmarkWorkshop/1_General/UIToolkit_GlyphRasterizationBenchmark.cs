@@ -54,6 +54,14 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     protected override bool CollectTargets()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // UI Toolkit's dynamic FontAsset clear-and-repopulate path traps the WebGL runtime
+        // (RuntimeError: unreachable) on Unity 6000.x; skip so the UniText/TMP WebGL numbers,
+        // already measured before this engine runs, survive to the results file.
+        SetRunStatus("unsupported", "UI Toolkit glyph rasterization is not supported on WebGL");
+        Debug.LogWarning("[UIToolkit GlyphRaster] Skipped on WebGL (dynamic FontAsset rasterization traps the WASM runtime).");
+        return false;
+#else
         if (fontAsset == null)
         {
             SetRunStatus("skipped", "No FontAsset is assigned");
@@ -93,6 +101,7 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         abortRun = false;
         Debug.Log("[UIToolkit GlyphRaster] Trigger=Label display enable; fallback local/global/default/sprite/emoji/Dynamic OS=off; completion=panel render + selected FontAsset population + async GPU readback.");
         return true;
+#endif
     }
 
     void EnsurePreviewPanel()
