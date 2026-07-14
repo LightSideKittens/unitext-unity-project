@@ -494,6 +494,8 @@ public abstract class TextBenchmarkBase : MonoBehaviour
 
             yield return RunAllTests();
 
+            yield return BenchmarkScreenshot.Capture($"text-{SystemName}-{corpusName}");
+
             if (!silent)
             {
                 AppendResults();

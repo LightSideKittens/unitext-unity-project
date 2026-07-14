@@ -8,6 +8,10 @@ inputs:
   mode:
     description: 'test or benchmark'
     required: true
+  suite:
+    description: 'Benchmark suite: all, text (pipeline) or glyph (rasterization). Ignored in test mode.'
+    required: false
+    default: 'all'
   unity_version:
     description: 'Unity version (used to separate Firebase results)'
     required: false
@@ -33,6 +37,7 @@ runs:
       env:
         APP_MODE: ${{ inputs.mode }}
         APP_TIMEOUT: ${{ inputs.timeout }}
+        APP_SUITE: ${{ inputs.suite }}
       run: |
         $ErrorActionPreference = "Stop"
         $mode = $env:APP_MODE
@@ -45,6 +50,7 @@ runs:
         $resultFile = if ($mode -eq "benchmark") { "benchmarkResults.json" } else { "testResults.xml" }
         $args = @("-logFile", $logFile)
         if ($mode -eq "test") { $args = @("-batchmode") + $args }
+        if ($mode -eq "benchmark") { $args += @("-unitextSuite", $env:APP_SUITE) }
 
         Write-Host "Running ($mode): $($exe.FullName)"
         $process = Start-Process -FilePath $exe.FullName -ArgumentList $args -PassThru -NoNewWindow
@@ -78,6 +84,16 @@ runs:
           Write-Host "WARNING: $resultFile not found"
         }
 
+        if ($mode -eq "benchmark" -and $found) {
+          $persist = $found.DirectoryName
+          New-Item -ItemType Directory -Force -Path ./benchmark-streams | Out-Null
+          Copy-Item "$persist\run-*.js" -Destination ./benchmark-streams/ -ErrorAction SilentlyContinue
+          if (Test-Path "$persist\Screenshots") {
+            New-Item -ItemType Directory -Force -Path ./screenshots | Out-Null
+            Copy-Item "$persist\Screenshots\*.png" -Destination ./screenshots/ -ErrorAction SilentlyContinue
+          }
+        }
+
         if ($mode -eq "test") {
           $screenshotsDir = Get-ChildItem -Path $searchPath -Directory -Filter "Screenshots" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($screenshotsDir) {
@@ -102,6 +118,7 @@ runs:
       env:
         APP_MODE: ${{ inputs.mode }}
         APP_TIMEOUT: ${{ inputs.timeout }}
+        APP_SUITE: ${{ inputs.suite }}
       run: |
         set -uo pipefail
         MODE="$APP_MODE"
@@ -114,7 +131,7 @@ runs:
         [ -z "$EXE" ] && { echo "ERROR: No executable found"; ls -la "$BUILD_DIR"; exit 1; }
 
         if [ "$MODE" = "benchmark" ]; then
-          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS=""
+          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS="-unitextSuite $APP_SUITE"
         else
           LOG_FILE="$PWD/test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
         fi
@@ -165,6 +182,16 @@ runs:
         FOUND=$(find ~/.config/unity3d -name "$RESULT_FILE" 2>/dev/null | head -1)
         [ -n "$FOUND" ] && cp "$FOUND" "./$RESULT_FILE" && echo "Copied: $FOUND" || echo "WARNING: $RESULT_FILE not found"
 
+        if [ "$MODE" = "benchmark" ] && [ -n "$FOUND" ]; then
+          PERSIST=$(dirname "$FOUND")
+          mkdir -p ./benchmark-streams
+          cp "$PERSIST"/run-*.js ./benchmark-streams/ 2>/dev/null || true
+          if [ -d "$PERSIST/Screenshots" ]; then
+            mkdir -p ./screenshots
+            cp "$PERSIST"/Screenshots/*.png ./screenshots/ 2>/dev/null || true
+          fi
+        fi
+
         if [ "$MODE" = "test" ]; then
           SCREENSHOTS_DIR=$(find ~/.config/unity3d -name "Screenshots" -type d 2>/dev/null | head -1)
           if [ -n "$SCREENSHOTS_DIR" ]; then
@@ -189,6 +216,7 @@ runs:
       env:
         APP_MODE: ${{ inputs.mode }}
         APP_TIMEOUT: ${{ inputs.timeout }}
+        APP_SUITE: ${{ inputs.suite }}
       run: |
         set -uo pipefail
         MODE="$APP_MODE"
@@ -202,7 +230,7 @@ runs:
         [ -z "$EXE" ] && { echo "ERROR: No executable found"; exit 1; }
 
         if [ "$MODE" = "benchmark" ]; then
-          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS=""
+          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS="-unitextSuite $APP_SUITE"
         else
           LOG_FILE="$PWD/test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
         fi
@@ -216,6 +244,16 @@ runs:
 
         FOUND=$(find ~/Library -name "$RESULT_FILE" 2>/dev/null | head -1)
         [ -n "$FOUND" ] && cp "$FOUND" "./$RESULT_FILE" && echo "Copied: $FOUND" || echo "WARNING: $RESULT_FILE not found"
+
+        if [ "$MODE" = "benchmark" ] && [ -n "$FOUND" ]; then
+          PERSIST=$(dirname "$FOUND")
+          mkdir -p ./benchmark-streams
+          cp "$PERSIST"/run-*.js ./benchmark-streams/ 2>/dev/null || true
+          if [ -d "$PERSIST/Screenshots" ]; then
+            mkdir -p ./screenshots
+            cp "$PERSIST"/Screenshots/*.png ./screenshots/ 2>/dev/null || true
+          fi
+        fi
 
         if [ "$MODE" = "test" ]; then
           SCREENSHOTS_DIR=$(find ~/Library -name "Screenshots" -type d 2>/dev/null | head -1)
@@ -247,6 +285,7 @@ runs:
       env:
         APP_MODE: ${{ inputs.mode }}
         APP_TIMEOUT: ${{ inputs.timeout }}
+        APP_SUITE: ${{ inputs.suite }}
       run: |
         set -uo pipefail
 
@@ -346,6 +385,8 @@ runs:
       shell: bash
       env:
         APP_TIMEOUT: ${{ inputs.timeout }}
+        APP_MODE: ${{ inputs.mode }}
+        APP_SUITE: ${{ inputs.suite }}
       run: |
         set -uo pipefail
         IPA="$GITHUB_WORKSPACE/UniText.ipa"
@@ -353,6 +394,16 @@ runs:
 
         TIMEOUT_MINUTES=$((APP_TIMEOUT / 60))
         [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
+
+        # Game-loop scenario = benchmark suite: 1 = all, 2 = text pipeline, 3 = glyph rasterization.
+        SCENARIO=1
+        if [ "$APP_MODE" = "benchmark" ]; then
+          case "$APP_SUITE" in
+            text) SCENARIO=2 ;;
+            glyph) SCENARIO=3 ;;
+          esac
+        fi
+        echo "Scenario: $SCENARIO (mode=$APP_MODE suite=$APP_SUITE)"
 
         RESULTS_DIR="${{ inputs.platform }}-${{ inputs.mode }}-${{ inputs.unity_version }}-${{ github.run_id }}"
         echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
@@ -362,7 +413,7 @@ runs:
           --app "$IPA" \
           --device model=iphone14pro,version=16.6 \
           --device model=iphone16pro,version=18.3 \
-          --scenario-numbers=1 \
+          --scenario-numbers=$SCENARIO \
           --timeout "${TIMEOUT_MINUTES}m" \
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \
           --results-dir="$RESULTS_DIR" 2>&1 | tee firebase_output.log || echo "Firebase exit code: $?"
@@ -372,6 +423,8 @@ runs:
       shell: bash
       env:
         APP_TIMEOUT: ${{ inputs.timeout }}
+        APP_MODE: ${{ inputs.mode }}
+        APP_SUITE: ${{ inputs.suite }}
       run: |
         set -uo pipefail
         APK=$(find ${{ inputs.build_path }} -name "*.apk" | head -1)
@@ -381,6 +434,16 @@ runs:
         TIMEOUT_MINUTES=$((APP_TIMEOUT / 60))
         [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
 
+        # Game-loop scenario = benchmark suite: 1 = all, 2 = text pipeline, 3 = glyph rasterization.
+        SCENARIO=1
+        if [ "$APP_MODE" = "benchmark" ]; then
+          case "$APP_SUITE" in
+            text) SCENARIO=2 ;;
+            glyph) SCENARIO=3 ;;
+          esac
+        fi
+        echo "Scenario: $SCENARIO (mode=$APP_MODE suite=$APP_SUITE)"
+
         RESULTS_DIR="${{ inputs.platform }}-${{ inputs.mode }}-${{ inputs.unity_version }}-${{ github.run_id }}"
         echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
 
@@ -389,7 +452,7 @@ runs:
           --app "$APK" \
           --device model=shiba,version=34 \
           --device model=dm3q,version=34 \
-          --scenario-numbers=1 \
+          --scenario-numbers=$SCENARIO \
           --timeout "${TIMEOUT_MINUTES}m" \
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \
           --results-dir="$RESULTS_DIR" || echo "Firebase exit code: $?"
@@ -418,15 +481,22 @@ runs:
         find ./firebase-results -type f \( -iname '*.ipa' -o -iname '*.apk' -o -iname '*.aab' -o -iname '*.mp4' -o -iname '*.mov' \) -delete 2>/dev/null || true
         rm -rf ./firebase-results/*.app 2>/dev/null || true
 
+        # Unpack every bundle into its OWN directory — multiple devices ship same-named files
+        # (benchmarkResults.json, screenshots), a shared unpack dir would clobber them.
+        UNPACK_ID=0
         find ./firebase-results -type f 2>/dev/null | while read -r f; do
           if unzip -tqq "$f" >/dev/null 2>&1; then
-            echo "Unpacking bundle: $f"
-            unzip -o "$f" -d ./firebase-results/unpacked >/dev/null 2>&1 || true
+            UNPACK_ID=$((UNPACK_ID + 1))
+            DEST="./firebase-results/unpacked/bundle-${UNPACK_ID}-$(basename "$(dirname "$f")")"
+            echo "Unpacking bundle: $f -> $DEST"
+            unzip -o "$f" -d "$DEST" >/dev/null 2>&1 || true
           fi
         done
 
         mkdir -p screenshots
-        find ./firebase-results -iname '*.png' -type f -exec cp -f {} ./screenshots/ \; 2>/dev/null || true
+        find ./firebase-results -iname '*.png' -type f 2>/dev/null | while read -r p; do
+          cp -f "$p" "./screenshots/$(basename "$(dirname "$p")")-$(basename "$p")" 2>/dev/null || true
+        done
 
         RESULT_FILES=$(find ./firebase-results \( -name "benchmarkResults.json" -o -name "results_scenario_*.json" -o -name "testResults.xml" \) -type f 2>/dev/null || true)
 
@@ -438,14 +508,26 @@ runs:
         echo "$RESULT_FILES"
 
         if [ "$APP_MODE" = "benchmark" ]; then
-          BENCH_FILES=$(echo "$RESULT_FILES" | grep -E "benchmarkResults\.json|results_scenario_" || true)
+          # Prefer the real benchmarkResults.json (unpacked from the Android game-loop archive, or
+          # written directly on iOS); the raw results_scenario_* file is the fd payload — on Android
+          # benchmark runs that is the zip itself, not JSON — so it is only a last-resort fallback.
+          BENCH_FILES=$(echo "$RESULT_FILES" | grep "benchmarkResults\.json" || true)
+          if [ -z "$BENCH_FILES" ]; then
+            BENCH_FILES=$(echo "$RESULT_FILES" | grep -E "results_scenario_" || true)
+          fi
           if [ -z "$BENCH_FILES" ]; then echo "ERROR: No benchmark results found"; exit 1; fi
           FIRST=$(echo "$BENCH_FILES" | head -1)
           cp "$FIRST" ./benchmarkResults.json
+          DIDX=0
           for R in $BENCH_FILES; do
+            DIDX=$((DIDX + 1))
             DNAME=$(basename "$(dirname "$R")")
-            cp "$R" "./benchmarkResults_${DNAME}.json" 2>/dev/null || true
+            cp "$R" "./benchmarkResults_${DIDX}_${DNAME}.json" 2>/dev/null || true
           done
+
+          # Device-emitted viewer streams (run-*.js) ride the same bundles/results dirs.
+          mkdir -p benchmark-streams
+          find ./firebase-results -name "run-*.js" -type f -exec cp -f {} ./benchmark-streams/ \; 2>/dev/null || true
         else
           TEST_FILES=$(echo "$RESULT_FILES" | grep -E "testResults\.xml|results_scenario_" || true)
           if [ -z "$TEST_FILES" ]; then echo "ERROR: No test results found"; exit 1; fi

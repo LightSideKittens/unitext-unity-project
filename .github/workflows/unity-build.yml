@@ -54,9 +54,14 @@ on:
         type: boolean
         default: true
       benchmark:
-        description: '📊 Benchmark'
-        type: boolean
-        default: false
+        description: '📊 Benchmark suite'
+        type: choice
+        options:
+          - none
+          - all
+          - text
+          - glyph
+        default: none
       run_tests:
         description: '🧪 Run tests'
         type: boolean
@@ -107,6 +112,6 @@ jobs:
       unity_version: ${{ matrix.unity_version }}
       platform: ${{ matrix.platform }}
       debug: ${{ inputs.debug == true }}
-      benchmark: ${{ inputs.benchmark == true }}
+      benchmark: ${{ inputs.benchmark }}
       run_tests: ${{ inputs.run_tests == true }}
     secrets: inherit

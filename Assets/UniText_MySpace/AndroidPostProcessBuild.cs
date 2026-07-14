@@ -66,8 +66,25 @@ public class AndroidPostProcessBuild : IPostGenerateGradleAndroidProject
         );
 
         mainActivity.Add(gameLoopFilter);
+
+        AddScenarioLabel(application, "suite_all", "1");
+        AddScenarioLabel(application, "suite_text", "2");
+        AddScenarioLabel(application, "suite_glyph", "3");
+
         doc.Save(manifestPath);
-        Debug.Log("[AndroidPostProcessBuild] Added Firebase game-loop intent-filter");
+        Debug.Log("[AndroidPostProcessBuild] Added Firebase game-loop intent-filter and scenario labels");
+    }
+
+    /// <summary>Optional Firebase scenario labels (benchmark suite mapping: 1 = all, 2 = text pipeline, 3 = glyph rasterization) — CI drives suites via --scenario-numbers; the labels document the mapping in the Firebase console.</summary>
+    static void AddScenarioLabel(XElement application, string label, string value)
+    {
+        var name = $"com.google.test.loops.{label}";
+        bool exists = application.Elements("meta-data")
+            .Any(m => (string)m.Attribute(AndroidNs + "name") == name);
+        if (exists) return;
+        application.Add(new XElement("meta-data",
+            new XAttribute(AndroidNs + "name", name),
+            new XAttribute(AndroidNs + "value", value)));
     }
 }
 #endif

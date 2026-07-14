@@ -295,6 +295,9 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
                     if (execution != null) executionSamples.Add(execution);
                     totalManagedAlloc += gcRec.LastValue;
                 }
+
+                yield return BenchmarkScreenshot.Capture(
+                    $"glyph-{EngineName}{(mode != null ? $"-{mode}" : "")}-{tag}");
             }
 
             if (captureProfile || captureSample) yield return CaptureProfilePass();

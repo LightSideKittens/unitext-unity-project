@@ -14,9 +14,10 @@ on:
         type: boolean
         default: true
       benchmark:
+        description: "Benchmark suite: none, all, text (pipeline) or glyph (rasterization)"
         required: false
-        type: boolean
-        default: false
+        type: string
+        default: 'none'
       run_tests:
         required: false
         type: boolean
@@ -69,7 +70,7 @@ jobs:
           unityVersion: ${{ inputs.unity_version }}
           targetPlatform: ${{ inputs.platform }}
           allowDirtyBuild: true
-          customParameters: -ciDebug ${{ inputs.debug }} -ciBenchmark ${{ inputs.benchmark }} -ciTests ${{ inputs.run_tests }}
+          customParameters: -ciDebug ${{ inputs.debug }} -ciBenchmark ${{ inputs.benchmark != 'none' }} -ciTests ${{ inputs.run_tests }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -173,7 +174,7 @@ jobs:
           fi
 
   benchmark:
-    if: inputs.benchmark && inputs.platform != 'StandaloneLinux64'
+    if: inputs.benchmark != 'none' && inputs.platform != 'StandaloneLinux64'
     needs: build
     timeout-minutes: 30
     runs-on: ${{
@@ -230,6 +231,7 @@ jobs:
         with:
           platform: ${{ inputs.platform }}
           mode: benchmark
+          suite: ${{ inputs.benchmark }}
           unity_version: ${{ inputs.unity_version }}
           timeout: ${{ inputs.test_timeout }}
 
@@ -237,22 +239,30 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ -f benchmarkResults.json ]; then
+          # Every result JSON (multi-device runs produce benchmarkResults_<n>_<device>.json) becomes
+          # its own pair of run-{text|glyph}-*.js drop-ins; device-emitted streams collected by
+          # run-app already sit in benchmark-streams/ and are kept as-is. The plain
+          # benchmarkResults.json is a copy of the first device file, so it is only converted when
+          # no per-device files exist (desktop runs).
+          FILES=$(ls benchmarkResults_*.json 2>/dev/null || true)
+          [ -z "$FILES" ] && [ -f benchmarkResults.json ] && FILES="benchmarkResults.json"
+          for f in $FILES; do
             python3 .github/scripts/benchmark-summary.py \
-              benchmarkResults.json \
+              "$f" \
               --commit "${{ github.sha }}" \
               --branch "${{ github.ref_name }}" \
-              --streams-dir benchmark-streams
-          fi
+              --streams-dir benchmark-streams || true
+          done
 
       - name: Upload Benchmark Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: BenchmarkResults-${{ inputs.unity_version }}-${{ inputs.platform }}
+          name: BenchmarkResults-${{ inputs.benchmark }}-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: |
             benchmarkResults*.json
             benchmark-streams/
+            screenshots/
             benchmark.log
           retention-days: 30
 

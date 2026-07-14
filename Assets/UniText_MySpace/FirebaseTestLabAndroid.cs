@@ -26,6 +26,9 @@ public static class FirebaseTestLabAndroid
     private static bool initialized;
 #endif
 
+    /// <summary>Game-loop scenario from the launch Intent (0 when not a game-loop run or before <see cref="Initialize"/>). The benchmark suite mapping is 1 = all, 2 = text pipeline, 3 = glyph rasterization.</summary>
+    public static int ScenarioNumber { get; private set; }
+
     /// <summary>
     /// Initialize Firebase Test Lab integration. Must be called early in app startup.
     /// </summary>
@@ -55,6 +58,7 @@ public static class FirebaseTestLabAndroid
             }
 
             var scenario = intent.Call<int>("getIntExtra", "scenario", 0);
+            ScenarioNumber = scenario;
             Debug.Log($"[FirebaseTestLabAndroid] Scenario: {scenario}");
 
             var logFileUri = intent.Call<AndroidJavaObject>("getData");

@@ -78,10 +78,11 @@ public static class TestScreenshot
         var pngBytes = texture.EncodeToPNG();
         UnityEngine.Object.Destroy(texture);
 
-        SaveScreenshot(name, pngBytes);
+        Save(name, pngBytes);
     }
 
-    private static void SaveScreenshot(string name, byte[] pngBytes)
+    /// <summary>Routes an already-encoded PNG through the platform artifact channel (persistentDataPath/Screenshots, the WebGL JS bridge, the iOS game-loop results dir) — the single save path shared by test captures and benchmark captures.</summary>
+    public static void Save(string name, byte[] pngBytes)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         var base64 = Convert.ToBase64String(pngBytes);

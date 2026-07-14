@@ -663,8 +663,6 @@ public static class BenchmarkJsonSerializer
             ["fallback"] = sample.fallback,
             ["atlases"] = atlases
         };
-        if (sample.gpuSubmissionBudgetMs > 0)
-            obj["gpuSubmissionBudgetMs"] = sample.gpuSubmissionBudgetMs;
         return obj;
     }
 
@@ -681,20 +679,10 @@ public static class BenchmarkJsonSerializer
         };
         Add(obj, "cpuMirror", atlas.cpuMirror);
         Add(obj, "gpuUploadTarget", atlas.gpuUploadTarget);
-        Add(obj, "cpuRasterizationForced", atlas.cpuRasterizationForced);
-        Add(obj, "computeDirectBatches", atlas.computeDirectBatches);
         Add(obj, "gpuUploadBatches", atlas.gpuUploadBatches);
-        Add(obj, "copyTextureRegions", atlas.copyTextureRegions);
-        Add(obj, "readableApplyFlushes", atlas.readableApplyFlushes);
-        Add(obj, "gpuUploadFallbacks", atlas.gpuUploadFallbacks);
-        Add(obj, "gpuUploadSourceOverflows", atlas.gpuUploadSourceOverflows);
-        Add(obj, "gpuUploadSourceOverflowBudgetBytes", atlas.gpuUploadSourceOverflowBudgetBytes);
-        Add(obj, "gpuUploadSourceOverflowCurrentBytes", atlas.gpuUploadSourceOverflowCurrentBytes);
-        Add(obj, "gpuUploadSourceOverflowPeakBytes", atlas.gpuUploadSourceOverflowPeakBytes);
-        Add(obj, "gpuUploadSourceOverflowRetainedBytes", atlas.gpuUploadSourceOverflowRetainedBytes);
-        Add(obj, "gpuUploadBackpressureWaits", atlas.gpuUploadBackpressureWaits);
-        Add(obj, "gpuUploadBackpressureWaitMilliseconds", atlas.gpuUploadBackpressureWaitMilliseconds);
-        Add(obj, "gpuUploadBackpressureMaxWaitMilliseconds", atlas.gpuUploadBackpressureMaxWaitMilliseconds);
+        Add(obj, "uploadedRegions", atlas.uploadedRegions);
+        Add(obj, "uploadedBytes", atlas.uploadedBytes);
+        Add(obj, "flushYields", atlas.flushYields);
         if (!string.IsNullOrEmpty(atlas.lastGpuUploadError))
             obj["lastGpuUploadError"] = atlas.lastGpuUploadError;
         return obj;
@@ -711,11 +699,6 @@ public static class BenchmarkJsonSerializer
     }
 
     static void Add(JObject obj, string name, long? value)
-    {
-        if (value.HasValue) obj[name] = value.Value;
-    }
-
-    static void Add(JObject obj, string name, double? value)
     {
         if (value.HasValue) obj[name] = value.Value;
     }
@@ -775,7 +758,6 @@ public sealed class GlyphExecutionSample
     public string threading;
     public string completion;
     public string fallback;
-    public float gpuSubmissionBudgetMs;
     public List<GlyphAtlasExecutionData> atlases = new();
 }
 
@@ -788,20 +770,10 @@ public sealed class GlyphAtlasExecutionData
     public string preparation;
     public bool? cpuMirror;
     public bool? gpuUploadTarget;
-    public bool? cpuRasterizationForced;
     public List<string> writePaths = new();
-    public int? computeDirectBatches;
     public int? gpuUploadBatches;
-    public int? copyTextureRegions;
-    public int? readableApplyFlushes;
-    public int? gpuUploadFallbacks;
-    public int? gpuUploadSourceOverflows;
-    public long? gpuUploadSourceOverflowBudgetBytes;
-    public long? gpuUploadSourceOverflowCurrentBytes;
-    public long? gpuUploadSourceOverflowPeakBytes;
-    public long? gpuUploadSourceOverflowRetainedBytes;
-    public int? gpuUploadBackpressureWaits;
-    public double? gpuUploadBackpressureWaitMilliseconds;
-    public double? gpuUploadBackpressureMaxWaitMilliseconds;
+    public int? uploadedRegions;
+    public long? uploadedBytes;
+    public int? flushYields;
     public string lastGpuUploadError;
 }

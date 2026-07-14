@@ -44,39 +44,83 @@ public class BenchmarkRunner : MonoBehaviour
     [ContextMenu("Run Text Pipeline Only")]
     public void RunTextFromMenu() => StartSuite(runText: true, runGlyph: false);
 
-    /// <summary>Starts only the glyph suite using the currently selected path unless another suite is already running.</summary>
+    /// <summary>Starts only the glyph suite unless another suite is already running.</summary>
     [ContextMenu("Run Glyph Rasterization Only")]
     public void RunGlyphFromMenu() => StartSuite(runText: false, runGlyph: true);
 
     IEnumerator AutoStart()
     {
-        var selector = ObjectUtils.FindAny<BenchmarkGlyphPathSelector>();
-        if (selector != null && !string.IsNullOrEmpty(selector.LaunchOverrideError))
+        FirebaseTestLabAndroid.Initialize();
+        FirebaseTestLabiOS.Initialize();
+        var (runText, runGlyph, explicitSuite) = ResolveLaunchSuite();
+        if (!Application.isBatchMode && !explicitSuite)
         {
-            Debug.LogError($"[BenchmarkRunner] {selector.LaunchOverrideError}; aborting unattended run.");
-            Application.Quit(2);
-            yield break;
-        }
-        if (!Application.isBatchMode && selector != null && !selector.HasLaunchOverride)
-        {
-            Debug.Log($"[BenchmarkRunner] Waiting up to {InteractiveSelectionSeconds:F0} seconds for glyph path selection; a Run button starts immediately.");
+            Debug.Log($"[BenchmarkRunner] Waiting up to {InteractiveSelectionSeconds:F0} seconds before the unattended start; a Run button starts immediately.");
             double deadline = Time.realtimeSinceStartupAsDouble + InteractiveSelectionSeconds;
             while (!suiteRunning && Time.realtimeSinceStartupAsDouble < deadline)
                 yield return null;
         }
         if (!suiteRunning)
-            StartSuite(runText: true, runGlyph: true);
+            StartSuite(runText, runGlyph);
+    }
+
+    /// <summary>
+    /// Launch-time suite selection: <c>-unitextSuite text|glyph|all</c> (or the <c>=</c> form) and env
+    /// <c>UNITEXT_SUITE</c> on desktop, the Firebase game-loop scenario on devices (1 = all, 2 = text
+    /// pipeline, 3 = glyph rasterization), and the page URL's <c>?suite=</c> query on WebGL. An explicit
+    /// selection skips the interactive wait so CI starts immediately.
+    /// </summary>
+    static (bool runText, bool runGlyph, bool explicitSuite) ResolveLaunchSuite()
+    {
+        string suite = null;
+        var args = Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (string.Equals(args[i], "-unitextSuite", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+                suite = args[i + 1];
+            else if (args[i].StartsWith("-unitextSuite=", StringComparison.OrdinalIgnoreCase))
+                suite = args[i].Substring("-unitextSuite=".Length);
+        }
+        suite ??= Environment.GetEnvironmentVariable("UNITEXT_SUITE");
+
+        if (suite == null)
+        {
+            int scenario = FirebaseTestLabAndroid.ScenarioNumber;
+            if (scenario <= 0) scenario = FirebaseTestLabiOS.ScenarioNumber;
+            if (scenario == 2) suite = "text";
+            else if (scenario == 3) suite = "glyph";
+            else if (scenario == 1) suite = "all";
+        }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        if (suite == null && !string.IsNullOrEmpty(Application.absoluteURL))
+        {
+            var url = Application.absoluteURL;
+            int q = url.IndexOf("suite=", StringComparison.OrdinalIgnoreCase);
+            if (q >= 0)
+            {
+                int start = q + "suite=".Length;
+                int end = url.IndexOfAny(new[] { '&', '#' }, start);
+                suite = end < 0 ? url.Substring(start) : url.Substring(start, end - start);
+            }
+        }
+#endif
+
+        suite = suite?.Trim().ToLowerInvariant();
+        if (suite != null)
+            Debug.Log($"[BenchmarkRunner] Launch suite: {suite}");
+        return suite switch
+        {
+            "text" => (true, false, true),
+            "glyph" => (false, true, true),
+            "all" => (true, true, true),
+            _ => (true, true, false)
+        };
     }
 
     void StartSuite(bool runText, bool runGlyph)
     {
         if (suiteRunning) return;
-        var selector = ObjectUtils.FindAny<BenchmarkGlyphPathSelector>();
-        if (runGlyph && selector != null && !string.IsNullOrEmpty(selector.LaunchOverrideError))
-        {
-            Debug.LogError($"[BenchmarkRunner] {selector.LaunchOverrideError}; select a valid path before starting.");
-            return;
-        }
         suiteRunning = true;
         Debug.Log("[BenchmarkRunner] Starting benchmarks...");
         StartCoroutine(GuardedRunSuite(runText, runGlyph));
@@ -209,10 +253,6 @@ public class BenchmarkRunner : MonoBehaviour
 
     IEnumerator RunGlyphRasterizationBenchmarks()
     {
-        var pathSelector = ObjectUtils.FindAny<BenchmarkGlyphPathSelector>();
-        var path = pathSelector != null ? pathSelector.SelectedPath : BenchmarkGlyphRasterPath.Auto;
-        Debug.Log($"[BenchmarkRunner] Glyph path: {BenchmarkGlyphRasterPaths.Token(path)}");
-
         var fontSelector = ObjectUtils.FindAny<BenchmarkFontSelector>();
         if (fontSelector != null && fontSelector.Fonts.Count > 0)
         {
@@ -220,17 +260,17 @@ public class BenchmarkRunner : MonoBehaviour
             {
                 fontSelector.Apply(pair);
                 yield return null;
-                yield return RunGlyphForFont(pair.Name, path);
+                yield return RunGlyphForFont(pair.Name);
                 if (!CheckWatchdog()) yield break;
             }
         }
         else
         {
-            yield return RunGlyphForFont("default", path);
+            yield return RunGlyphForFont("default");
         }
     }
 
-    IEnumerator RunGlyphForFont(string font, BenchmarkGlyphRasterPath path)
+    IEnumerator RunGlyphForFont(string font)
     {
         var uniGlyph = ObjectUtils.FindAny<UniText_GlyphRasterizationBenchmark>();
         if (uniGlyph != null)
@@ -246,7 +286,7 @@ public class BenchmarkRunner : MonoBehaviour
             {
                 Debug.Log($"[BenchmarkRunner] Running UniText Glyph Rasterization ({v.key}, {font})...");
                 yield return SafeRun($"unitextGlyph.{v.key}.{font}",
-                    () => uniGlyph.RunBenchmarkCoroutine(v.singleThreaded, v.maxStroke, path),
+                    () => uniGlyph.RunBenchmarkCoroutine(v.singleThreaded, v.maxStroke),
                     () => StoreGlyph(v.key, font, uniGlyph.LastResults));
                 if (!CheckWatchdog()) yield break;
             }
@@ -554,7 +594,7 @@ public class BenchmarkRunner : MonoBehaviour
         File.WriteAllText(jsonPath, json);
         Debug.Log($"[BenchmarkRunner] Results saved to: {jsonPath}");
 
-        WriteSiteStreams(json);
+        var streams = WriteSiteStreams(json);
 
 #if UNITY_EDITOR
         BenchmarkHistory.SaveRun(json);
@@ -570,7 +610,7 @@ public class BenchmarkRunner : MonoBehaviour
         FirebaseTestLabiOS.NotifyTestComplete();
         System.Threading.Thread.Sleep(500);
 #elif UNITY_ANDROID && !UNITY_EDITOR
-        FirebaseTestLabAndroid.WriteResults("benchmarkResults.json", json);
+        FirebaseTestLabAndroid.WriteResultsArchive(BuildBenchmarkArchive(json, streams), "benchmarkResults.zip");
         FirebaseTestLabAndroid.NotifyTestComplete();
 #endif
 
@@ -579,10 +619,42 @@ public class BenchmarkRunner : MonoBehaviour
 #endif
     }
 
-    /// <summary>Device parity for the viewer files: the editor persists split streams to Benchmarks/runs via <see cref="BenchmarkHistory"/>, so player builds emit them next to benchmarkResults.json in persistentDataPath — ready to drop into Benchmarks/runs.</summary>
-    void WriteSiteStreams(string json)
+    /// <summary>
+    /// Android game-loop collects exactly ONE output file (the intent fd), so the run's whole artifact
+    /// set — combined JSON, per-suite viewer streams, benchmark screenshots — ships as one zip that CI
+    /// unpacks (the same channel golden tests use for their screenshots).
+    /// </summary>
+    static byte[] BuildBenchmarkArchive(string json, List<(string fileName, string contents)> streams)
     {
-        if (Application.isEditor) return;
+        using var ms = new MemoryStream();
+        using (var zip = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Create, true))
+        {
+            using (var w = new StreamWriter(zip.CreateEntry("benchmarkResults.json").Open()))
+                w.Write(json);
+
+            foreach (var s in streams)
+                using (var w = new StreamWriter(zip.CreateEntry("benchmark-streams/" + s.fileName).Open()))
+                    w.Write(s.contents);
+
+            var screenshotsDir = Path.Combine(Application.persistentDataPath, "Screenshots");
+            if (Directory.Exists(screenshotsDir))
+            {
+                foreach (var png in Directory.GetFiles(screenshotsDir, "*.png"))
+                {
+                    using var entry = zip.CreateEntry("screenshots/" + Path.GetFileName(png)).Open();
+                    var bytes = File.ReadAllBytes(png);
+                    entry.Write(bytes, 0, bytes.Length);
+                }
+            }
+        }
+        return ms.ToArray();
+    }
+
+    /// <summary>Device parity for the viewer files: the editor persists split streams to Benchmarks/runs via <see cref="BenchmarkHistory"/>, so player builds emit them next to benchmarkResults.json in persistentDataPath — ready to drop into Benchmarks/runs. iOS additionally copies them into the game-loop results dir; Android bundles them into the game-loop archive.</summary>
+    List<(string fileName, string contents)> WriteSiteStreams(string json)
+    {
+        var written = new List<(string fileName, string contents)>();
+        if (Application.isEditor) return written;
         try
         {
             var stamp = BenchmarkStreams.Stamp(Application.platform.ToString(), SystemInfo.deviceName);
@@ -590,6 +662,10 @@ public class BenchmarkRunner : MonoBehaviour
             {
                 var path = Path.Combine(Application.persistentDataPath, f.fileName);
                 File.WriteAllText(path, f.contents);
+                written.Add((f.fileName, f.contents));
+#if UNITY_IOS && !UNITY_EDITOR
+                FirebaseTestLabiOS.WriteResults(f.fileName, f.contents);
+#endif
                 Debug.Log($"[BenchmarkRunner] Site stream saved: {path}");
             }
         }
@@ -597,6 +673,7 @@ public class BenchmarkRunner : MonoBehaviour
         {
             Debug.LogError($"[BenchmarkRunner] Failed to write site streams: {e}");
         }
+        return written;
     }
 
     #endregion
