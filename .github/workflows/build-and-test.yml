@@ -26,6 +26,11 @@ on:
         required: false
         type: number
         default: 300
+      benchmark_timeout:
+        description: "Benchmarks run every engine x variant x font x iteration — far longer than tests (WebGL single-threaded wasm alone exceeds 300s)"
+        required: false
+        type: number
+        default: 900
 
 jobs:
   build:
@@ -246,7 +251,7 @@ jobs:
           mode: benchmark
           suite: ${{ inputs.benchmark }}
           unity_version: ${{ inputs.unity_version }}
-          timeout: ${{ inputs.test_timeout }}
+          timeout: ${{ inputs.benchmark_timeout }}
 
       - name: Emit viewer site streams
         if: always()
