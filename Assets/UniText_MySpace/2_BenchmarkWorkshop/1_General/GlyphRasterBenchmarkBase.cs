@@ -129,7 +129,11 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
             if (texture == null) continue;
             try
             {
+#if UNITY_2023_2_OR_NEWER
+                if (!SystemInfo.IsFormatSupported(texture.graphicsFormat, GraphicsFormatUsage.ReadPixels))
+#else
                 if (!SystemInfo.IsFormatSupported(texture.graphicsFormat, FormatUsage.ReadPixels))
+#endif
                 {
                     queueFailed = true;
                     Debug.LogWarning($"[{EngineName} GlyphRaster] Async readback completion probe does not support {texture.graphicsFormat}.");
