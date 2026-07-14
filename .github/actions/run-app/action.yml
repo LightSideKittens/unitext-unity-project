@@ -484,15 +484,18 @@ runs:
         # Unpack every bundle into its OWN directory — multiple devices ship same-named files
         # (benchmarkResults.json, screenshots), a shared unpack dir would clobber them.
         UNPACK_ID=0
-        find ./firebase-results -type f 2>/dev/null | while read -r f; do
-          if unzip -tqq "$f" >/dev/null 2>&1; then
+        for f in $(find ./firebase-results -type f 2>/dev/null); do
+          if unzip -tqq "$f" </dev/null >/dev/null 2>&1; then
             UNPACK_ID=$((UNPACK_ID + 1))
             PDIR=$(dirname "$f")
             DEV=$(basename "$(dirname "$PDIR")")
             if [ "$DEV" = "firebase-results" ] || [ "$DEV" = "." ]; then DEV=$(basename "$PDIR"); fi
             DEST="./firebase-results/unpacked/bundle-${UNPACK_ID}-${DEV}"
             echo "Unpacking bundle: $f -> $DEST"
-            unzip -o "$f" -d "$DEST" >/dev/null 2>&1 || true
+            unzip -o "$f" -d "$DEST" </dev/null || echo "unzip failed (rc=$?), trying python zipfile"
+            [ -e "$DEST" ] || python3 -m zipfile -e "$f" "$DEST" || echo "python zipfile also failed (rc=$?)"
+            echo "--- unpacked contents of $DEST:"
+            find "$DEST" -type f 2>/dev/null | head -8 || true
           fi
         done
 
