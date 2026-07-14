@@ -505,6 +505,15 @@ runs:
           cp -f "$p" "./screenshots/$(basename "$(dirname "$p")")-$(basename "$p")" 2>/dev/null || true
         done
 
+        # Device crash reports (iOS CrashLogs/*.ips, Android tombstones) — the only source of a
+        # native crash stack when the app dies before writing results.
+        mkdir -p crash-logs
+        find ./firebase-results \( -iname '*.ips' -o -iname 'tombstone*' \) -type f 2>/dev/null | while read -r c; do
+          cp -f "$c" "./crash-logs/$(basename "$(dirname "$(dirname "$c")")")-$(basename "$c")" 2>/dev/null || true
+        done
+        echo "=== crash reports collected ==="
+        ls -1 crash-logs 2>/dev/null | grep -i unitext || echo "(no app crash reports)"
+
         RESULT_FILES=$(find ./firebase-results \( -name "benchmarkResults.json" -o -name "results_scenario_*.json" -o -name "testResults.xml" \) -type f 2>/dev/null || true)
 
         if [ -z "$RESULT_FILES" ]; then

@@ -282,6 +282,7 @@ jobs:
             benchmark-streams/
             screenshots/
             device-logs/
+            crash-logs/
             benchmark.log
           retention-days: 30
 
