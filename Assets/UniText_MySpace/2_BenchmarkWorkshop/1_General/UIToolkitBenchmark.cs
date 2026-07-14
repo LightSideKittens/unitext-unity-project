@@ -6,7 +6,9 @@ using Debug = UnityEngine.Debug;
 public class UIToolkitBenchmark : TextBenchmarkBase<Label>
 {
     [Header("UI Toolkit")]
+#if UNITY_6000_5_OR_NEWER
     public PanelRenderer panelRenderer;
+#endif
     public PanelSettings panelSettings;
 
     [Tooltip("UXML template containing a Label to clone")]
@@ -19,7 +21,9 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
 
     VisualElement container;
     VisualElement root;
+#if UNITY_6000_5_OR_NEWER
     bool reloadHooked;
+#endif
 
     internal VisualElement RootElement => root;
 
@@ -27,6 +31,7 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
 
     private void EnsurePanelRenderer()
     {
+#if UNITY_6000_5_OR_NEWER
         if (panelRenderer == null)
         {
             panelRenderer = GetComponent<PanelRenderer>();
@@ -42,8 +47,10 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
             panelRenderer.RegisterUIReloadCallback(OnUIReload);
             reloadHooked = true;
         }
+#endif
     }
 
+#if UNITY_6000_5_OR_NEWER
     /// <summary>The reload callback is PanelRenderer's only public path to the root element; the root is rebuilt on every UI reload, so a live container re-attaches here.</summary>
     private void OnUIReload(PanelRenderer renderer, VisualElement rootElement)
     {
@@ -57,22 +64,30 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
         if (reloadHooked && panelRenderer != null)
             panelRenderer.UnregisterUIReloadCallback(OnUIReload);
     }
+#endif
 
     protected override void OnBeforeAllTests()
     {
+#if UNITY_6000_5_OR_NEWER
         EnsurePanelRenderer();
         if (!UIToolkitFontIsolation.Validate(panelRenderer?.panelSettings, null, out var error))
             throw new System.InvalidOperationException($"UI Toolkit font isolation failed: {error}");
         Debug.Log("[UIToolkit] Font fallback isolation: local=none, global=none, default=none, emoji=off, Dynamic OS=off.");
+#endif
     }
     protected override void OnAfterAllTests() { }
 
     protected override bool ValidateSetup()
     {
+#if UNITY_6000_5_OR_NEWER
         EnsurePanelRenderer();
         if (panelRenderer != null && panelRenderer.panelSettings != null) return true;
         Debug.LogError("PanelRenderer or PanelSettings not assigned!");
         return false;
+#else
+        Debug.LogWarning("[UIToolkit] World-space PanelRenderer requires Unity 6000.5+; UIToolkit benchmark skipped.");
+        return false;
+#endif
     }
 
     protected override void SetupContainer()
@@ -104,7 +119,9 @@ public class UIToolkitBenchmark : TextBenchmarkBase<Label>
         }
 
         label ??= new Label();
+#if UNITY_2023_2_OR_NEWER
         label.emojiFallbackSupport = false;
+#endif
 #if UNITY_6000_0_OR_NEWER
         label.style.unityTextGenerator = TextGeneratorType.Advanced;
 #endif

@@ -39,6 +39,19 @@ jobs:
           lfs: true
           submodules: recursive
 
+      # The working Packages/manifest.json tracks the owner's local editor (currently Unity 6.5);
+      # CI images span 2021.3-6000.4, so builds always use this pinned cross-version manifest.
+      # Burst 1.8.29 editor code references ScriptingImplementation.CoreCLR, which 2021.3 lacks
+      # (verified: breaks 2021.3.45f1, compiles on 2022.3+), so 2021 pins the proven 1.8.8.
+      - name: Apply CI package manifest
+        shell: bash
+        run: |
+          cp .github/ci/Packages/manifest.json Packages/manifest.json
+          case "${{ inputs.unity_version }}" in
+            2021.*) sed -i 's/"com.unity.burst": "[^"]*"/"com.unity.burst": "1.8.8"/' Packages/manifest.json ;;
+          esac
+          rm -f Packages/packages-lock.json
+
       - name: Cache Library
         uses: actions/cache@v4
         with:

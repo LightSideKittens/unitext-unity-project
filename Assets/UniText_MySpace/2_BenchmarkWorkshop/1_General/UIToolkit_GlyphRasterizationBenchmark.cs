@@ -17,14 +17,18 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
     [Tooltip("Dynamic TextCore FontAsset under test. Assigned per font by BenchmarkFontSelector.")]
     public FontAsset fontAsset;
 
+#if UNITY_6000_5_OR_NEWER
     [Tooltip("Live PanelRenderer whose Label activation triggers the measured UI Toolkit rasterization.")]
     public PanelRenderer panelRenderer;
+#endif
 
     string glyphText;
     VisualElement root;
     VisualElement previewContainer;
     Label previewLabel;
+#if UNITY_6000_5_OR_NEWER
     bool reloadHooked;
+#endif
     bool abortRun;
     int panelVersion;
     int rasterPanelVersion;
@@ -42,8 +46,10 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     void OnDestroy()
     {
+#if UNITY_6000_5_OR_NEWER
         if (reloadHooked && panelRenderer != null)
             panelRenderer.UnregisterUIReloadCallback(OnUIReload);
+#endif
         if (previewLabel != null)
             previewLabel.generateVisualContent -= OnGenerateVisualContent;
     }
@@ -56,6 +62,11 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
 
     protected override bool CollectTargets()
     {
+#if !UNITY_6000_5_OR_NEWER
+        SetRunStatus("unsupported", "UI Toolkit world-space PanelRenderer requires Unity 6000.5+");
+        Debug.LogWarning("[UIToolkit GlyphRaster] World-space PanelRenderer requires Unity 6000.5+; skipping.");
+        return false;
+#else
         if (fontAsset == null)
         {
             SetRunStatus("skipped", "No FontAsset is assigned");
@@ -95,10 +106,12 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         abortRun = false;
         Debug.Log("[UIToolkit GlyphRaster] Trigger=Label display enable; fallback local/global/default/sprite/emoji/Dynamic OS=off; completion=panel render + selected FontAsset population + async GPU readback.");
         return true;
+#endif
     }
 
     void EnsurePreviewPanel()
     {
+#if UNITY_6000_5_OR_NEWER
         var visualBenchmark = ObjectUtils.FindAny<UIToolkitBenchmark>();
         if (root == null)
             root = visualBenchmark?.RootElement;
@@ -108,8 +121,10 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         if (panelRenderer == null || reloadHooked) return;
         panelRenderer.RegisterUIReloadCallback(OnUIReload);
         reloadHooked = true;
+#endif
     }
 
+#if UNITY_6000_5_OR_NEWER
     void OnUIReload(PanelRenderer renderer, VisualElement rootElement)
     {
         panelVersion++;
@@ -117,6 +132,7 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         if (previewContainer != null && previewContainer.parent == null)
             root.Add(previewContainer);
     }
+#endif
 
     void EnsurePreviewElements()
     {
@@ -136,7 +152,9 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         }
         previewLabel.text = glyphText;
         previewLabel.enableRichText = false;
+#if UNITY_2023_2_OR_NEWER
         previewLabel.emojiFallbackSupport = false;
+#endif
         previewLabel.style.fontSize = 28;
         previewLabel.style.color = Color.white;
         previewLabel.style.whiteSpace = WhiteSpace.Normal;
