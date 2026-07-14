@@ -487,7 +487,10 @@ runs:
         find ./firebase-results -type f 2>/dev/null | while read -r f; do
           if unzip -tqq "$f" >/dev/null 2>&1; then
             UNPACK_ID=$((UNPACK_ID + 1))
-            DEST="./firebase-results/unpacked/bundle-${UNPACK_ID}-$(basename "$(dirname "$f")")"
+            PDIR=$(dirname "$f")
+            DEV=$(basename "$(dirname "$PDIR")")
+            if [ "$DEV" = "firebase-results" ] || [ "$DEV" = "." ]; then DEV=$(basename "$PDIR"); fi
+            DEST="./firebase-results/unpacked/bundle-${UNPACK_ID}-${DEV}"
             echo "Unpacking bundle: $f -> $DEST"
             unzip -o "$f" -d "$DEST" >/dev/null 2>&1 || true
           fi
@@ -516,14 +519,21 @@ runs:
             BENCH_FILES=$(echo "$RESULT_FILES" | grep -E "results_scenario_" || true)
           fi
           if [ -z "$BENCH_FILES" ]; then echo "ERROR: No benchmark results found"; exit 1; fi
-          FIRST=$(echo "$BENCH_FILES" | head -1)
-          cp "$FIRST" ./benchmarkResults.json
+          # A device run that died before OutputResults leaves a 0-byte (or zip) fd payload —
+          # only JSON payloads may reach the summary/artifact stage.
           DIDX=0
           for R in $BENCH_FILES; do
+            if ! head -c1 "$R" | grep -q '{'; then echo "Skipping non-JSON payload: $R"; continue; fi
             DIDX=$((DIDX + 1))
-            DNAME=$(basename "$(dirname "$R")")
+            REL="${R#./firebase-results/}"
+            DNAME="${REL%%/*}"
+            if [ "$DNAME" = "unpacked" ]; then
+              DNAME=$(echo "$REL" | cut -d/ -f2 | sed 's/^bundle-[0-9]*-//')
+            fi
+            [ -f ./benchmarkResults.json ] || cp "$R" ./benchmarkResults.json
             cp "$R" "./benchmarkResults_${DIDX}_${DNAME}.json" 2>/dev/null || true
           done
+          if [ "$DIDX" = "0" ]; then echo "ERROR: No valid JSON benchmark results — all device payloads were empty or binary"; exit 1; fi
 
           # Device-emitted viewer streams (run-*.js) ride the same bundles/results dirs.
           mkdir -p benchmark-streams
