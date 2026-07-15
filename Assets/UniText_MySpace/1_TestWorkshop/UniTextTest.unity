@@ -388,13 +388,13 @@ MonoBehaviour:
     - rid: 266425450751590472
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 
         tagName: ellipsis
+        defaultParameter: 
     - rid: 266425450751590473
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 
         tagName: color
+        defaultParameter: 
     - rid: 2031797989190140001
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -1177,8 +1177,8 @@ MonoBehaviour:
     - rid: 7750513568556253270
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 
         tagName: i
+        defaultParameter: 
     - rid: 7750513568556253271
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -1187,8 +1187,8 @@ MonoBehaviour:
     - rid: 7750513568556253272
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 
         tagName: b
+        defaultParameter: 
     - rid: 7750513568556253273
       type: {class: VariationModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -1210,8 +1210,8 @@ MonoBehaviour:
     - rid: 7750513568556253274
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 
         tagName: var
+        defaultParameter: 
 --- !u!222 &1553998144
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1572,13 +1572,13 @@ MonoBehaviour:
     - rid: 266425450751590470
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 
         tagName: ellipsis
+        defaultParameter: 
     - rid: 266425450751590471
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 
         tagName: color
+        defaultParameter: 
     - rid: 2031797989190140001
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -1609,7 +1609,6 @@ GameObject:
   - component: {fileID: 2035672420}
   - component: {fileID: 2035672419}
   - component: {fileID: 2035672418}
-  - component: {fileID: 2035672423}
   - component: {fileID: 2035672424}
   m_Layer: 5
   m_Name: Canvas
@@ -1703,96 +1702,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &2035672423
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2035672417}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 413d952e2e458694795e2a5d7f9a93ba, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: LightSide.UniText::UniTextInteractiveTest
-  target: {fileID: 0}
-  testText: "123456. \u0644\u0644\u0644\u0644\u0644shaping  faksjd fhak<obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/>lsjdfhaklsjdhafalskjdh
-    aksldjha ksl jfha skldaskjhaskdjh\n  1. \u0644\u0644\u0644\u0644\u0644shaping\n-
-    \u0644\u0644\u0644\u0644\u0644shaping  faksjd fhak lsjdfhaklsjdha falskjdh aksldjha
-    ksl jfha skldaskjhaskdjh\n  - \u0644\u0644\u0644\u0644\u0644shaping\n      -
-    \u0644\u0644\u0644\u0644\u0644shaping\n- sdfsdf\n  - sdfjslkdfs\n    - dfskldfj\n1.
-    <b>Test numbered</b>\n  1. <u><s>Test nested numbered</s></u>\n\n[Google Markdown
-    link](https://google.com)\n\nhttps://google.com\n\n<link=\"https://google.com\">Google
-    Tag Link</link>\n\n<color=#98f>\u0627\u0644\u0639\u0631\u0628\u064A\u0629: \u0645\u0631\u062D\u0628\u0627\u064B
-    \u0628\u0627\u0644\u0639\u0627\u0644\u0645! <obj=\"logo\"/> \u0647\u0630\u0627
-    \u0646\u064E\u0635\u0651\u064C \u0644\u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u0627\u062A\u062C\u0627\u0647\u061B
-    \u0639\u0631\u0628\u0649\u060C \u0639\u0631\u0628\u064A\u060C \u0639\u0631\u0628\u064A\u061F\n\u0623\u0631\u0642\u0627\u0645
-    \u0639\u0631\u0628\u064A\u0629-\u0647\u0646\u062F\u064A\u0629: \u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669\u0660,
-    Arabic digits: 1234567890.\n\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u062A\u0631\u0642\u064A\u0645:
-    \u060C \u061B \u061F ! : \u060C \u2026 \u2014 (\u0634\u0631\u0637\u0629 \u0637\u0648\u064A\u0644\u0629)\u060C
-    \"\u0627\u0642\u062A\u0628\u0627\u0633\"\u060C \xAB\u0627\u0642\u062A\u0628\u0627\u0633\xBB.\n\n\u0644\u0627\u0645-\u0623\u0644\u0641:
-    \u0644\u0627 \u0644\u064E\u0627 \u0644\u0651\u064E\u0627 \u0644\u064E\u200D\u0627
-    (LAM + FATHA + ZWJ + ALEF).\n\u0633\u0644\u0633\u0644\u0629 \u0645\u0634\u0643\u0648\u0644\u0629:
-    \u0627\u064E\u0644\u0644\u0651\u0670\u0647\u064F \u0631\u064E\u0628\u0651\u064F
-    \u0627\u0644\u0652\u0639\u064E\u0627\u0644\u064E\u0645\u0650\u064A\u0646\u064E\u060C
-    \u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u0670\u0647\u0650
-    \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650.\n\n\u0641\u0627\u0631\u0633\u06CC:
-    \u0633\u0644\u0627\u0645 \u062F\u0646\u06CC\u0627! \u062D\u0631\u0648\u0641 \u0627\u0636\u0627\u0641\u06CC:
-    \u067E \u0686 \u0698 \u06AF \u06CC.\n\u0641\u0627\u0635\u0644\u0647\u0654 \u0645\u062C\u0627\u0632\u06CC
-    (ZWNJ): \u0645\u06CC\u200C\u0631\u0648\u0645\u060C \u062E\u0627\u0646\u0647\u200C\u0647\u0627\u060C
-    \u06A9\u062A\u0627\u0628\u200C\u0647\u0627\u060C \u0646\u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u0645.\n\n\u0627\u064F\u0631\u062F\u0648:
-    \u06CC\u06C1 \u0627\u06CC\u06A9 \u062C\u0627\u0645\u0639 \u0679\u06CC\u0633\u0679
-    \u0679\u06CC\u06A9\u0633\u0679 \u06C1\u06D2\u061B \u062D\u0631\u0648\u0641: \u0679\u060C
-    \u0688\u060C \u0691\u060C \u06BA\u060C \u06C1\u060C \u06BE\u060C \u06D2\u060C
-    \u06BA\u060C \u06AF\u060C \u06A9\u060C \u06CC.\n\u0645\u062E\u0644\u0648\u0637
-    \u062C\u0645\u0644\u06C1: \u0627\u0631\u062F\u0648 (Urdu) + English + \u0627\u0639\u062F\u0627\u062F
-    \u06F1\u06F2\u06F3\u06F4.\n\n\u05E2\u05D1\u05E8\u05D9\u05EA: \u05E9\u05DC\u05D5\u05DD
-    \u05E2\u05D5\u05DC\u05DD, \u05D8\u05E7\u05E1\u05D8 \u05D1\u05D3\u05D9\u05E7\u05D4,
-    \u05DE\u05E1\u05E4\u05E8\u05D9\u05DD 1234 \u05D5-\u0665\u0666\u0667\u0668.\nMixed
-    Hebrew/English: \u05E9\u05DC\u05D5\u05DD (shalom) world 2025-12-01, test-\u05DE\u05E1\u05E4\u05E8.\n\nNested
-    brackets: (AR: \u0645\u0631\u062D\u0628\u0627 [\u0646\u0635 {\u062A\u062C\u0631\u064A\u0628\u064A}
-    \u0645\u0639 \u0623\u0642\u0648\u0627\u0633]!) and (EN: (nested [brackets] {here})).\nQuotes:
-    \"plain quotes\", \u2018single\u2019, \u201Cdouble smart\u201D, \xABguillemets\xBB,
-    \u201Elow-high\u201C.\n\nRichText: <i><b>\u063A\u0627\u0645\u0642 \u0639\u0631\u0628\u064A
-    \u0645\u0631\u062D\u0628\u0627</b></i>, <i>\u05E9\u05DC\u05D5\u05DD \u05DE\u05D5\u05D3\u05D2\u05E9</i>,
-    <color=#FF0000>red English text</color>, <size=150%>\u0646\u0635 \u0645\u0643\u0628\u0631</size>,
-    <u><color=#695>test</color> \u062E\u0637 \u0633\u0641\u0644\u064A</u>.\n\nZWJ
-    forms (for shaping): \u200D\u0628 (forced final), \u0628\u200D (forced initial),
-    \u200D\u0628\u200D (forced medial).\nMix with diacritics + ZWJ: \u200D\u0628\u064E\u200D\u060C
-    \u200D\u0646\u0651\u064E\u200D.\nZWNJ breaking join: \u0628\u0627\u200C\u0628\u060C
-    \u0644\u0627\u200C\u0627\u060C \u0645\u06CC\u200C\u0631\u0648\u062F.\n\nBidi
-    controls (LRE/RLE/PDF, LRM/RLM):\nEnglish before  \u0645\u0631\u062D\u0628\u0627
-    \u0628\u0627\u0644\u0639\u0627\u0644\u0645  after [RLE ... PDF].\nLRM/LRM: EN\u200E-\u200Etag,
-    AR\u200F-\u200F\u0639\u0644\u0627\u0645\u0629.\n\nMixed run: \u0645\u0631\u062D\u0628\u0627
-    (hello) 123 in [EN], \u062B\u0645 \u0646\u0635 \u0639\u0631\u0628\u064A\u060C
-    then Hebrew \u05E9\u05DC\u05D5\u05DD, \u05D5\u05D0\u05D6 again \u0639\u0631\u0628\u0649.\nRight-to-left
-    with inner English: \u0647\u0630\u0627 \"test\" \u062F\u0627\u062E\u0644 \u062C\u0645\u0644\u0629
-    \u0639\u0631\u0628\u064A\u0629 (with brackets).\u061F\n\nBrackets around RTL:
-    (\u0645\u0631\u062D\u0628\u0627)\u060C [\u0633\u0644\u0627\u0645]\u060C {\u0634\u06A9\u0631\u06CC\u06C1}
-    and around mixed [hello \u0645\u0631\u062D\u0628\u0627 123].</color>\n\nEmojis:
-    \U0001F600 \U0001F603 \U0001F601 \U0001F602 \U0001F914 \U0001F44D.\nRTL with
-    emojis: \u0645\u0631\u062D\u0628\u0627 \U0001F600 \u0628\u0627\u0644\u0639\u0627\u0644\u0645\u060C
-    \u0631\u0642\u0645 \u0661\u0662\u0663\u060C \u0646\u0635 \U0001F603 \u0645\u062E\u062A\u0644\u0637
-    \U0001F44D.\nFamily ZWJ emoji: \U0001F468\u200D\U0001F469\u200D\U0001F467\u200D\U0001F466,
-    flags: \U0001F1EE\U0001F1F7 (IL), \U0001F1EA\U0001F1F8 (ES), \U0001F1FA\U0001F1F8
-    (US).\n\nBig mixed line: \u0644\u0627 + \u0644\u064E\u0627 + \u0644\u0651\u064E\u0627
-    + \u0641\u0627\u0631\u0633\u06CC \u067E\u0686\u0698\u06AF + \u0627\u064F\u0631\u062F\u0648
-    \u0679\u060C\u0688\u060C\u0691 + \u05E2\u05D1\u05E8\u05D9\u05EA \u05E9\u05DC\u05D5\u05DD
-    + English TEXT 1234 ++ emoji \U0001F600 + brackets (\u0639\u0631\u0628\u064A
-    [EN {\u05E2\u05D1\u05E8\u05D9\u05EA} 42]) + ZWNJ \u0645\u06CC\u200C\u0631\u0648\u0645
-    + ZWJ \u200D\u0628\u200D + bidi controls  \u0639\u0631\u0628\u064A \u0645\u0639 
-    EN  \u062F\u0627\u062E\u0644  done."
-  rtlText: "\u0645\u0631\u062D\u0628\u0627 \u0628\u0627\u0644\u0639\u0627\u0644\u0645"
-  mixedText: "Hello \u0645\u0631\u062D\u0628\u0627 World \u0639\u0627\u0644\u0645"
-  longText: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-    tempor incididunt ut labore et dolore magna aliqua.
-  alternateFontStack: {fileID: 0}
-  testFontSize: 24
-  testColor: {r: 0.598643, g: 0.8018868, b: 0.31394622, a: 1}
-  modifiers: []
-  references:
-    version: 2
-    RefIds: []
 --- !u!114 &2035672424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1805,7 +1714,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab4ca32a48458b44a8f00fa118f127a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  disable: 1
+  disable: 0
   mode: 1
   testEntries:
     items:
@@ -2450,7 +2359,6 @@ MonoBehaviour:
     - rid: 4507959643864039494
       type: {class: CompositeParseRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 
         rules:
           items:
           - rid: 4507959643864039495
@@ -2458,13 +2366,13 @@ MonoBehaviour:
     - rid: 4507959643864039495
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 1000,100,0,0,12
         tagName: var1
+        defaultParameter: 1000,100,0,0,12
     - rid: 4507959643864039496
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        defaultParameter: 426,100,0,0,12
         tagName: var2
+        defaultParameter: 426,100,0,0,12
 --- !u!222 &2090398507
 CanvasRenderer:
   m_ObjectHideFlags: 0

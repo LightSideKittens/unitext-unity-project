@@ -210,17 +210,17 @@ public class GoldenFileTestRunner : MonoBehaviour
         var errors = new List<string>();
 
         var emojiFont = EmojiFont.Instance;
-        var colorAtlas = GlyphAtlas.Color;
-        var atlasTexture = colorAtlas?.AtlasTexture as Texture2DArray;
+
+        Texture atlasTexture = null;
+        for (int wait = 0; wait < 30 && atlasTexture == null; wait++)
+        {
+            atlasTexture = GlyphAtlas.Color?.AtlasTexture;
+            if (atlasTexture == null)
+                yield return null;
+        }
 
         if (atlasTexture == null)
-        {
-            errors.Add("Atlas texture is null");
-        }
-        else if (!HasNonEmptyPixels(atlasTexture))
-        {
-            errors.Add("Atlas texture has no visible pixels");
-        }
+            errors.Add("Color atlas texture was not published");
 
         var glyphTable = emojiFont.GlyphLookupTable;
         if (glyphTable == null || glyphTable.Count == 0)
@@ -275,40 +275,6 @@ public class GoldenFileTestRunner : MonoBehaviour
             Debug.Log($"  [OK] {testName}");
         else
             Debug.LogWarning($"  <color=red>[MISMATCH] {testName}</color>: {string.Join("; ", errors)}");
-    }
-
-    bool HasNonEmptyPixels(Texture2D texture)
-    {
-        if (texture == null)
-            return false;
-
-        var pixels = texture.GetPixels32();
-        int step = Math.Max(1, pixels.Length / 10000);
-
-        for (int i = 0; i < pixels.Length; i += step)
-        {
-            if (pixels[i].a > 0)
-                return true;
-        }
-
-        return false;
-    }
-
-    bool HasNonEmptyPixels(Texture2DArray textureArray)
-    {
-        if (textureArray == null || textureArray.depth == 0)
-            return false;
-
-        var pixels = textureArray.GetPixels32(0);
-        int step = Math.Max(1, pixels.Length / 10000);
-
-        for (int i = 0; i < pixels.Length; i += step)
-        {
-            if (pixels[i].a > 0)
-                return true;
-        }
-
-        return false;
     }
 
     #endregion

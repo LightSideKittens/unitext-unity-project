@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
 using UnityEngine;
 
 [Serializable]
@@ -96,14 +98,24 @@ public struct SerializableColor32
 
 public static class MeshDataSerializer
 {
+    /// <summary>Decimal places written for float components. Matched to <see cref="GoldenFileComparer.DefaultEpsilon"/> (1e-3):
+    /// storing precision finer than the comparison tolerance only produces sub-epsilon diff noise in version control.</summary>
+    private const int FloatDecimals = 3;
+
+    private static readonly JsonSerializerSettings serializerSettings = new()
+    {
+        Formatting = Formatting.Indented,
+        Converters = { new RoundedFloatConverter(FloatDecimals) }
+    };
+
     public static string ToJson(MeshDataSnapshot snapshot)
     {
-        return JsonUtility.ToJson(snapshot, true);
+        return JsonConvert.SerializeObject(snapshot, serializerSettings);
     }
 
     public static MeshDataSnapshot FromJson(string json)
     {
-        return JsonUtility.FromJson<MeshDataSnapshot>(json);
+        return JsonConvert.DeserializeObject<MeshDataSnapshot>(json, serializerSettings);
     }
 
     public static void SaveToFile(MeshDataSnapshot snapshot, string filePath)
@@ -121,5 +133,25 @@ public static class MeshDataSerializer
             return null;
         var json = File.ReadAllText(filePath, Encoding.UTF8);
         return FromJson(json);
+    }
+}
+
+/// <summary>Serializes floats with a capped number of decimals so golden files never record precision finer than
+/// the comparison epsilon; parses any stored numeric form back to float.</summary>
+sealed class RoundedFloatConverter : JsonConverter<float>
+{
+    private readonly string format;
+
+    public RoundedFloatConverter(int decimals) => format = "0." + new string('#', decimals);
+
+    public override void WriteJson(JsonWriter writer, float value, JsonSerializer serializer)
+    {
+        writer.WriteRawValue(value.ToString(format, CultureInfo.InvariantCulture));
+    }
+
+    public override float ReadJson(JsonReader reader, Type objectType, float existingValue,
+        bool hasExistingValue, JsonSerializer serializer)
+    {
+        return reader.Value == null ? existingValue : Convert.ToSingle(reader.Value, CultureInfo.InvariantCulture);
     }
 }
