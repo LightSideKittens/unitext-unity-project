@@ -245,8 +245,11 @@ def main():
     if glyph:
         print("### Glyph Rasterization")
         print("")
-        print("| Engine · Font | Glyphs | Median | Per-glyph | Managed Alloc |")
-        print("|---|---|---|---|---|")
+        # CPU Median is the frame-time (raster dispatch) median; for engines whose rasterization
+        # completes asynchronously (UI Toolkit) it is ~0 and meaningless. E2E (component-to-atlas-
+        # ready) is the real, cross-engine-comparable number and is always shown.
+        print("| Engine · Font | Status | Glyphs | CPU Median | E2E Median | Per-glyph (E2E) | Managed Alloc |")
+        print("|---|---|---|---|---|---|---|")
 
         labels = {
             "unitextSingleThreaded": "UniText ST",
@@ -263,11 +266,17 @@ def main():
             for font, g in rows:
                 if not g:
                     continue
+                status = g.get("status", "measured")
+                status_cell = status if status == "measured" else f"**{status}**"
+                e2e = g.get("e2eMedian")
+                e2e_pg = g.get("perGlyphE2eMedianUs")
                 print(
                     f"| {label} · {font} "
+                    f"| {status_cell} "
                     f"| {g.get('uniqueGlyphs', '?')} "
                     f"| {fmt_ms(g.get('median', 0))} "
-                    f"| {g.get('perGlyphMedianUs', 0):.1f} us "
+                    f"| {fmt_ms(e2e)} "
+                    f"| {(f'{e2e_pg:.1f} us' if e2e_pg else '—')} "
                     f"| {fmt_bytes(g.get('managedAlloc', 0))} |"
                 )
 
