@@ -64,17 +64,6 @@ def get_managed_alloc(bench, test_name):
     return test.get("managedAlloc", 0)
 
 
-def get_gc(bench, test_name):
-    """Get GC counts from a benchmark test."""
-    test = bench.get(test_name)
-    if test is None:
-        return "—"
-    gc = test.get("gc", [0, 0, 0])
-    if gc[0] == 0 and gc[1] == 0 and gc[2] == 0:
-        return "0"
-    return f"{gc[0]}/{gc[1]}/{gc[2]}"
-
-
 def emit_streams(data, commit, branch, dirpath):
     """Write the viewer's per-suite site streams (run-text-*.js / run-glyph-*.js) — the Python mirror of
     the runtime BenchmarkStreams.Split, so a CI run's combined JSON becomes drop-in files for Benchmarks/runs.
@@ -224,20 +213,6 @@ def main():
         t = get_managed_alloc(tmp, key)
         ui = get_managed_alloc(uitk, key)
         print(f"| {label} | {fmt_bytes(u)} | {fmt_bytes(t)} | {fmt_bytes(ui)} |")
-
-    print("")
-
-    # GC table
-    print("### GC Collections (Gen0/Gen1/Gen2)")
-    print("")
-    print("| Phase | UniText | TMP | UIToolkit |")
-    print("|-------|---------|-----|-----------|")
-
-    for label, key in tests:
-        u = get_gc(uni_st, key)
-        t = get_gc(tmp, key)
-        ui = get_gc(uitk, key)
-        print(f"| {label} | {u} | {t} | {ui} |")
 
     print("")
 

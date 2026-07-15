@@ -181,9 +181,6 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     {
         public List<float> frameTimes;
         public long managedAlloc;
-        public int gcGen0;
-        public int gcGen1;
-        public int gcGen2;
         public PhaseMemoryMetrics memory;
 
         public static TestMetrics Create() => new()
@@ -502,6 +499,7 @@ public abstract class TextBenchmarkBase : MonoBehaviour
                 Debug.Log(results.ToString());
             }
 
+            yield return CollectAndSettle();
             testResults.memory.beforeCleanup = ReadMemory();
             TeardownContainer();
             containerReady = false;
@@ -587,14 +585,14 @@ public abstract class TextBenchmarkBase : MonoBehaviour
     {
         results.AppendLine($"\n[{SystemName}] Creation/Destruction");
         results.AppendLine($"  Create: {testResults.creation.TotalTime:F2}ms | Destroy: {testResults.destruction.TotalTime:F2}ms");
-        results.AppendLine($"  Managed traffic: create {FormatCounter(testResults.creation.managedAlloc)}, destroy {FormatCounter(testResults.destruction.managedAlloc)} | GC: Gen0={testResults.creation.gcGen0}, Gen1={testResults.creation.gcGen1}, Gen2={testResults.creation.gcGen2}");
+        results.AppendLine($"  Managed traffic: create {FormatCounter(testResults.creation.managedAlloc)}, destroy {FormatCounter(testResults.destruction.managedAlloc)}");
     }
 
     protected void AppendSingleTestResult(string testName, TestMetrics metrics)
     {
         results.AppendLine($"\n[{SystemName}] {testName}");
         results.AppendLine($"  Time: {metrics.TotalTime:F2}ms");
-        results.AppendLine($"  Managed traffic: {FormatCounter(metrics.managedAlloc)} | GC: Gen0={metrics.gcGen0}, Gen1={metrics.gcGen1}, Gen2={metrics.gcGen2}");
+        results.AppendLine($"  Managed traffic: {FormatCounter(metrics.managedAlloc)}");
     }
 
     private void AppendResults()
@@ -1089,7 +1087,6 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
         yield return CollectAndSettle();
         creation.memory.afterWarmup = ReadMemory();
         creation.memory.measuredPeak = creation.memory.afterWarmup;
-        int gc0 = GC.CollectionCount(0), gc1 = GC.CollectionCount(1), gc2 = GC.CollectionCount(2);
 
         for (int iter = 0; iter < iterations; iter++)
         {
@@ -1113,9 +1110,6 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
             yield return null;
         }
 
-        creation.gcGen0 = GC.CollectionCount(0) - gc0;
-        creation.gcGen1 = GC.CollectionCount(1) - gc1;
-        creation.gcGen2 = GC.CollectionCount(2) - gc2;
         creation.memory.measuredEnd = ReadMemory();
         creation.memory.normalizedEnd = creation.memory.measuredEnd;
         yield return CollectAndSettle();
@@ -1232,7 +1226,6 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
             yield return CollectAndSettle();
             metrics.memory.afterWarmup = ReadMemory();
             metrics.memory.measuredPeak = metrics.memory.afterWarmup;
-            int gc0 = GC.CollectionCount(0), gc1 = GC.CollectionCount(1), gc2 = GC.CollectionCount(2);
 
             for (int iter = 0; iter < iterations; iter++)
             {
@@ -1245,9 +1238,6 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
                 metrics.memory.measuredPeak = MemorySnapshot.Max(metrics.memory.measuredPeak, ReadMemory());
             }
             metrics.memory.measuredEnd = ReadMemory();
-            metrics.gcGen0 = GC.CollectionCount(0) - gc0;
-            metrics.gcGen1 = GC.CollectionCount(1) - gc1;
-            metrics.gcGen2 = GC.CollectionCount(2) - gc2;
             warmupStep(anchorIndex);
             yield return waitForEndOfFrame;
             metrics.memory.normalizedEnd = ReadMemory();

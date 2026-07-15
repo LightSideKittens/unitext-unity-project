@@ -352,8 +352,7 @@ public static class BenchmarkJsonSerializer
             ["median"] = median,
             ["min"] = min,
             ["max"] = max,
-            ["managedAlloc"] = Number(m.managedAlloc),
-            ["gc"] = new JArray(m.gcGen0, m.gcGen1, m.gcGen2)
+            ["managedAlloc"] = Number(m.managedAlloc)
         };
         if (m.memory.available)
             obj["memory"] = SerializePhaseMemory(m.memory);
@@ -503,6 +502,7 @@ public static class BenchmarkJsonSerializer
         ["derived"] = new JObject
         {
             ["sampledPeakDelta"] = SerializeDelta(memory.baseline, memory.peak),
+            ["retainedFootprint"] = SerializeDelta(memory.baseline, memory.beforeCleanup),
             ["postRunAppDelta"] = SerializeDelta(memory.baseline, memory.afterCleanup)
         }
     };
