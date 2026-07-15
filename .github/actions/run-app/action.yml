@@ -476,13 +476,9 @@ runs:
           echo "----- $f -----"; cat "$f" 2>/dev/null || true
         done
 
-        # Strip heavy non-diagnostic outputs before unpacking/upload: the app package (a zip, so it would
-        # otherwise also be expanded into unpacked/) and per-device videos. Both stay in the Firebase console.
         find ./firebase-results -type f \( -iname '*.ipa' -o -iname '*.apk' -o -iname '*.aab' -o -iname '*.mp4' -o -iname '*.mov' \) -delete 2>/dev/null || true
         rm -rf ./firebase-results/*.app 2>/dev/null || true
 
-        # Unpack every bundle into its OWN directory — multiple devices ship same-named files
-        # (benchmarkResults.json, screenshots), a shared unpack dir would clobber them.
         UNPACK_ID=0
         for f in $(find ./firebase-results -type f 2>/dev/null); do
           if unzip -tqq "$f" </dev/null >/dev/null 2>&1; then
@@ -502,11 +498,15 @@ runs:
 
         mkdir -p screenshots
         find ./firebase-results -iname '*.png' -type f 2>/dev/null | while read -r p; do
-          cp -f "$p" "./screenshots/$(basename "$(dirname "$p")")-$(basename "$p")" 2>/dev/null || true
+          REL="${p#./firebase-results/}"
+          DEV="${REL%%/*}"
+          if [ "$DEV" = "unpacked" ]; then
+            DEV=$(echo "$REL" | cut -d/ -f2 | sed 's/^bundle-[0-9]*-//')
+          fi
+          mkdir -p "screenshots/$DEV"
+          cp -f "$p" "screenshots/$DEV/$(basename "$p")" 2>/dev/null || true
         done
 
-        # The full Firebase result set (crash reports, syslog, video) is large and already lives in
-        # the public GCS bucket — emit a browsable link instead of copying megabytes into the artifact.
         BUCKET_URL="https://storage.googleapis.com/${FIREBASE_RESULTS_BUCKET}/${FIREBASE_RESULTS_DIR}/"
         printf '%s\n' "$BUCKET_URL" > firebase-results-url.txt
         echo "=== Firebase results (browsable): $BUCKET_URL ==="
@@ -524,16 +524,11 @@ runs:
         echo "$RESULT_FILES"
 
         if [ "$APP_MODE" = "benchmark" ]; then
-          # Prefer the real benchmarkResults.json (unpacked from the Android game-loop archive, or
-          # written directly on iOS); the raw results_scenario_* file is the fd payload — on Android
-          # benchmark runs that is the zip itself, not JSON — so it is only a last-resort fallback.
           BENCH_FILES=$(echo "$RESULT_FILES" | grep "benchmarkResults\.json" || true)
           if [ -z "$BENCH_FILES" ]; then
             BENCH_FILES=$(echo "$RESULT_FILES" | grep -E "results_scenario_" || true)
           fi
           if [ -z "$BENCH_FILES" ]; then echo "ERROR: No benchmark results found"; exit 1; fi
-          # A device run that died before OutputResults leaves a 0-byte (or zip) fd payload —
-          # only JSON payloads may reach the summary/artifact stage.
           DIDX=0
           for R in $BENCH_FILES; do
             if ! head -c1 "$R" | grep -q '{'; then echo "Skipping non-JSON payload: $R"; continue; fi
@@ -548,12 +543,9 @@ runs:
           done
           if [ "$DIDX" = "0" ]; then echo "ERROR: No valid JSON benchmark results — all device payloads were empty or binary"; exit 1; fi
 
-          # Device-emitted viewer streams (run-*.js) ride the same bundles/results dirs.
           mkdir -p benchmark-streams
           find ./firebase-results -name "run-*.js" -type f -exec cp -f {} ./benchmark-streams/ \; 2>/dev/null || true
 
-          # Device engine logs (logs/*.log inside the archive) — prefixed with the bundle dir
-          # so multi-device runs keep them apart.
           mkdir -p device-logs
           find ./firebase-results -path "*/logs/*.log" -type f 2>/dev/null | while read -r L; do
             cp -f "$L" "./device-logs/$(basename "$(dirname "$(dirname "$L")")")-$(basename "$L")" 2>/dev/null || true

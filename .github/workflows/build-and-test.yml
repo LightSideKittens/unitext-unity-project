@@ -44,8 +44,6 @@ jobs:
           lfs: true
           submodules: recursive
 
-      # The working Packages/manifest.json tracks the owner's local editor (currently Unity 6.5);
-      # CI images span 2022.3-6000.4, so builds always use this pinned cross-version manifest.
       - name: Apply CI package manifest
         shell: bash
         run: |
@@ -297,10 +295,6 @@ jobs:
             echo "No benchmark results found." >> $GITHUB_STEP_SUMMARY
           fi
 
-      # Fail the job if UniText glyph delivery broke on ANY device, so a device whose GPU-atlas path
-      # fails (e.g. Mali) cannot hide behind a passing one in the same multi-device run. Runs last so
-      # the results artifact and summary are already published for diagnosis. TMP/UI Toolkit failures
-      # are baselines/version gates and stay non-fatal.
       - name: Validate UniText glyph delivery
         if: always()
         shell: bash

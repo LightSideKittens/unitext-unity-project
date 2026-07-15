@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""Fail the benchmark job if any UniText glyph-rasterization cell did not measure.
-
-A device whose GPU-atlas delivery breaks (e.g. Mali's false "wedged"-wipe) otherwise hides behind a
-passing device in the same job, and the green check misrepresents the engine as working. TMP and UI
-Toolkit failures are baselines / Unity-version gates — reported for context but never fatal.
-Exits 1 (job red) if any UniText glyph cell is not "measured".
-"""
 import sys
 import os
 import json
@@ -23,7 +16,7 @@ def main():
     src = sys.argv[1] if len(sys.argv) > 1 else "."
     files = sorted(glob.glob(os.path.join(src, "benchmarkResults*.json")))
     if not files:
-        print("No benchmarkResults*.json found — nothing to validate (upstream step likely failed).")
+        print("No benchmarkResults*.json found — nothing to validate.")
         return 0
 
     unitext_fail = []

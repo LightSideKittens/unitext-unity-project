@@ -111,9 +111,6 @@ jobs:
       run_tests: ${{ inputs.run_tests == true }}
     secrets: inherit
 
-  # After the whole matrix finishes, bundle one viewer archive per platform: every run-*.js
-  # stream Benchmarks/index.html reads, plus the last screenshot of each UniText Glyph
-  # Rasterization stage. always() so it collects whatever benchmark jobs succeeded.
   finalize-benchmarks:
     needs: build-and-test
     if: always() && inputs.benchmark != 'none'

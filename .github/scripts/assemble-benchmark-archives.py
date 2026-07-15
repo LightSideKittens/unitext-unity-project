@@ -1,16 +1,4 @@
 #!/usr/bin/env python3
-"""Assemble one viewer archive per platform from all downloaded benchmark artifacts.
-
-Each archive holds:
-  runs/        every run-{text|glyph}-*.js viewer stream (what Benchmarks/index.html reads)
-  screenshots/ the LAST screenshot of each UniText Glyph Rasterization stage, per Unity version
-               (one image per variant: SINGLE-THREADED / PARALLEL / +MAX-STROKE ...), named
-               <unity>-UniText-<mode>-last.png
-
-Input dir is what actions/download-artifact writes: one subdir per artifact, named
-BenchmarkResults-<suite>-<unity>-<platform>. Screenshot filenames may carry a device/dir prefix
-(Android/iOS), so the stage is matched anywhere in the name.
-"""
 import sys
 import os
 import re
@@ -22,11 +10,15 @@ SHOT_RE = re.compile(
 )
 
 
+def device_of(png_path):
+    parent = os.path.basename(os.path.dirname(png_path))
+    return "" if parent in ("screenshots", "") else parent
+
+
 def main():
     src, dst = sys.argv[1], sys.argv[2]
     os.makedirs(dst, exist_ok=True)
 
-    # platform -> {"runs": [paths], "shots": {(unity, mode): (ord, path)}}
     platforms = {}
 
     for entry in sorted(os.listdir(src)):
@@ -44,7 +36,7 @@ def main():
                     continue
                 sm = SHOT_RE.search(fn)
                 if sm:
-                    key = (unity, sm.group("mode"))
+                    key = (unity, device_of(fp), sm.group("mode"))
                     ordv = int(sm.group("ord"))
                     cur = p["shots"].get(key)
                     if cur is None or ordv > cur[0]:
@@ -68,8 +60,9 @@ def main():
                     n += 1
                 seen.add(arc)
                 z.write(fp, arc)
-            for (unity, mode), (_ord, fp) in sorted(data["shots"].items()):
-                z.write(fp, f"screenshots/{unity}-UniText-{mode}-last.png")
+            for (unity, device, mode), (_ord, fp) in sorted(data["shots"].items()):
+                tag = f"{unity}-{device}" if device else unity
+                z.write(fp, f"screenshots/{tag}-UniText-{mode}-last.png")
         print(f"{platform}.zip: {len(data['runs'])} run files, {len(data['shots'])} UniText screenshots")
 
 

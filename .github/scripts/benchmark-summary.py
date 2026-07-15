@@ -245,9 +245,6 @@ def main():
     if glyph:
         print("### Glyph Rasterization")
         print("")
-        # CPU Median is the frame-time (raster dispatch) median; for engines whose rasterization
-        # completes asynchronously (UI Toolkit) it is ~0 and meaningless. E2E (component-to-atlas-
-        # ready) is the real, cross-engine-comparable number and is always shown.
         print("| Engine · Font | Status | Glyphs | CPU Median | E2E Median | Per-glyph (E2E) | Managed Alloc |")
         print("|---|---|---|---|---|---|---|")
 
