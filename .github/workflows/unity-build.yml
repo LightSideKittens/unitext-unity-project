@@ -110,3 +110,37 @@ jobs:
       benchmark: ${{ inputs.benchmark }}
       run_tests: ${{ inputs.run_tests == true }}
     secrets: inherit
+
+  # After the whole matrix finishes, bundle one viewer archive per platform: every run-*.js
+  # stream Benchmarks/index.html reads, plus the last screenshot of each UniText Glyph
+  # Rasterization stage. always() so it collects whatever benchmark jobs succeeded.
+  finalize-benchmarks:
+    needs: build-and-test
+    if: always() && inputs.benchmark != 'none'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Download all benchmark artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: BenchmarkResults-*
+          path: all-artifacts
+
+      - name: Assemble per-platform viewer archives
+        shell: bash
+        run: |
+          python3 .github/scripts/assemble-benchmark-archives.py all-artifacts viewer-archives
+          echo "=== assembled archives ==="
+          ls -la viewer-archives 2>/dev/null || echo "(none)"
+
+      - name: Upload per-platform viewer archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: BenchmarkViewer-${{ inputs.benchmark }}
+          path: viewer-archives/
+          if-no-files-found: warn
+          retention-days: 30
