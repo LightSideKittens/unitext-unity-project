@@ -61,6 +61,10 @@ public class UIToolkit_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         SetRunStatus("unsupported", "UI Toolkit glyph rasterization is not supported on WebGL");
         Debug.LogWarning("[UIToolkit GlyphRaster] Skipped on WebGL (dynamic FontAsset rasterization traps the WASM runtime).");
         return false;
+#elif !UNITY_6000_0_OR_NEWER
+        SetRunStatus("unsupported", "UI Toolkit glyph rasterization requires Unity 6000+ (Advanced Text Generator: HarfBuzz/ICU/FreeType); Unity 2022 ships only the legacy generator, which does not re-rasterize a cleared dynamic atlas and is not comparable to the modern path measured on Unity 6");
+        Debug.LogWarning("[UIToolkit GlyphRaster] Skipped on Unity < 6000: no Advanced Text Generator; the legacy generator does not re-tessellate after an atlas clear, so no measurable rasterization occurs.");
+        return false;
 #else
         if (fontAsset == null)
         {

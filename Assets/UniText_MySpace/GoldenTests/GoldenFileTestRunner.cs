@@ -210,8 +210,8 @@ public class GoldenFileTestRunner : MonoBehaviour
         var errors = new List<string>();
 
         var emojiFont = EmojiFont.Instance;
-        var emojiAtlas = GlyphAtlas.Emoji;
-        var atlasTexture = emojiAtlas?.AtlasTexture as Texture2DArray;
+        var colorAtlas = GlyphAtlas.Color;
+        var atlasTexture = colorAtlas?.AtlasTexture as Texture2DArray;
 
         if (atlasTexture == null)
         {

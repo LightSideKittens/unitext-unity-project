@@ -81,7 +81,7 @@ jobs:
           unityVersion: ${{ inputs.unity_version }}
           targetPlatform: ${{ inputs.platform }}
           allowDirtyBuild: true
-          customParameters: -ciDebug ${{ inputs.debug }} -ciBenchmark ${{ inputs.benchmark != 'none' }} -ciTests ${{ inputs.run_tests }}
+          customParameters: -ciDebug ${{ inputs.benchmark == 'none' && inputs.debug || false }} -ciBenchmark ${{ inputs.benchmark != 'none' }} -ciTests ${{ inputs.run_tests }} ${{ inputs.benchmark != 'none' && '-Development' || '' }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

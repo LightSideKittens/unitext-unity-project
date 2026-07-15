@@ -48,6 +48,9 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
 
     public GlyphRasterData LastResults { get; private set; }
 
+    /// <summary>Font under test for the current glyph phase, stamped by the runner's per-font loop. Folded into every screenshot name so each font keeps its own per-stage captures; the shared base otherwise names only engine + stage, collapsing both fonts onto one file per stage.</summary>
+    public static string CurrentFontLabel;
+
     protected abstract string EngineName { get; }
 
     /// <summary>Gather the workload (children, fonts, target atlas) and apply the shared corpus. Return false — after logging — when there is nothing to run.</summary>
@@ -311,7 +314,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
                 }
 
                 yield return BenchmarkScreenshot.Capture(
-                    $"glyph-{EngineName}{(mode != null ? $"-{mode}" : "")}-{tag}");
+                    $"glyph-{EngineName}{(CurrentFontLabel != null ? $"-{CurrentFontLabel}" : "")}{(mode != null ? $"-{mode}" : "")}-{tag}");
             }
 
             if (captureProfile || captureSample) yield return CaptureProfilePass();

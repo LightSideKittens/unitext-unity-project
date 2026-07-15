@@ -202,17 +202,17 @@ namespace SRF.Service
         [Serializable]
         private class Service
         {
-            public object Object;
-            public Type Type;
+            [NonSerialized] public object Object;
+            [NonSerialized] public Type Type;
         }
 
         [Serializable]
         private class ServiceStub
         {
-            public Func<object> Constructor;
-            public Type InterfaceType;
-            public Func<Type> Selector;
-            public Type Type;
+            [NonSerialized] public Func<object> Constructor;
+            [NonSerialized] public Type InterfaceType;
+            [NonSerialized] public Func<Type> Selector;
+            [NonSerialized] public Type Type;
 
             public override string ToString()
             {

@@ -363,7 +363,7 @@ namespace SRF.UI.Layout
         [Serializable]
         private class Row
         {
-            public object Data;
+            [NonSerialized] public object Data;
             public int Index;
             public RectTransform Rect;
             public StyleRoot Root;

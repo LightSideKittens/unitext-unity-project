@@ -272,6 +272,7 @@ public class BenchmarkRunner : MonoBehaviour
 
     IEnumerator RunGlyphForFont(string font)
     {
+        GlyphRasterBenchmarkBase.CurrentFontLabel = font;
         var uniGlyph = ObjectUtils.FindAny<UniText_GlyphRasterizationBenchmark>();
         if (uniGlyph != null)
         {
