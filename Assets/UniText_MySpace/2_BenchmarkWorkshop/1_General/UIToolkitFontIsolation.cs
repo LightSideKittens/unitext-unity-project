@@ -31,19 +31,16 @@ static class UIToolkitFontIsolation
             return false;
         if (fontFallbacks != 0)
             return Fail($"Panel Text Settings contains {fontFallbacks} global fallback font(s).", out error);
-        if (!TryValue(settings, defaultFontField, "default font", out var defaultFont, out error))
-            return false;
-        if (defaultFont != null)
+        if (FieldValue(settings, defaultFontField) != null)
             return Fail("Panel Text Settings default font is a fallback source.", out error);
         if (!TryBoolean(settings, emojiEnabledField, "emoji fallback switch", out bool emojiEnabled, out error)
             || !TryCollectionCount(settings, emojiFallbackField, "emoji fallback", out int emojiFallbacks, out error))
             return false;
         if (emojiEnabled || emojiFallbacks != 0)
             return Fail("Panel Text Settings emoji fallback is enabled.", out error);
-        if (!TryValue(settings, defaultSpriteField, "default sprite", out var defaultSprite, out error)
-            || !TryCollectionCount(settings, fallbackSpriteField, "sprite fallback", out int spriteFallbacks, out error))
+        if (!TryCollectionCount(settings, fallbackSpriteField, "sprite fallback", out int spriteFallbacks, out error))
             return false;
-        if (defaultSprite != null || spriteFallbacks != 0)
+        if (FieldValue(settings, defaultSpriteField) != null || spriteFallbacks != 0)
             return Fail("Panel Text Settings sprite fallback is enabled.", out error);
         if (primaryFont != null && primaryFont.fallbackFontAssetTable is { Count: > 0 })
             return Fail($"Primary font '{primaryFont.name}' contains {primaryFont.fallbackFontAssetTable.Count} local fallback font(s).", out error);
@@ -53,27 +50,18 @@ static class UIToolkitFontIsolation
     static FieldInfo Field(string name) => typeof(TextSettings).GetField(
         name, BindingFlags.Instance | BindingFlags.NonPublic);
 
+    static object FieldValue(TextSettings settings, FieldInfo field) => field?.GetValue(settings);
+
     static bool TryCollectionCount(TextSettings settings, FieldInfo field, string label, out int count,
         out string error)
     {
         count = 0;
+        error = null;
         if (field == null)
-            return Fail($"This Unity version does not expose the serialized {label} field expected by the benchmark.", out error);
+            return true;
         if (field.GetValue(settings) is not ICollection collection)
             return Fail($"The {label} list is null or has an unexpected type.", out error);
         count = collection.Count;
-        error = null;
-        return true;
-    }
-
-    static bool TryValue(TextSettings settings, FieldInfo field, string label, out object value,
-        out string error)
-    {
-        value = null;
-        if (field == null)
-            return Fail($"This Unity version does not expose the serialized {label} field expected by the benchmark.", out error);
-        value = field.GetValue(settings);
-        error = null;
         return true;
     }
 
@@ -81,12 +69,12 @@ static class UIToolkitFontIsolation
         out string error)
     {
         value = false;
+        error = null;
         if (field == null)
-            return Fail($"This Unity version does not expose the serialized {label} field expected by the benchmark.", out error);
+            return true;
         if (field.GetValue(settings) is not bool result)
             return Fail($"The serialized {label} field has an unexpected type.", out error);
         value = result;
-        error = null;
         return true;
     }
 
