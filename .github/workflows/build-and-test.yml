@@ -296,3 +296,12 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "No benchmark results found." >> $GITHUB_STEP_SUMMARY
           fi
+
+      # Fail the job if UniText glyph delivery broke on ANY device, so a device whose GPU-atlas path
+      # fails (e.g. Mali) cannot hide behind a passing one in the same multi-device run. Runs last so
+      # the results artifact and summary are already published for diagnosis. TMP/UI Toolkit failures
+      # are baselines/version gates and stay non-fatal.
+      - name: Validate UniText glyph delivery
+        if: always()
+        shell: bash
+        run: python3 .github/scripts/validate-unitext-delivery.py .
