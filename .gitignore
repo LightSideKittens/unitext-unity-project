@@ -119,3 +119,7 @@ Assets/UniText_MySpace/Resources/BenchmarkBuildInfo.json.meta
 /Packages/com.unity.asset-store-tools/
 /ProjectSettings/UniText/
 Assets/TempBugsIssues
+
+# Python bytecode cache (from running .github/scripts locally)
+__pycache__/
+*.pyc

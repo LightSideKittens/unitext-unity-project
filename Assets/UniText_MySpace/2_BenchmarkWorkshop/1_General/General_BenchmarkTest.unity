@@ -912,7 +912,7 @@ MonoBehaviour:
   captureSample: 0
   isRunning: 0
   lastResult: 
-  dumpPhases: 1
+  dumpPhases: 0
 --- !u!224 &638130716
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1985,7 +1985,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2035672428}
         m_TargetAssemblyTypeName: BenchmarkRunner, UniText.Test
-        m_MethodName: RunFromMenu
+        m_MethodName: RunTextFromMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2809,7 +2809,7 @@ MonoBehaviour:
   runFullRebuildTest: 1
   runLayoutRebuildTest: 1
   runMeshRebuildTest: 1
-  captureProfile: 1
+  captureProfile: 0
   inspectionPhase: 3
   inspectionVariantIndex: 0
   inspectionLatinCorpus: 0

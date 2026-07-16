@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using LightSide;
 using UnityEngine;
 
@@ -762,88 +761,9 @@ public class GoldenFileTestRunner : MonoBehaviour
 
     void OutputResults()
     {
-        var passed = results.Passed;
-        var total = results.Total;
-
-        Debug.Log($"[GoldenFileTestRunner] Tests completed: {passed}/{total} passed");
-
-        var xml = results.ToJUnitXml();
-
-        var xmlPath = Path.Combine(Application.persistentDataPath, "testResults.xml");
-        File.WriteAllText(xmlPath, xml);
-        Debug.Log($"[GoldenFileTestRunner] Results saved to: {xmlPath}");
-
-        Console.WriteLine($"TEST_RESULTS_PATH={xmlPath}");
-
-#if UNITY_IOS && !UNITY_EDITOR
-        FirebaseTestLabiOS.WriteResults("testResults.xml", xml);
-
-        FirebaseTestLabiOS.NotifyTestComplete();
-
-        System.Threading.Thread.Sleep(500);
-#elif UNITY_ANDROID && !UNITY_EDITOR
-        FirebaseTestLabAndroid.WriteResultsArchive(BuildResultsArchive(xml), "results.zip");
-
-        FirebaseTestLabAndroid.NotifyTestComplete();
-#endif
-
-#if UNITY_WEBGL && !UNITY_EDITOR
-        WebGLReportResults();
-#else
-        if (Application.isBatchMode)
-        {
-            Application.Quit(results.AllPassed ? 0 : 1);
-        }
-#endif
+        Debug.Log($"[GoldenFileTestRunner] Tests completed: {results.Passed}/{results.Total} passed");
+        TestRunReporter.Report(results, "[GoldenFileTestRunner]");
     }
-
-    static byte[] BuildResultsArchive(string xml)
-    {
-        using var ms = new MemoryStream();
-        using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, true))
-        {
-            using (var w = new StreamWriter(zip.CreateEntry("testResults.xml").Open()))
-                w.Write(xml);
-
-            var dir = Path.Combine(Application.persistentDataPath, "Screenshots");
-            if (Directory.Exists(dir))
-                foreach (var png in Directory.GetFiles(dir, "*.png"))
-                {
-                    using var es = zip.CreateEntry("screenshots/" + Path.GetFileName(png)).Open();
-                    using var fs = File.OpenRead(png);
-                    fs.CopyTo(es);
-                }
-        }
-        return ms.ToArray();
-    }
-
-#if UNITY_WEBGL && !UNITY_EDITOR
-    [System.Runtime.InteropServices.DllImport("__Internal")]
-    private static extern void ReportTestResults(string json);
-
-    void WebGLReportResults()
-    {
-        var json = JsonUtility.ToJson(new WebGLTestResults
-        {
-            xml = results.ToJUnitXml(),
-            allPassed = results.AllPassed,
-            total = results.Total,
-            passed = results.Passed,
-            failed = results.Failed
-        });
-        ReportTestResults(json);
-    }
-
-    [Serializable]
-    private class WebGLTestResults
-    {
-        public string xml;
-        public bool allPassed;
-        public int total;
-        public int passed;
-        public int failed;
-    }
-#endif
 
 #if UNITY_EDITOR
     [ContextMenu("Generate Golden Files")]

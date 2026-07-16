@@ -22,6 +22,11 @@ on:
         required: false
         type: boolean
         default: false
+      slideshow:
+        description: "Capture a screenshot of every BasicUsage sample slide instead of running tests (mutually exclusive with tests/benchmark; the build carries the sample scene)"
+        required: false
+        type: boolean
+        default: false
       test_timeout:
         required: false
         type: number
@@ -81,7 +86,7 @@ jobs:
           unityVersion: ${{ inputs.unity_version }}
           targetPlatform: ${{ inputs.platform }}
           allowDirtyBuild: true
-          customParameters: -ciDebug ${{ inputs.benchmark == 'none' && inputs.debug || false }} -ciBenchmark ${{ inputs.benchmark != 'none' }} -ciTests ${{ inputs.run_tests }} ${{ inputs.benchmark != 'none' && '-Development' || '' }}
+          customParameters: -ciDebug ${{ inputs.benchmark == 'none' && inputs.debug || false }} -ciBenchmark ${{ inputs.benchmark != 'none' }} -ciTests ${{ inputs.run_tests }} -ciSlideshow ${{ inputs.slideshow }} ${{ inputs.benchmark != 'none' && '-Development' || '' }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -92,7 +97,7 @@ jobs:
 
   test:
     name: test
-    if: inputs.run_tests
+    if: inputs.run_tests || inputs.slideshow
     needs: build
     timeout-minutes: 30
     runs-on: ${{
@@ -157,7 +162,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: TestResults-${{ inputs.unity_version }}-${{ inputs.platform }}
+          name: ${{ inputs.slideshow && 'Slideshow' || 'TestResults' }}-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: |
             testResults.xml
             *.log
@@ -169,7 +174,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          echo "### 🧪 Test Results: ${{ inputs.platform }} (${{ inputs.unity_version }})" >> $GITHUB_STEP_SUMMARY
+          echo "### ${{ inputs.slideshow && '🎞️ Slideshow' || '🧪 Test Results' }}: ${{ inputs.platform }} (${{ inputs.unity_version }})" >> $GITHUB_STEP_SUMMARY
           if [ ! -f testResults.xml ]; then
             echo "❌ No test results found" >> $GITHUB_STEP_SUMMARY
             exit 0

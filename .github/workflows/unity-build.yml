@@ -1,5 +1,5 @@
 name: Unity Build & Test 
-run-name: "🔨 ${{ (inputs.win64 && inputs.linux && inputs.macos && inputs.android && inputs.ios && inputs.webgl) && '🌍 All platforms ' || format('{0}{1}{2}{3}{4}{5}', inputs.win64 && '🪟 Win64 ' || '', inputs.linux && '🐧 Linux ' || '', inputs.macos && '🍎 macOS ' || '', inputs.android && '🤖 Android ' || '', inputs.ios && '📱 iOS ' || '', inputs.webgl && '🌐 WebGL ' || '') }}• ${{ (inputs.unity_2022 && inputs.unity_6 && inputs.unity_6_latest) && '🎮 All versions ' || format('{0}{1}{2}', inputs.unity_2022 && '🎮 2022 ' || '', inputs.unity_6 && '🎮 6000 ' || '', inputs.unity_6_latest && '🎮 6000-latest ' || '') }}${{ inputs.run_tests && '• 🧪 Tests' || '' }}"
+run-name: "🔨 ${{ (inputs.win64 && inputs.linux && inputs.macos && inputs.android && inputs.ios && inputs.webgl) && '🌍 All platforms ' || format('{0}{1}{2}{3}{4}{5}', inputs.win64 && '🪟 Win64 ' || '', inputs.linux && '🐧 Linux ' || '', inputs.macos && '🍎 macOS ' || '', inputs.android && '🤖 Android ' || '', inputs.ios && '📱 iOS ' || '', inputs.webgl && '🌐 WebGL ' || '') }}• ${{ (inputs.unity_2022 && inputs.unity_6 && inputs.unity_6_latest) && '🎮 All versions ' || format('{0}{1}{2}', inputs.unity_2022 && '🎮 2022 ' || '', inputs.unity_6 && '🎮 6000 ' || '', inputs.unity_6_latest && '🎮 6000-latest ' || '') }}${{ inputs.slideshow && '• 🎞️ Slideshow' || inputs.run_tests && '• 🧪 Tests' || '' }}"
 
 on:
   workflow_dispatch:
@@ -62,6 +62,10 @@ on:
         description: '🧪 Run tests'
         type: boolean
         default: true
+      slideshow:
+        description: '🎞️ Slideshow screenshots (BasicUsage sample, overrides tests)'
+        type: boolean
+        default: false
 
 jobs:
   setup:
@@ -109,6 +113,7 @@ jobs:
       debug: ${{ inputs.debug == true }}
       benchmark: ${{ inputs.benchmark }}
       run_tests: ${{ inputs.run_tests == true }}
+      slideshow: ${{ inputs.slideshow == true }}
     secrets: inherit
 
   finalize-benchmarks:
