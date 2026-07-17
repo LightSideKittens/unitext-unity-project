@@ -60,6 +60,7 @@ public static class CIBuildSettings
         ConfigureIOSForDevice();
         SetHighStripping();
         SetWebGLExceptions(debugArg == "true");
+        EnableAndroidSymbols();
 
         if (benchmarkArg == "true")
         {
@@ -248,6 +249,16 @@ public static class CIBuildSettings
             : WebGLExceptionSupport.FullWithoutStacktrace;
         PlayerSettings.WebGL.exceptionSupport = level;
         Debug.Log($"[CIBuildSettings] WebGL exceptions set to {level}");
+    }
+
+    /// <summary>CI Android builds emit symbols.zip (public symbols for libunity/libil2cpp) so device tombstones from Firebase Test Lab symbolicate without hunting for the exact GameCI editor image.</summary>
+    [MenuItem("UniText/CI/Enable Android Symbols")]
+    public static void EnableAndroidSymbols()
+    {
+#pragma warning disable CS0618
+        EditorUserBuildSettings.androidCreateSymbols = AndroidCreateSymbols.Public;
+#pragma warning restore CS0618
+        Debug.Log("[CIBuildSettings] Android symbols.zip enabled (Public)");
     }
 
     private static void ConfigureIOSForDevice()

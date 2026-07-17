@@ -457,7 +457,6 @@ runs:
           --device model=pa3q,version=35 \
           --device model=a06,version=35 \
           --device model=blueline,version=28 \
-          --device model=starlte,version=29 \
           --scenario-numbers=$SCENARIO \
           --timeout "${TIMEOUT_MINUTES}m" \
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \

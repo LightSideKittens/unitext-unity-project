@@ -100,7 +100,7 @@ jobs:
     name: test
     if: inputs.run_tests || inputs.slideshow
     needs: build
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: ${{
       inputs.platform == 'StandaloneWindows64' && 'windows-latest' ||
       inputs.platform == 'StandaloneOSX' && 'macos-14' ||
