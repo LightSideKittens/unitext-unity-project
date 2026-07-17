@@ -14,6 +14,7 @@ echo "GCS    : $GCS"
 mkdir -p "$OUT"
 
 for dev in $(gsutil ls "$GCS" 2>/dev/null | grep -E '/$'); do
+  dev="${dev%/}"
   name=$(basename "$dev")
   mkdir -p "$OUT/$name"
   gsutil -m cp "$dev/logcat" "$dev/*TOMBSTONE*" "$dev/*native_crash*" "$OUT/$name/" 2>/dev/null || true
