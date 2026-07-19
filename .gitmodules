@@ -7,3 +7,9 @@
 [submodule "Assets/LightSide.Core"]
 	path = Assets/LightSide.Core
 	url = https://github.com/LightSideMeowshop/lightside-core.git
+[submodule "Assets/UniLottie"]
+	path = Assets/UniLottie
+	url = https://github.com/LightSideMeowshop/UniLottie.git
+[submodule "Assets/UniShapes"]
+	path = Assets/UniShapes
+	url = https://github.com/LightSideMeowshop/unishapes.git

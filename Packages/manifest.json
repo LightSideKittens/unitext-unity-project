@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "com.coplaydev.coplay": "https://github.com/CoplayDev/unity-plugin.git#beta",
     "com.nosuchstudio.rtltmpro": "https://github.com/hk1ll3r/RTLTMPro.git?path=/UPMPackage",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.burst": "1.8.29",
