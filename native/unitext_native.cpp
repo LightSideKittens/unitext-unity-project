@@ -964,8 +964,6 @@ UNITEXT_EXPORT int ut_ft_outline_decompose(FT_Face face, unsigned int glyph_inde
         return 0;
     }
 
-    // tolerance ≈ em / 1024 design units: sub-pixel even at 256-px SDF tiles
-    // (em/256 design units per pixel → tolerance is ~1/4 pixel of the tile).
     float em = (float)(face->units_per_EM > 0 ? face->units_per_EM : 1000);
     float tolerance = em * (1.0f / 1024.0f);
     float tolerance_sq = tolerance * tolerance;

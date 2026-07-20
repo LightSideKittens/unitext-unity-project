@@ -35,26 +35,6 @@ static BOOL _isGameLoopLaunch = NO;
     return YES;
 }
 
-// Also handle the deprecated method for older iOS versions
-- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
-{
-    NSLog(@"[FirebaseGameLoop] openURL (deprecated) called: %@", url.absoluteString);
-
-    if ([url.scheme isEqualToString:@"firebase-game-loop"])
-    {
-        _launchURL = [url.absoluteString copy];
-        _isGameLoopLaunch = YES;
-        NSLog(@"[FirebaseGameLoop] Game loop URL detected and stored (deprecated method)");
-    }
-
-    if ([super respondsToSelector:@selector(application:openURL:sourceApplication:annotation:)])
-    {
-        return [super application:application openURL:url sourceApplication:sourceApplication annotation:annotation];
-    }
-
-    return YES;
-}
-
 // Handle URL when app is launched from cold start
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary<UIApplicationLaunchOptionsKey,id> *)launchOptions
 {
