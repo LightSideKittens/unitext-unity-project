@@ -41,6 +41,6 @@ MonoBehaviour:
   unitsPerEm: 1000
   fontScale: 1
   sdfDetailMultiplier: 1
-  tileSizeOffset: 2
+  tileSizeOffset: 1
   glyphOverrides: []
   sourceFont: {fileID: 12800000, guid: 70255e4bfa5685c4c9f448ad39d02274, type: 3}

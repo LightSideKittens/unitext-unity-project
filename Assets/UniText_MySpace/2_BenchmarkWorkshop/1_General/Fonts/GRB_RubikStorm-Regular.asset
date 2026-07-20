@@ -49,25 +49,25 @@ MonoBehaviour:
   fontScale: 1
   participatesInNormalization: 1
   sdfDetailMultiplier: 8
-  tileSizeOffset: 2
+  tileSizeOffset: 1
   glyphOverrides:
   - glyphIndex: 20
-    tileSizeOverride: 256
+    tileSizeOverride: 128
     advanceScale: 0
     offset: {x: 0, y: 0}
     scale: 0
   - glyphIndex: 24
-    tileSizeOverride: 256
+    tileSizeOverride: 128
     advanceScale: 0
     offset: {x: 0, y: 0}
     scale: 0
   - glyphIndex: 34
-    tileSizeOverride: 256
+    tileSizeOverride: 128
     advanceScale: 0
     offset: {x: 0, y: 0}
     scale: 0
   - glyphIndex: 35
-    tileSizeOverride: 256
+    tileSizeOverride: 128
     advanceScale: 0
     offset: {x: 0, y: 0}
     scale: 0

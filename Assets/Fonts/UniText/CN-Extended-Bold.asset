@@ -49,7 +49,7 @@ MonoBehaviour:
   fontScale: 1
   participatesInNormalization: 1
   sdfDetailMultiplier: 1
-  tileSizeOffset: 2
+  tileSizeOffset: 1
   glyphOverrides: []
   axisDefaults: []
   sourceFont: {fileID: 12800000, guid: 45e672e5b976e554692a2772d441cbf3, type: 3}
