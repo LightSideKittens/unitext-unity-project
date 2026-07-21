@@ -414,6 +414,7 @@ runs:
         echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
 
         command -v gtimeout >/dev/null 2>&1 || brew install coreutils
+        set +e
         gtimeout --signal=INT --kill-after=30s "${FIREBASE_WAIT_SECONDS}s" \
           gcloud beta firebase test ios run \
           --type game-loop \
@@ -425,8 +426,10 @@ runs:
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \
           --results-dir="$RESULTS_DIR" 2>&1 | tee firebase_output.log
         FIREBASE_EXIT_CODE=${PIPESTATUS[0]}
+        set -e
         if [ "$FIREBASE_EXIT_CODE" -eq 124 ]; then
           echo "::warning::Firebase matrix wait exceeded ${FIREBASE_WAIT_SECONDS}s; collecting completed device results"
+          FIREBASE_EXIT_CODE=0
         elif [ "$FIREBASE_EXIT_CODE" -ne 0 ]; then
           echo "Firebase exit code: $FIREBASE_EXIT_CODE"
         fi
@@ -463,6 +466,7 @@ runs:
         echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
 
         # Device park: GPU vendors x driver generations x API floor x low-end.
+        set +e
         timeout --signal=INT --kill-after=30s "${FIREBASE_WAIT_SECONDS}s" \
           gcloud firebase test android run \
           --type game-loop \
@@ -478,8 +482,10 @@ runs:
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \
           --results-dir="$RESULTS_DIR" 2>&1 | tee firebase_output.log
         FIREBASE_EXIT_CODE=${PIPESTATUS[0]}
+        set -e
         if [ "$FIREBASE_EXIT_CODE" -eq 124 ]; then
           echo "::warning::Firebase matrix wait exceeded ${FIREBASE_WAIT_SECONDS}s; collecting completed device results"
+          FIREBASE_EXIT_CODE=0
         elif [ "$FIREBASE_EXIT_CODE" -ne 0 ]; then
           echo "Firebase exit code: $FIREBASE_EXIT_CODE"
         fi
