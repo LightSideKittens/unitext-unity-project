@@ -169,6 +169,7 @@ jobs:
             *.log
             screenshots/
             firebase-results/
+            firebase-results-url.txt
           retention-days: 7
 
       - name: Test Summary
@@ -193,7 +194,7 @@ jobs:
   benchmark:
     if: inputs.benchmark != 'none' && inputs.platform != 'StandaloneLinux64'
     needs: build
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: ${{
       inputs.platform == 'StandaloneWindows64' && 'windows-latest' ||
       inputs.platform == 'StandaloneOSX' && 'macos-14' ||
@@ -281,7 +282,9 @@ jobs:
             benchmark-streams/
             screenshots/
             device-logs/
+            firebase-results/
             firebase-results-url.txt
+            firebase_output.log
             benchmark.log
           retention-days: 30
 

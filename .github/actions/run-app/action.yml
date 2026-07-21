@@ -394,6 +394,7 @@ runs:
 
         TIMEOUT_MINUTES=$((APP_TIMEOUT / 60))
         [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
+        FIREBASE_WAIT_SECONDS=$((APP_TIMEOUT + 600))
 
         # Game-loop scenario = benchmark suite: 1 = all, 2 = text pipeline, 3 = glyph rasterization.
         SCENARIO=1
@@ -408,7 +409,9 @@ runs:
         RESULTS_DIR="${{ inputs.platform }}-${{ inputs.mode }}-${{ inputs.unity_version }}-${{ github.run_id }}"
         echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
 
-        gcloud beta firebase test ios run \
+        command -v gtimeout >/dev/null 2>&1 || brew install coreutils
+        gtimeout --signal=INT --kill-after=30s "${FIREBASE_WAIT_SECONDS}s" \
+          gcloud beta firebase test ios run \
           --type game-loop \
           --app "$IPA" \
           --device model=iphone14pro,version=16.6 \
@@ -416,7 +419,14 @@ runs:
           --scenario-numbers=$SCENARIO \
           --timeout "${TIMEOUT_MINUTES}m" \
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \
-          --results-dir="$RESULTS_DIR" 2>&1 | tee firebase_output.log || echo "Firebase exit code: $?"
+          --results-dir="$RESULTS_DIR" 2>&1 | tee firebase_output.log
+        FIREBASE_EXIT_CODE=${PIPESTATUS[0]}
+        if [ "$FIREBASE_EXIT_CODE" -eq 124 ]; then
+          echo "::warning::Firebase matrix wait exceeded ${FIREBASE_WAIT_SECONDS}s; collecting completed device results"
+        elif [ "$FIREBASE_EXIT_CODE" -ne 0 ]; then
+          echo "Firebase exit code: $FIREBASE_EXIT_CODE"
+        fi
+        exit "$FIREBASE_EXIT_CODE"
 
     - name: Launch on Firebase (Android)
       if: inputs.platform == 'Android'
@@ -433,6 +443,7 @@ runs:
 
         TIMEOUT_MINUTES=$((APP_TIMEOUT / 60))
         [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
+        FIREBASE_WAIT_SECONDS=$((APP_TIMEOUT + 600))
 
         # Game-loop scenario = benchmark suite: 1 = all, 2 = text pipeline, 3 = glyph rasterization.
         SCENARIO=1
@@ -448,7 +459,8 @@ runs:
         echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
 
         # Device park: GPU vendors x driver generations x API floor x low-end.
-        gcloud firebase test android run \
+        timeout --signal=INT --kill-after=30s "${FIREBASE_WAIT_SECONDS}s" \
+          gcloud firebase test android run \
           --type game-loop \
           --app "$APK" \
           --device model=shiba,version=34 \
@@ -460,10 +472,17 @@ runs:
           --scenario-numbers=$SCENARIO \
           --timeout "${TIMEOUT_MINUTES}m" \
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \
-          --results-dir="$RESULTS_DIR" || echo "Firebase exit code: $?"
+          --results-dir="$RESULTS_DIR" 2>&1 | tee firebase_output.log
+        FIREBASE_EXIT_CODE=${PIPESTATUS[0]}
+        if [ "$FIREBASE_EXIT_CODE" -eq 124 ]; then
+          echo "::warning::Firebase matrix wait exceeded ${FIREBASE_WAIT_SECONDS}s; collecting completed device results"
+        elif [ "$FIREBASE_EXIT_CODE" -ne 0 ]; then
+          echo "Firebase exit code: $FIREBASE_EXIT_CODE"
+        fi
+        exit "$FIREBASE_EXIT_CODE"
 
     - name: Collect Firebase Results
-      if: inputs.platform == 'Android' || inputs.platform == 'iOS'
+      if: always() && (inputs.platform == 'Android' || inputs.platform == 'iOS')
       shell: bash
       env:
         APP_MODE: ${{ inputs.mode }}

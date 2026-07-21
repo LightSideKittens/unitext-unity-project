@@ -133,6 +133,8 @@ jobs:
           name: TestResults-${{ matrix.unity_version }}-${{ matrix.platform }}
           path: |
             testResults.xml
-            test.log
-            xcodebuild.log
+            *.log
+            screenshots/
+            firebase-results/
+            firebase-results-url.txt
           retention-days: 7

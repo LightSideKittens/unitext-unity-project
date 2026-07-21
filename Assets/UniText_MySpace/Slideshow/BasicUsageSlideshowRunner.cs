@@ -7,16 +7,18 @@ using LightSide.Samples;
 using UnityEngine;
 
 /// <summary>
-/// Drives the BasicUsage sample through every slide and captures one screenshot per slide for the
-/// CI artifact. Bootstrapped in UNITEXT_SLIDESHOW builds (CIBuildSettings, -ciSlideshow) — the
-/// shipped sample scene stays untouched. Reuses the golden-test screenshot and result-delivery
-/// channels, so every platform's collection path works unchanged.
+/// Drives the BasicUsage sample through every slide and captures its contents for the CI artifact.
+/// Bootstrapped in UNITEXT_SLIDESHOW builds (CIBuildSettings, -ciSlideshow), so the shipped sample
+/// scene stays untouched. Reuses the golden-test screenshot and result-delivery channels.
 /// </summary>
 public class BasicUsageSlideshowRunner : MonoBehaviour
 {
     private const int settleFrames = 12;
+    private const float pageOverlap = 0.2f;
 
     private BasicUsageExampleBase demo;
+    private RectTransform draggerRect;
+    private UniText[] draggableTexts;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void OnRuntimeStart()
@@ -45,6 +47,10 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
 
     private IEnumerator Start()
     {
+        var dragger = ObjectUtils.FindAny<DraggableRect>();
+        draggerRect = dragger.GetComponent<RectTransform>();
+        draggableTexts = dragger.GetComponentsInChildren<UniText>(true);
+
         var results = new TestResultCollection();
         var count = demo.ExampleCount;
         Debug.Log($"[BasicUsageSlideshow] Capturing {count} slides");
@@ -55,21 +61,62 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
             for (var f = 0; f < settleFrames; f++) yield return null;
 
             var name = $"slide-{i:D2}";
-            var start = DateTime.UtcNow;
-            TestScreenshot.Capture(name);
-            results.Add(new TestResult
-            {
-                ClassName = "BasicUsageSlideshow",
-                MethodName = name,
-                Passed = true,
-                StartTime = start,
-                EndTime = DateTime.UtcNow
-            });
+            var systemFontText = FindSystemFontText();
+            if (systemFontText == null)
+                Capture(results, name);
+            else
+                yield return CaptureTallSlide(results, name, systemFontText);
         }
 
         TestScreenshot.Cleanup();
-        Debug.Log($"[BasicUsageSlideshow] Captured {count} slides");
+        Debug.Log($"[BasicUsageSlideshow] Captured {results.Total} screenshots from {count} slides");
         TestRunReporter.Report(results, "[BasicUsageSlideshow]");
+    }
+
+    private UniText FindSystemFontText()
+    {
+        foreach (var text in draggableTexts)
+            if (text.Font == null && text.FontStack == null)
+                return text;
+
+        return null;
+    }
+
+    private IEnumerator CaptureTallSlide(TestResultCollection results, string name, UniText text)
+    {
+        var originalPosition = draggerRect.anchoredPosition;
+        var viewport = draggerRect.parent as RectTransform;
+        var pageHeight = viewport.rect.height * (1f - pageOverlap);
+        var pageCount = Mathf.Max(2, Mathf.CeilToInt(text.PreferredHeight / pageHeight));
+
+        try
+        {
+            for (var page = 0; page < pageCount; page++)
+            {
+                draggerRect.anchoredPosition = originalPosition + Vector2.up * (pageHeight * page);
+                if (page > 0) yield return null;
+
+                Capture(results, page == 0 ? name : $"{name}-{page:D2}");
+            }
+        }
+        finally
+        {
+            draggerRect.anchoredPosition = originalPosition;
+        }
+    }
+
+    private static void Capture(TestResultCollection results, string name)
+    {
+        var start = DateTime.UtcNow;
+        TestScreenshot.Capture(name);
+        results.Add(new TestResult
+        {
+            ClassName = "BasicUsageSlideshow",
+            MethodName = name,
+            Passed = true,
+            StartTime = start,
+            EndTime = DateTime.UtcNow
+        });
     }
 }
 #endif
