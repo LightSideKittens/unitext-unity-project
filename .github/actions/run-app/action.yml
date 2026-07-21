@@ -542,7 +542,7 @@ runs:
         find ./firebase-results \( -iname '*.ips' -o -iname 'tombstone*' \) -type f 2>/dev/null \
           | sed 's#^\./firebase-results/#  #' || echo "  (none)"
 
-        APP_CRASHES=$(find ./firebase-results \( -iname '*.ips' -o -iname 'tombstone*' \) -type f 2>/dev/null || true)
+        APP_CRASHES=$(find ./firebase-results -path '*/CrashLogs/UniText-*.ips' -type f 2>/dev/null || true)
         if [ -n "$APP_CRASHES" ]; then
           while IFS= read -r CRASH; do
             echo "::error title=Application crash::${CRASH#./firebase-results/}"
