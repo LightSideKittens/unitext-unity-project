@@ -378,7 +378,11 @@ runs:
           output_name:"UniText.ipa" \
           output_dir:"$GITHUB_WORKSPACE"
 
-        ls -lh "$GITHUB_WORKSPACE/UniText.ipa"
+        [ ! -f "$GITHUB_WORKSPACE/UniText.app.dSYM.zip" ] && {
+          echo "::error title=Missing iOS debug symbols::Fastlane did not produce UniText.app.dSYM.zip"
+          exit 1
+        }
+        ls -lh "$GITHUB_WORKSPACE/UniText.ipa" "$GITHUB_WORKSPACE/UniText.app.dSYM.zip"
 
     - name: Launch on Firebase (iOS)
       if: inputs.platform == 'iOS'
@@ -537,6 +541,14 @@ runs:
         echo "=== crash reports present in bucket ==="
         find ./firebase-results \( -iname '*.ips' -o -iname 'tombstone*' \) -type f 2>/dev/null \
           | sed 's#^\./firebase-results/#  #' || echo "  (none)"
+
+        APP_CRASHES=$(find ./firebase-results \( -iname '*.ips' -o -iname 'tombstone*' \) -type f 2>/dev/null || true)
+        if [ -n "$APP_CRASHES" ]; then
+          while IFS= read -r CRASH; do
+            echo "::error title=Application crash::${CRASH#./firebase-results/}"
+          done <<< "$APP_CRASHES"
+          exit 1
+        fi
 
         RESULT_FILES=$(find ./firebase-results \( -name "benchmarkResults.json" -o -name "results_scenario_*.json" -o -name "testResults.xml" \) -type f 2>/dev/null || true)
 

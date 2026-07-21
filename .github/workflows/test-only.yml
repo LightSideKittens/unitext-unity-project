@@ -134,6 +134,7 @@ jobs:
           path: |
             testResults.xml
             *.log
+            *.dSYM.zip
             screenshots/
             firebase-results/
             firebase-results-url.txt

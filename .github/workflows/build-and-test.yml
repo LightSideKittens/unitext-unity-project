@@ -167,6 +167,7 @@ jobs:
           path: |
             testResults.xml
             *.log
+            *.dSYM.zip
             screenshots/
             firebase-results/
             firebase-results-url.txt
@@ -279,6 +280,7 @@ jobs:
           name: BenchmarkResults-${{ inputs.benchmark }}-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: |
             benchmarkResults*.json
+            *.dSYM.zip
             benchmark-streams/
             screenshots/
             device-logs/
