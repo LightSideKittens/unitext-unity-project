@@ -70,7 +70,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         foreach (var target in GetComponentsInChildren<UniText>(true))
             if (target.gameObject != gameObject)
                 target.gameObject.SetActive(false);
-        UniTextFont.Core.DisposeAllLive();
+        UniTextFont.ClearRuntimeData();
         GlyphAtlas.DisposeTextInstances();
         UniTextBase.UseParallel = !pendingSingleThreaded;
         GlyphAtlas.forceSingleThreaded = pendingSingleThreaded;
@@ -94,7 +94,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             strokeStyles = null;
         }
 
-        UniTextFont.Core.DisposeAllLive();
+        UniTextFont.ClearRuntimeData();
         GlyphAtlas.DisposeTextInstances();
     }
 
@@ -197,7 +197,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             ut.gameObject.SetActive(false);
     }
 
-    protected override void ClearCaches() => UniTextFont.Core.DisposeAllLive();
+    protected override void ClearCaches() => UniTextFont.ClearRuntimeData();
 
     protected override void ResetExecutionDiagnostics()
     {
