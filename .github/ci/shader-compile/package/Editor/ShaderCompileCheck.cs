@@ -20,7 +20,7 @@ namespace LightSide.CI
             "Packages/media.lightside.unilottie"
         };
 
-        [Test]
+        [Test, Timeout(3600000)]
         public void AllShadersCompileWithoutWarningsOrErrors()
         {
             var expectedPipeline = GetCommandLineValue("-expectedRenderPipeline");
