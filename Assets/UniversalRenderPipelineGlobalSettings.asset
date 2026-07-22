@@ -19,7 +19,7 @@ MonoBehaviour:
     m_StripRuntimeDebugShaders: 1
   m_URPShaderStrippingSetting:
     m_Version: 0
-    m_StripUnusedPostProcessingVariantsAndResources: 0
+    m_StripUnusedPostProcessingVariants: 0
     m_StripUnusedVariants: 1
     m_StripScreenCoordOverrideVariants: 1
   m_ShaderVariantLogLevel: 0
@@ -95,6 +95,8 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 5346788256457425149
       type: {class: RayTracingRenderPipelineResources, ns: UnityEngine.Rendering.UnifiedRayTracing, asm: Unity.UnifiedRayTracing.Runtime}
       data:
@@ -283,7 +285,7 @@ MonoBehaviour:
       type: {class: URPShaderStrippingSetting, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
         m_Version: 0
-        m_StripUnusedPostProcessingVariantsAndResources: 0
+        m_StripUnusedPostProcessingVariants: 0
         m_StripUnusedVariants: 1
         m_StripScreenCoordOverrideVariants: 1
     - rid: 5346788256457425167
@@ -435,30 +437,30 @@ MonoBehaviour:
     - rid: 5414327499389665281
       type: {class: ScreenSpaceReflectionPersistentResources, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
-        m_Shader: {fileID: 4800000, guid: 7b3e6785f5f6b634794df3a85a2a35da, type: 3}
-        m_BlitShader: {fileID: 4800000, guid: 815c625bb9d4fe240a4ccf42ca3899cb, type: 3}
+        m_Shader: {instanceID: 568105584918833298}
+        m_BlitShader: {instanceID: 568105584918833300}
         m_Version: 0
     - rid: 5414327499389665282
       type: {class: UniversalRenderPipelineFilmGrainResources, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
         m_Textures:
-        - {fileID: 2800000, guid: 654c582f7f8a5a14dbd7d119cbde215d, type: 3}
-        - {fileID: 2800000, guid: dd77ffd079630404e879388999033049, type: 3}
-        - {fileID: 2800000, guid: 1097e90e1306e26439701489f391a6c0, type: 3}
-        - {fileID: 2800000, guid: f0b67500f7fad3b4c9f2b13e8f41ba6e, type: 3}
-        - {fileID: 2800000, guid: 9930fb4528622b34687b00bbe6883de7, type: 3}
-        - {fileID: 2800000, guid: bd9e8c758250ef449a4b4bfaad7a2133, type: 3}
-        - {fileID: 2800000, guid: 510a2f57334933e4a8dbabe4c30204e4, type: 3}
-        - {fileID: 2800000, guid: b4db8180660810945bf8d55ab44352ad, type: 3}
-        - {fileID: 2800000, guid: fd2fd78b392986e42a12df2177d3b89c, type: 3}
-        - {fileID: 2800000, guid: 5cdee82a77d13994f83b8fdabed7c301, type: 3}
+        - {instanceID: 568105584918833204}
+        - {instanceID: 568105584918833206}
+        - {instanceID: 568105584918833208}
+        - {instanceID: 568105584918833210}
+        - {instanceID: 568105584918833212}
+        - {instanceID: 568105584918833214}
+        - {instanceID: 568105584918833216}
+        - {instanceID: 568105584918833218}
+        - {instanceID: 568105584918833220}
+        - {instanceID: 568105584918833222}
         m_Version: 0
     - rid: 5414327499389665283
       type: {class: MipGenRenderPipelineRuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
-        m_ColorPyramidPS: {fileID: 4800000, guid: 63b92baba208e314c8fdebe52ca0cc34, type: 3}
-        m_ColorPyramidCS: {fileID: 7200000, guid: 28969cfddd9ef3f4e94b971690146a4f, type: 3}
-        m_DepthPyramidCS: {fileID: 7200000, guid: 90a204702cd44e54cac7ed4fc6e5d86b, type: 3}
+        m_ColorPyramidPS: {instanceID: 568105584918833302}
+        m_ColorPyramidCS: {instanceID: 568105584918833304}
+        m_DepthPyramidCS: {instanceID: 568105584918833306}
     - rid: 5414327499389665284
       type: {class: WorldRenderPipelineResources, ns: UnityEngine.PathTracing.Core, asm: Unity.PathTracing.Runtime}
       data:

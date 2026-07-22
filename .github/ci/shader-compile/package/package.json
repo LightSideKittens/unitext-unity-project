@@ -1,0 +1,9 @@
+{
+  "name": "media.lightside.shader-compile-ci",
+  "version": "1.0.0",
+  "displayName": "LightSide Shader Compile CI",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.unity.test-framework": "1.1.33"
+  }
+}

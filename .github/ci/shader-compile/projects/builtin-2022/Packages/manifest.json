@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "media.lightside.core": "file:../../../../../../Assets/LightSide.Core",
+    "media.lightside.shader-compile-ci": "file:../../../package",
+    "media.lightside.unilottie": "file:../../../../../../Assets/UniLottie",
+    "media.lightside.unishapes": "file:../../../../../../Assets/UniShapes",
+    "media.lightside.unitext": "file:../../../../../../Assets/UniText",
+    "com.unity.burst": "1.8.4",
+    "com.unity.test-framework": "1.1.33",
+    "com.unity.ugui": "1.0.0",
+    "com.unity.modules.animation": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.particlesystem": "1.0.0",
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.physics2d": "1.0.0",
+    "com.unity.modules.subsystems": "1.0.0",
+    "com.unity.modules.terrain": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0"
+  },
+  "testables": [
+    "media.lightside.shader-compile-ci"
+  ]
+}

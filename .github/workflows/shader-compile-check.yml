@@ -1,0 +1,100 @@
+name: Shader Compile Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+    paths:
+      - "Assets/LightSide.Core"
+      - "Assets/UniLottie"
+      - "Assets/UniShapes"
+      - "Assets/UniText"
+      - ".github/ci/shader-compile/**"
+      - ".github/workflows/shader-compile-check.yml"
+  pull_request:
+    paths:
+      - "Assets/LightSide.Core"
+      - "Assets/UniLottie"
+      - "Assets/UniShapes"
+      - "Assets/UniText"
+      - ".github/ci/shader-compile/**"
+      - ".github/workflows/shader-compile-check.yml"
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: shader-compile-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Built-in - Unity 2022.3
+            project: builtin-2022
+            unity: 2022.3.62f2
+            pipeline: builtin
+          - name: Built-in - Unity 6000.5
+            project: builtin-6000
+            unity: 6000.5.4f1
+            pipeline: builtin
+          - name: URP 14 - Unity 2022.3
+            project: urp14
+            unity: 2022.3.62f2
+            pipeline: urp
+          - name: URP 17.0 - Unity 6000.0
+            project: urp17-6000
+            unity: 6000.0.23f1
+            pipeline: urp
+          - name: URP 17.5 - Unity 6000.5
+            project: urp17-latest
+            unity: 6000.5.4f1
+            pipeline: urp
+
+    steps:
+      - name: Checkout project and packages
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          lfs: true
+          submodules: recursive
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
+          key: shader-library-${{ matrix.project }}-${{ hashFiles('.github/ci/shader-compile/**', 'Assets/LightSide.Core/**', 'Assets/UniText/**', 'Assets/UniShapes/**', 'Assets/UniLottie/**') }}
+          restore-keys: |
+            shader-library-${{ matrix.project }}-
+
+      - name: Compile every LightSide shader
+        id: shader-tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .github/ci/shader-compile/projects/${{ matrix.project }}
+          unityVersion: ${{ matrix.unity }}
+          testMode: EditMode
+          artifactsPath: artifacts/${{ matrix.project }}
+          customParameters: -expectedRenderPipeline ${{ matrix.pipeline }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Shader Compile - ${{ matrix.name }}
+
+      - name: Upload compiler diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShaderDiagnostics-${{ matrix.project }}
+          path: artifacts/${{ matrix.project }}
+          if-no-files-found: warn
+          retention-days: 14
