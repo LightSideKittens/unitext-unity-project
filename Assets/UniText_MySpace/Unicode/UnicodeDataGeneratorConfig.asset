@@ -23,6 +23,7 @@ MonoBehaviour:
   generalCategoryAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871065b27, type: 3}
   eastAsianWidthAsset: {fileID: 4900000, guid: 1a2afe8518d1e7142a899f3871065b27, type: 3}
   graphemeBreakPropertyAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871074b28, type: 3}
+  wordBreakPropertyAsset: {fileID: 4900000, guid: 2b3e0aaf96bf4b0ebd4c1290d3d2e680, type: 3}
   derivedCorePropertiesAsset: {fileID: 4900000, guid: 1a2afe8518d1e7243a899f3871075b27, type: 3}
   scriptExtensionsAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871175b27, type: 3}
   unicodeDataAsset: {fileID: 4900000, guid: 95404f49457de4b4ba01ceabd3e1aef8, type: 3}
@@ -37,3 +38,4 @@ MonoBehaviour:
     scriptsAsset: {fileID: 4900000, guid: 1a2afe8518d1e7143a899f3871075b27, type: 3}
     scriptAnalyzerTestAsset: {fileID: 4900000, guid: 87be868fa981ac04a847b08b0315439a, type: 3}
     graphemeBreakTestAsset: {fileID: 4900000, guid: deb94d352db20d54db58a1a415e29fad, type: 3}
+    wordBreakTestAsset: {fileID: 4900000, guid: 87be968fa981ac04a847b08b0315439a, type: 3}

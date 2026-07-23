@@ -155,7 +155,7 @@ namespace UniText.Tests
             }
 
             breaks = new LineBreakType[text.Length + 1];
-            SharedPipelineComponents.LineBreakAlgorithm.GetBreakOpportunities(cpArr, breaks);
+            new LineBreakAlgorithm().GetBreakOpportunities(cpArr, breaks);
 
             var glyphList = new System.Collections.Generic.List<ShapedGlyph>();
             var runList = new System.Collections.Generic.List<ShapedRun>();

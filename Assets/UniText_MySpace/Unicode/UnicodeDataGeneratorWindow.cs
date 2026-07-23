@@ -20,6 +20,7 @@ public class TestData
     [SerializeField] private TextAsset scriptsAsset;
     [SerializeField] private TextAsset scriptAnalyzerTestAsset;
     [SerializeField] private TextAsset graphemeBreakTestAsset;
+    [SerializeField] private TextAsset wordBreakTestAsset;
 
     public void RunBidiCharacterTests()
     {
@@ -153,6 +154,29 @@ public class TestData
         catch (Exception ex)
         {
             Debug.LogError($"Exception while running GraphemeTests: {ex}");
+        }
+    }
+
+    public void RunWordBreakTests()
+    {
+        if (unicodeDataAsset == null || wordBreakTestAsset == null)
+        {
+            Debug.LogError("Assign unicodeDataAsset and wordBreakTestAsset.");
+            return;
+        }
+
+        try
+        {
+            using var provider = new UnicodeDataProvider(unicodeDataAsset.bytes);
+            var runner = new WordBreakConformanceRunner(provider);
+            var summary = runner.RunTests(wordBreakTestAsset.text, maxFailuresToLog);
+
+            LogSummary("WordBreakTest", summary.passedTests, summary.failedTests,
+                summary.skippedTests, summary.sampleFailures);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Exception while running WordBreakTest: {ex}");
         }
     }
 
@@ -336,6 +360,11 @@ public class TestData
         else
             Debug.LogWarning("Skipping Grapheme tests: graphemeBreakTestAsset not assigned");
 
+        if (wordBreakTestAsset != null)
+            RunWordBreakTests();
+        else
+            Debug.LogWarning("Skipping WordBreak tests: wordBreakTestAsset not assigned");
+
         Debug.Log("=== All Tests Complete ===");
     }
 
@@ -406,6 +435,12 @@ public class TestData
             typeof(TextAsset),
             false);
 
+        wordBreakTestAsset = (TextAsset)EditorGUILayout.ObjectField(
+            "WordBreakTest.txt",
+            wordBreakTestAsset,
+            typeof(TextAsset),
+            false);
+
         EditorGUILayout.Space();
 
         EditorGUILayout.BeginHorizontal();
@@ -446,6 +481,11 @@ public class TestData
         EditorGUI.BeginDisabledGroup(unicodeDataAsset == null || graphemeBreakTestAsset == null);
         if (GUILayout.Button("Grapheme"))
             RunGraphemeTests();
+        EditorGUI.EndDisabledGroup();
+
+        EditorGUI.BeginDisabledGroup(unicodeDataAsset == null || wordBreakTestAsset == null);
+        if (GUILayout.Button("WordBreak"))
+            RunWordBreakTests();
         EditorGUI.EndDisabledGroup();
 
         EditorGUILayout.EndHorizontal();
