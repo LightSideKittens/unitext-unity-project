@@ -8,11 +8,12 @@ using UnityEngine;
 
 public class BenchmarkRunner : MonoBehaviour
 {
-    const float WatchdogTimeout = 600f;
+    const float WatchdogTimeout = 1800f;
     const double InteractiveSelectionSeconds = 10.0;
 
     BenchmarkRunData data;
     bool suiteRunning;
+    float suiteStartedAt;
 
 #if UNITEXT_BENCHMARK
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -122,6 +123,7 @@ public class BenchmarkRunner : MonoBehaviour
     {
         if (suiteRunning) return;
         suiteRunning = true;
+        suiteStartedAt = Time.realtimeSinceStartup;
         Debug.Log("[BenchmarkRunner] Starting benchmarks...");
         StartCoroutine(GuardedRunSuite(runText, runGlyph));
     }
@@ -389,7 +391,7 @@ public class BenchmarkRunner : MonoBehaviour
 
     bool CheckWatchdog()
     {
-        if (Time.realtimeSinceStartup > WatchdogTimeout)
+        if (Time.realtimeSinceStartup - suiteStartedAt > WatchdogTimeout)
         {
             Debug.LogWarning($"[BenchmarkRunner] Watchdog timeout ({WatchdogTimeout}s), writing partial results");
             data.errors.Add($"Watchdog timeout at {Time.realtimeSinceStartup:F0}s");

@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
-const timeout = parseInt(process.env.APP_TIMEOUT || '600') * 1000;
+const timeout = parseInt(process.env.APP_TIMEOUT || '1800') * 1000;
 const mode = process.env.APP_MODE || 'test';
 const suite = process.env.APP_SUITE || 'all';
 

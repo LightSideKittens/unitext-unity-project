@@ -35,7 +35,7 @@ on:
         description: "Benchmarks run every engine x variant x font x iteration — far longer than tests (WebGL single-threaded wasm alone exceeds 300s)"
         required: false
         type: number
-        default: 900
+        default: 1800
 
 jobs:
   build:
