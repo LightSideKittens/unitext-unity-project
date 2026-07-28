@@ -476,7 +476,7 @@ runs:
           --device model=frankel,version=36 \
           --device model=pa3q,version=35 \
           --device model=a06,version=35 \
-          --device model=blueline,version=28 \
+          --device model=SH-01L,version=28 \
           --scenario-numbers=$SCENARIO \
           --timeout "${TIMEOUT_MINUTES}m" \
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \
