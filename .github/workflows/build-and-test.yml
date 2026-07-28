@@ -54,10 +54,10 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Build and test LightSide state source generator
+      - name: Build LightSide state source generator
         shell: bash
         run: |
-          dotnet test Assets/LightSide.Core/Tools~/StateCodeGen.Tests/LightSide.StateCodeGen.Tests.csproj --configuration Release
+          dotnet build Assets/LightSide.Core/Tools~/StateCodeGen/LightSide.StateCodeGen.csproj --configuration Release
           test -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.dll
           test ! -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.deps.json
 

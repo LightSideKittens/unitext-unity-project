@@ -20,6 +20,9 @@ namespace UniText.Tests
             return edit.Apply();
         }
 
+        static uint Pack(byte r, byte g, byte b, byte a)
+            => r | (uint)g << 8 | (uint)b << 16 | (uint)a << 24;
+
         const string Header = "%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n";
 
         const string ComponentDefaultHighlighter = Header +
@@ -43,7 +46,7 @@ MonoBehaviour:
         [Test]
         public void Highlighter_ComponentLevel_Default_IsRemoved()
         {
-            var result = Run(new HighlighterToStylerMigration(), ComponentDefaultHighlighter);
+            var result = Run(new DefaultTextHighlighterMigration(), ComponentDefaultHighlighter);
 
             StringAssert.DoesNotContain("highlighter", result);
             StringAssert.DoesNotContain("DefaultTextHighlighter", result);
@@ -56,8 +59,9 @@ MonoBehaviour:
         {
             var yaml = ComponentDefaultHighlighter.Replace("a: 0.6", "a: 0.9");
 
-            LogAssert.Expect(LogType.Warning, new Regex("custom colours"));
-            var result = Run(new HighlighterToStylerMigration(), yaml);
+            LogAssert.Expect(LogType.Warning,
+                new Regex("removed the old component-level highlighter"));
+            var result = Run(new DefaultTextHighlighterMigration(), yaml);
 
             StringAssert.DoesNotContain("DefaultTextHighlighter", result);
         }
@@ -87,41 +91,51 @@ MonoBehaviour:
 ";
 
         [Test]
-        public void Highlighter_OnModifier_Custom_BecomesStylerWithMappedColours()
+        public void Highlighter_OnModifier_Custom_BecomesEffectsWithMappedColours()
         {
-            var result = Run(new HighlighterToStylerMigration(), ModifierHighlighter);
+            var result = Run(new DefaultTextHighlighterMigration(), ModifierHighlighter);
 
-            StringAssert.Contains("styler:", result);
+            StringAssert.Contains("effects:", result);
             StringAssert.DoesNotContain("highlighter", result);
-            StringAssert.Contains("class: StateHighlightStyler", result);
-            StringAssert.Contains("pressed:", result);
-            StringAssert.Contains("color: {r: 255, g: 0, b: 0, a: 128}", result);
-            StringAssert.Contains("color: {r: 0, g: 255, b: 0, a: 51}", result);
-            StringAssert.Contains("activatedFlash: 0.5", result);
-            StringAssert.Contains("rid: 200", result);
+            StringAssert.DoesNotContain("DefaultTextHighlighter", result);
+            StringAssert.DoesNotContain("styler:", result);
+            Assert.AreEqual(3, Regex.Matches(result, "class: ModifierEffect").Count);
+            Assert.AreEqual(3, Regex.Matches(result, "class: HighlightModifier").Count);
+            Assert.AreEqual(2,
+                Regex.Matches(result, $"rgba: {Pack(255, 0, 0, 128)}").Count);
+            Assert.AreEqual(1,
+                Regex.Matches(result, $"rgba: {Pack(0, 255, 0, 51)}").Count);
+            StringAssert.Contains("exitDuration: 0.5", result);
         }
 
         [Test]
-        public void Highlighter_OnModifier_Default_BecomesStylerWithDefaultData()
+        public void Highlighter_OnModifier_Default_BecomesEffectsWithDefaultColours()
         {
             var yaml = ModifierHighlighter
                 .Replace("clickColor: {r: 1, g: 0, b: 0, a: 0.5}", "clickColor: {r: 0.2, g: 0.5, b: 1, a: 0.6}")
                 .Replace("fadeDuration: 0.5", "fadeDuration: 0.25")
                 .Replace("hoverColor: {r: 0, g: 1, b: 0, a: 0.2}", "hoverColor: {r: 0.2, g: 0.5, b: 1, a: 0.1}");
 
-            var result = Run(new HighlighterToStylerMigration(), yaml);
+            var result = Run(new DefaultTextHighlighterMigration(), yaml);
 
-            StringAssert.Contains("class: StateHighlightStyler", result);
-            StringAssert.Contains("styler:", result);
+            StringAssert.Contains("effects:", result);
+            StringAssert.DoesNotContain("styler:", result);
             StringAssert.DoesNotContain("clickColor", result);
-            StringAssert.DoesNotContain("pressed:", result);
+            StringAssert.DoesNotContain("DefaultTextHighlighter", result);
+            Assert.AreEqual(3, Regex.Matches(result, "class: ModifierEffect").Count);
+            Assert.AreEqual(3, Regex.Matches(result, "class: HighlightModifier").Count);
+            Assert.AreEqual(2,
+                Regex.Matches(result, $"rgba: {Pack(51, 128, 255, 153)}").Count);
+            Assert.AreEqual(1,
+                Regex.Matches(result, $"rgba: {Pack(51, 128, 255, 26)}").Count);
+            StringAssert.Contains("exitDuration: 0.25", result);
         }
 
         [Test]
         public void Highlighter_Migration_IsIdempotent()
         {
-            var once = Run(new HighlighterToStylerMigration(), ModifierHighlighter);
-            var twice = Run(new HighlighterToStylerMigration(), once);
+            var once = Run(new DefaultTextHighlighterMigration(), ModifierHighlighter);
+            var twice = Run(new DefaultTextHighlighterMigration(), once);
             Assert.AreEqual(once, twice);
         }
 
@@ -129,7 +143,7 @@ MonoBehaviour:
         public void Highlighter_NonMatchingDocument_IsUntouched()
         {
             var yaml = ModifierHighlighter.Replace("DefaultTextHighlighter", "UserHighlighter");
-            var result = Run(new HighlighterToStylerMigration(), yaml);
+            var result = Run(new DefaultTextHighlighterMigration(), yaml);
             Assert.AreEqual(yaml, result);
         }
 
@@ -231,7 +245,7 @@ MonoBehaviour:
         [Test]
         public void Parser_MultilineQuotedScalars_DoNotDerailTheDocument()
         {
-            var result = Run(new HighlighterToStylerMigration(), MultilineQuotedText);
+            var result = Run(new DefaultTextHighlighterMigration(), MultilineQuotedText);
 
             StringAssert.DoesNotContain("DefaultTextHighlighter", result);
             StringAssert.DoesNotContain("highlighter", result);
@@ -256,6 +270,50 @@ MonoBehaviour:
             var result = Run(new GlobalGradientToPaintProviderMigration(), yaml);
             StringAssert.Contains("class: GlobalSettingsPaintProvider", result);
             StringAssert.DoesNotContain("GradientProvider", result);
+        }
+
+        const string SelectableSelectionStyle = Header +
+@"--- !u!114 &5
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: 22327851aa2916949b07f9d7a33d0f72, type: 3}
+  selectionStyle:
+    paint:
+      kind: 1
+      color:
+        serializedVersion: 2
+        rgba: 1728020531
+      swatch:
+    height: 1
+    padding: {x: 0.1, y: 0.2}
+    cornerRadius: 0.3
+    boxBreak: 2
+    mergeThreshold: -1
+  contextMenu: {fileID: 0}
+";
+
+        [Test]
+        public void SelectableSelectionStyle_BecomesSharedHighlightPresentation()
+        {
+            var result = Run(new SelectionHighlightPresentationMigration(), SelectableSelectionStyle);
+
+            StringAssert.DoesNotContain("selectionStyle:", result);
+            StringAssert.Contains("selectionHighlight:", result);
+            StringAssert.Contains("class: GlobalSettingsPaintProvider", result);
+            StringAssert.Contains("geometryMapping: 3", result);
+            StringAssert.Contains("value: {x: 0.1, y: 0.2}", result);
+            StringAssert.Contains("value: 0.3", result);
+            StringAssert.Contains("tint:", result);
+            StringAssert.Contains("rgba: 4294967295", result);
+            StringAssert.DoesNotContain("opacity:", result);
+            Assert.AreEqual(3, Regex.Matches(result, "unit: 2").Count);
+        }
+
+        [Test]
+        public void SelectableSelectionStyle_Migration_IsIdempotent()
+        {
+            var once = Run(new SelectionHighlightPresentationMigration(), SelectableSelectionStyle);
+            var twice = Run(new SelectionHighlightPresentationMigration(), once);
+            Assert.AreEqual(once, twice);
         }
     }
 }
