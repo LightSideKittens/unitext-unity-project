@@ -66,9 +66,6 @@ MonoBehaviour:
       - rid: 5346788256457425180
       - rid: 5346788256457425181
       - rid: 5346788256457425182
-      - rid: 5414327499389665281
-      - rid: 5414327499389665282
-      - rid: 5414327499389665283
       - rid: 5414327499389665284
     m_RuntimeSettings:
       m_List: []
@@ -434,33 +431,6 @@ MonoBehaviour:
         probeVolumeOffsetDebugShader: {fileID: 4800000, guid: db8bd7436dc2c5f4c92655307d198381, type: 3}
         probeSamplingDebugMesh: {fileID: -3555484719484374845, guid: 20be25aac4e22ee49a7db76fb3df6de2, type: 3}
         numbersDisplayTex: {fileID: 2800000, guid: 73fe53b428c5b3440b7e87ee830b608a, type: 3}
-    - rid: 5414327499389665281
-      type: {class: ScreenSpaceReflectionPersistentResources, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
-      data:
-        m_Shader: {instanceID: 568105584918833298}
-        m_BlitShader: {instanceID: 568105584918833300}
-        m_Version: 0
-    - rid: 5414327499389665282
-      type: {class: UniversalRenderPipelineFilmGrainResources, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
-      data:
-        m_Textures:
-        - {instanceID: 568105584918833204}
-        - {instanceID: 568105584918833206}
-        - {instanceID: 568105584918833208}
-        - {instanceID: 568105584918833210}
-        - {instanceID: 568105584918833212}
-        - {instanceID: 568105584918833214}
-        - {instanceID: 568105584918833216}
-        - {instanceID: 568105584918833218}
-        - {instanceID: 568105584918833220}
-        - {instanceID: 568105584918833222}
-        m_Version: 0
-    - rid: 5414327499389665283
-      type: {class: MipGenRenderPipelineRuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Universal.Runtime}
-      data:
-        m_ColorPyramidPS: {instanceID: 568105584918833302}
-        m_ColorPyramidCS: {instanceID: 568105584918833304}
-        m_DepthPyramidCS: {instanceID: 568105584918833306}
     - rid: 5414327499389665284
       type: {class: WorldRenderPipelineResources, ns: UnityEngine.PathTracing.Core, asm: Unity.PathTracing.Runtime}
       data:

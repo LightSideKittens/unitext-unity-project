@@ -71,27 +71,27 @@ public class UniTextBenchmark : UGuiTextBenchmarkBase
         if (enabled)
         {
             richPreset ??= BuildRichPreset();
-            text.AddStylePreset(richPreset);
+            text.StylePresets.Add(richPreset);
         }
         else if (richPreset != null)
         {
-            text.RemoveStylePreset(richPreset);
+            text.StylePresets.Remove(richPreset);
         }
     }
 
     static StylePreset BuildRichPreset()
     {
         var preset = ScriptableObject.CreateInstance<StylePreset>();
-        preset.AddStyle(Style.Tag(new BoldModifier(), "b"));
-        preset.AddStyle(Style.Tag(new ItalicModifier(), "i"));
-        preset.AddStyle(Style.Tag(new UnderlineModifier(), "u"));
-        preset.AddStyle(Style.Tag(new StrikethroughModifier(), "s"));
-        preset.AddStyle(Style.Tag(new ColorModifier(), "color"));
-        preset.AddStyle(Style.Tag(new SizeModifier(), "size"));
-        preset.AddStyle(Style.Tag(new ScriptPositionModifier(), "sup", "super"));
-        preset.AddStyle(Style.Tag(new ScriptPositionModifier(), "sub", "sub"));
-        preset.AddStyle(Style.Tag(new UppercaseModifier(), "uppercase"));
-        preset.AddStyle(Style.Tag(new LowercaseModifier(), "lowercase"));
+        preset.Styles.Add(Style.Tag(new BoldModifier(), "b"));
+        preset.Styles.Add(Style.Tag(new ItalicModifier(), "i"));
+        preset.Styles.Add(Style.Tag(new UnderlineModifier(), "u"));
+        preset.Styles.Add(Style.Tag(new StrikethroughModifier(), "s"));
+        preset.Styles.Add(Style.Tag(new ColorModifier(), "color"));
+        preset.Styles.Add(Style.Tag(new SizeModifier(), "size"));
+        preset.Styles.Add(Style.Tag(new ScriptPositionModifier(), "sup", "super"));
+        preset.Styles.Add(Style.Tag(new ScriptPositionModifier(), "sub", "sub"));
+        preset.Styles.Add(Style.Tag(new UppercaseModifier(), "uppercase"));
+        preset.Styles.Add(Style.Tag(new LowercaseModifier(), "lowercase"));
         return preset;
     }
 

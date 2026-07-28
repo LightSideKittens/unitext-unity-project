@@ -5,7 +5,6 @@ namespace SRF.UI.Layout
     using System;
     using Internal;
     using UnityEngine;
-    using UnityEngine.Events;
     using UnityEngine.EventSystems;
     using UnityEngine.UI;
 
@@ -26,8 +25,6 @@ namespace SRF.UI.Layout
         private int _selectedIndex;
         private object _selectedItem;
 
-        [SerializeField] private SelectedItemChangedEvent _selectedItemChanged;
-
         private int _visibleItemCount;
         private SRList<Row> _visibleRows = new SRList<Row>();
         public StyleSheet AltRowStyleSheet;
@@ -43,11 +40,7 @@ namespace SRF.UI.Layout
 
                 public bool StickToBottom = true;
 
-        public SelectedItemChangedEvent SelectedItemChanged
-        {
-            get { return _selectedItemChanged; }
-            set { _selectedItemChanged = value; }
-        }
+        public event Action<object> SelectedItemChanged;
 
         public object SelectedItem
         {
@@ -84,10 +77,7 @@ namespace SRF.UI.Layout
 
                 SetDirty();
 
-                if (_selectedItemChanged != null)
-                {
-                    _selectedItemChanged.Invoke(_selectedItem);
-                }
+                SelectedItemChanged?.Invoke(_selectedItem);
             }
         }
 
@@ -356,9 +346,6 @@ namespace SRF.UI.Layout
             _isDirty = true;
             //CanvasUpdateRegistry.RegisterCanvasElementForLayoutRebuild(this);
         }
-
-        [Serializable]
-        public class SelectedItemChangedEvent : UnityEvent<object> {}
 
         [Serializable]
         private class Row

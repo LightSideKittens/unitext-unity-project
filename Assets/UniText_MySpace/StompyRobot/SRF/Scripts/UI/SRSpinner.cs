@@ -3,7 +3,6 @@
     using System;
     using Internal;
     using UnityEngine;
-    using UnityEngine.Events;
     using UnityEngine.EventSystems;
     using UnityEngine.UI;
 
@@ -12,23 +11,11 @@
     {
         private float _dragDelta;
 
-        [SerializeField] private SpinEvent _onSpinDecrement = new SpinEvent();
+        public float DragThreshold = 20f;
 
-        [SerializeField] private SpinEvent _onSpinIncrement = new SpinEvent();
+        public event Action OnSpinIncrement;
 
-                public float DragThreshold = 20f;
-
-        public SpinEvent OnSpinIncrement
-        {
-            get { return _onSpinIncrement; }
-            set { _onSpinIncrement = value; }
-        }
-
-        public SpinEvent OnSpinDecrement
-        {
-            get { return _onSpinDecrement; }
-            set { _onSpinDecrement = value; }
-        }
+        public event Action OnSpinDecrement;
 
         public void OnBeginDrag(PointerEventData eventData)
         {
@@ -66,7 +53,7 @@
         {
             for (var i = 0; i < amount; i++)
             {
-                OnSpinIncrement.Invoke();
+                OnSpinIncrement?.Invoke();
             }
         }
 
@@ -74,11 +61,8 @@
         {
             for (var i = 0; i < amount; i++)
             {
-                OnSpinDecrement.Invoke();
+                OnSpinDecrement?.Invoke();
             }
         }
-
-        [Serializable]
-        public class SpinEvent : UnityEvent {}
     }
 }

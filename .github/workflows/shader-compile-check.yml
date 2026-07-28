@@ -1,4 +1,4 @@
-name: Shader Compile Check
+name: Shader and State Contract Check
 
 on:
   workflow_dispatch:
@@ -66,6 +66,18 @@ jobs:
           lfs: true
           submodules: recursive
 
+      - name: Setup .NET for LightSide state code generation
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build LightSide state source generator
+        shell: bash
+        run: |
+          dotnet build Assets/LightSide.Core/Tools~/StateCodeGen/LightSide.StateCodeGen.csproj --configuration Release
+          test -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.dll
+          test ! -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.deps.json
+
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
@@ -74,7 +86,7 @@ jobs:
           restore-keys: |
             shader-library-${{ matrix.project }}-
 
-      - name: Compile every LightSide shader
+      - name: Run shader and serialized-state contract tests
         id: shader-tests
         uses: game-ci/unity-test-runner@v4
         env:
@@ -88,7 +100,7 @@ jobs:
           artifactsPath: artifacts/${{ matrix.project }}
           customParameters: -expectedRenderPipeline ${{ matrix.pipeline }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: Shader Compile - ${{ matrix.name }}
+          checkName: Shader and State Contracts - ${{ matrix.name }}
 
       - name: Upload compiler diagnostics
         if: always()

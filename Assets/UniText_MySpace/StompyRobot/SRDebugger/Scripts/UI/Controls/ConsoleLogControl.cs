@@ -81,7 +81,7 @@ namespace SRDebugger.UI.Controls
         {
             base.Awake();
 
-            _consoleScrollLayoutGroup.SelectedItemChanged.AddListener(OnSelectedItemChanged);
+            _consoleScrollLayoutGroup.SelectedItemChanged += OnSelectedItemChanged;
             Service.Console.Updated += ConsoleOnUpdated;
         }
 

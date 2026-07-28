@@ -90,7 +90,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
         if (strokeStyles != null)
         {
             foreach (var (text, style) in strokeStyles)
-                text.RemoveStyle(style);
+                text.Styles.Remove(style);
             strokeStyles = null;
         }
 
@@ -134,7 +134,7 @@ public class UniText_GlyphRasterizationBenchmark : GlyphRasterBenchmarkBase
             foreach (var ut in targets)
             {
                 var style = Style.WholeText(new StrokeModifier { Width = UnitValue.Em(1f), Align = 1f });
-                ut.AddStyle(style);
+                ut.Styles.Add(style);
                 strokeStyles.Add((ut, style));
             }
         }

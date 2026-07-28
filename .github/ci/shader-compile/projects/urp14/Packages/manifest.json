@@ -24,6 +24,10 @@
     "com.unity.modules.unitywebrequest": "1.0.0"
   },
   "testables": [
-    "media.lightside.shader-compile-ci"
+    "media.lightside.core",
+    "media.lightside.shader-compile-ci",
+    "media.lightside.unilottie",
+    "media.lightside.unishapes",
+    "media.lightside.unitext"
   ]
 }
