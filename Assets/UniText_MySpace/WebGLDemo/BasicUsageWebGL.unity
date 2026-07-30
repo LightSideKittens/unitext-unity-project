@@ -5098,18 +5098,8 @@ MonoBehaviour:
         modifierNodeId:
           high: 5665420299715264614
           low: 9447738978941370802
-        size: {x: NaN, y: NaN}
-        bearingOffset: {x: NaN, y: NaN}
-        advance: NaN
-        lineHeightAbove: NaN
-        lineHeightBelow: NaN
-        key: 
-        color:
-          source: 0
-          color:
-            serializedVersion: 2
-            rgba: 0
-        preserveAspect: 0
+        overrides:
+          items: []
         provider:
           rid: 7750514006606479500
     - rid: 7750514006606479498
@@ -5913,6 +5903,7 @@ MonoBehaviour:
   statusText: {fileID: 2146591882}
   registerModifiersOnStart: 1
   demoPaints: {fileID: 11400000, guid: a4d9f2c7e1b83046a5c9e2d1f7b3086c, type: 2}
+  demoSprites: {fileID: 11400000, guid: 87d69303c8b0b354e980df7e45cb3139, type: 2}
   mathFont: {fileID: 11400000, guid: 6ec2fbb4803b1254f8207b646dfb3383, type: 2}
   browserBridgeObjectName: DemoController
   button: {fileID: 69774887}

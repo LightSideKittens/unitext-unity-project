@@ -141,7 +141,8 @@ namespace LightSide.Tests
         {
             internal int Count { get; private set; }
 
-            public void MarkInputBehaviorChanged(InputBehavior behavior) => Count++;
+            void IInputBehaviorChangeSink.MarkInputBehaviorChanged(InputBehavior behavior,
+                IStateMemberReplay source, StateMember member, bool structural) => Count++;
 
             internal void Reset() => Count = 0;
         }
