@@ -115,7 +115,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492291
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -275,7 +275,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492300
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -284,7 +284,7 @@ MonoBehaviour:
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492302
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -493,7 +493,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492274
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -755,7 +755,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492277
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -764,7 +764,7 @@ MonoBehaviour:
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492279
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -774,7 +774,7 @@ MonoBehaviour:
       data:
         fixedPixelSize: 1
     - rid: 7560738430862492281
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -975,7 +975,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492257
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -1309,7 +1309,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492263
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -1525,7 +1525,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492226
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 0..11
@@ -1844,7 +1844,7 @@ MonoBehaviour:
       type: {class: LetterSpacingModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492228
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 91..92
@@ -1999,7 +1999,7 @@ MonoBehaviour:
       type: {class: SizeModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492230
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 0..27
@@ -2210,7 +2210,7 @@ MonoBehaviour:
       type: {class: FontModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492232
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 293..300
@@ -2245,7 +2245,7 @@ MonoBehaviour:
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492234
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 81..102
@@ -2296,7 +2296,7 @@ MonoBehaviour:
       type: {class: ItalicModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492236
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 293..300
@@ -2315,7 +2315,7 @@ MonoBehaviour:
       type: {class: UppercaseModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492238
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 533..542
@@ -2340,7 +2340,7 @@ MonoBehaviour:
       type: {class: LowercaseModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492240
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 6..11
@@ -2361,7 +2361,7 @@ MonoBehaviour:
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492242
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 48..66
@@ -2468,7 +2468,7 @@ MonoBehaviour:
       type: {class: UnderlineModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492244
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 200..203
@@ -2523,7 +2523,7 @@ MonoBehaviour:
       type: {class: StrikethroughModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492246
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 140..151
@@ -2577,7 +2577,7 @@ MonoBehaviour:
         enableUnderline: 0
         autoOpenUrl: 1
     - rid: 7560738430862492248
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 200..203
@@ -2602,7 +2602,7 @@ MonoBehaviour:
         provider:
           rid: 7560738430862492252
     - rid: 7560738430862492250
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 293..295
@@ -2775,7 +2775,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492219
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -2784,7 +2784,7 @@ MonoBehaviour:
       type: {class: LetterSpacingModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492221
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -2793,7 +2793,7 @@ MonoBehaviour:
       type: {class: UppercaseModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492223
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -3014,7 +3014,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492254
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -3238,7 +3238,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492269
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -3247,7 +3247,7 @@ MonoBehaviour:
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492271
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -3375,7 +3375,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492294
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 0..53
@@ -3386,7 +3386,7 @@ MonoBehaviour:
         provider:
           rid: 7560738430862492298
     - rid: 7560738430862492296
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 0..15
@@ -3788,7 +3788,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492260
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -3895,7 +3895,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492305
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -3904,7 +3904,7 @@ MonoBehaviour:
       type: {class: LetterSpacingModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492307
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -3913,7 +3913,7 @@ MonoBehaviour:
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492309
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -4020,7 +4020,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492212
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -4029,7 +4029,7 @@ MonoBehaviour:
       type: {class: LetterSpacingModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492214
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -4038,7 +4038,7 @@ MonoBehaviour:
       type: {class: UppercaseModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492216
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -4233,7 +4233,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492266
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -4361,7 +4361,7 @@ MonoBehaviour:
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492284
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -4370,7 +4370,7 @@ MonoBehaviour:
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 7560738430862492286
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -4380,7 +4380,7 @@ MonoBehaviour:
       data:
         fixedPixelSize: 1
     - rid: 7560738430862492288
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 

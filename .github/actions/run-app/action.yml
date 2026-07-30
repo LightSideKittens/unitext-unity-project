@@ -314,10 +314,7 @@ runs:
           sleep 1
         done
 
-        cp "${{ github.action_path }}/webgl.spec.js" ./webgl.spec.js
-        cp "${{ github.action_path }}/playwright.config.js" ./playwright.config.js
-
-        npx playwright test webgl.spec.js --reporter=list || EXIT_CODE=$?
+        npx playwright test --config="${{ github.action_path }}/playwright.config.js" --reporter=list || EXIT_CODE=$?
 
         kill $SERVER_PID 2>/dev/null || true
         exit ${EXIT_CODE:-0}

@@ -14,8 +14,7 @@ function saveScreenshots(screenshots) {
   console.log(`Saved ${screenshots.length} screenshot(s)`);
 }
 
-test('UniText WebGL ' + mode, async ({ page }) => {
-  page.on('console', msg => console.log('[Browser]', msg.text()));
+async function run(page) {
   const url = mode === 'benchmark'
     ? `https://localhost:8080/?suite=${encodeURIComponent(suite)}`
     : 'https://localhost:8080';
@@ -39,4 +38,16 @@ test('UniText WebGL ' + mode, async ({ page }) => {
 
     expect(results.allPassed).toBe(true);
   }
+}
+
+test('UniText WebGL ' + mode, async ({ page }) => {
+  let fail;
+  const browserFailure = new Promise((_, reject) => fail = reject);
+  page.on('console', msg => {
+    console.log('[Browser]', msg.text());
+    if (msg.type() === 'error') fail(new Error(msg.text()));
+  });
+  page.on('pageerror', fail);
+
+  await Promise.race([run(page), browserFailure]);
 });

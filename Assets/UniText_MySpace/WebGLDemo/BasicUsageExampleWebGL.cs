@@ -46,9 +46,6 @@ namespace LightSide.Samples
             if (!string.IsNullOrEmpty(browserBridgeObjectName) && gameObject.name != browserBridgeObjectName)
                 gameObject.name = browserBridgeObjectName;
 
-#if UNITY_WEBGL && !UNITY_EDITOR
-            WebGLInput.captureAllKeyboardInput = false;
-#endif
             button.onClick.AddListener(OnButtonClick);
         }
 
