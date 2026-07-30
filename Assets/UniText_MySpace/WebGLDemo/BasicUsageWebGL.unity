@@ -296,7 +296,7 @@ MonoBehaviour:
       m_Calls: []
   text: "Enter Play Mode to see examples\u2764\uFE0F"
   font: {fileID: 0}
-  fontStack: {fileID: 11400000, guid: 5533cb9b3cdff7548a43448a32c090ce, type: 2}
+  fontStack: {fileID: 11400000, guid: 31a87aab9fd6a924490326c2939f005f, type: 2}
   fontSize: 36
   wordWrap: 1
   padding: {x: 10, y: 10, z: 10, w: 10}
@@ -381,7 +381,7 @@ MonoBehaviour:
       m_Calls: []
   text: "\U0001F446 Drag with finger or mouse to explore\n"
   font: {fileID: 0}
-  fontStack: {fileID: 11400000, guid: 5533cb9b3cdff7548a43448a32c090ce, type: 2}
+  fontStack: {fileID: 11400000, guid: 31a87aab9fd6a924490326c2939f005f, type: 2}
   fontSize: 36
   wordWrap: 1
   padding: {x: 0, y: 0, z: 0, w: 0}
@@ -394,13 +394,13 @@ MonoBehaviour:
     items:
     - modifier:
         rid: 5346788061360161101
-      rule:
+      source:
         rid: 5346788061360161102
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 5346788061360161103
-      rule:
+      source:
         rid: 5346788061360161104
       defaultParameter: 
       disabled: 0
@@ -414,17 +414,23 @@ MonoBehaviour:
     - rid: 5346788061360161101
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 4669189507502769237
+          low: 16558676013707436979
         weight: 0
         mode: 0
     - rid: 5346788061360161102
       type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
-        data:
+        ranges:
         - range: ..
           parameter: 900
     - rid: 5346788061360161103
       type: {class: LetterSpacingModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5391596618245877014
+          low: 17188941712658384514
         spacing:
           value: 0.3
           unit: 0
@@ -432,7 +438,7 @@ MonoBehaviour:
     - rid: 5346788061360161104
       type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
-        data:
+        ranges:
         - range: ..
           parameter: -3.8,false
 --- !u!222 &628271375
@@ -826,6 +832,7 @@ MonoBehaviour:
   statusText: {fileID: 2146591882}
   registerModifiersOnStart: 1
   demoPaints: {fileID: 11400000, guid: a4d9f2c7e1b83046a5c9e2d1f7b3086c, type: 2}
+  mathFont: {fileID: 11400000, guid: 6ec2fbb4803b1254f8207b646dfb3383, type: 2}
   browserBridgeObjectName: DemoController
 --- !u!1 &2146591880
 GameObject:
@@ -886,7 +893,7 @@ MonoBehaviour:
       m_Calls: []
   text: Status
   font: {fileID: 0}
-  fontStack: {fileID: 11400000, guid: 5533cb9b3cdff7548a43448a32c090ce, type: 2}
+  fontStack: {fileID: 11400000, guid: 31a87aab9fd6a924490326c2939f005f, type: 2}
   fontSize: 38
   wordWrap: 1
   padding: {x: 15, y: 15, z: 15, w: 15}
@@ -899,7 +906,7 @@ MonoBehaviour:
     items:
     - modifier:
         rid: 2935973710890795272
-      rule:
+      source:
         rid: 2935973710890795273
       defaultParameter: 
       disabled: 0
@@ -913,6 +920,9 @@ MonoBehaviour:
     - rid: 2935973710890795272
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5631331230250744454
+          low: 4487229189559784874
         color:
           serializedVersion: 2
           rgba: 4294967295
