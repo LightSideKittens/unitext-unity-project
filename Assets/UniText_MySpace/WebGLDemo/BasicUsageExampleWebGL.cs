@@ -3,6 +3,7 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 namespace LightSide.Samples
 {
@@ -24,6 +25,10 @@ namespace LightSide.Samples
                  "Must match the value in DemoPage.tsx on the website.")]
         [SerializeField] private string browserBridgeObjectName = "DemoController";
 
+        [SerializeField] private Button button;
+        [SerializeField] private GameObject basicUsageContainer;
+        [SerializeField] private GameObject editableContainer;
+        
         private string lastSyncedText;
         private UniTextFont loadedFont;
 
@@ -44,6 +49,13 @@ namespace LightSide.Samples
 #if UNITY_WEBGL && !UNITY_EDITOR
             WebGLInput.captureAllKeyboardInput = false;
 #endif
+            button.onClick.AddListener(OnButtonClick);
+        }
+
+        private void OnButtonClick()
+        {
+            basicUsageContainer.SetActive(!basicUsageContainer.activeSelf);
+            editableContainer.SetActive(!editableContainer.activeSelf);
         }
 
         protected override void ApplyText(string text)
