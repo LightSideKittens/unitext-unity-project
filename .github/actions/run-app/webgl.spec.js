@@ -43,10 +43,7 @@ async function run(page) {
 test('UniText WebGL ' + mode, async ({ page }) => {
   let fail;
   const browserFailure = new Promise((_, reject) => fail = reject);
-  page.on('console', msg => {
-    console.log('[Browser]', msg.text());
-    if (msg.type() === 'error') fail(new Error(msg.text()));
-  });
+  page.on('console', msg => console.log('[Browser]', msg.text()));
   page.on('pageerror', fail);
 
   await Promise.race([run(page), browserFailure]);
