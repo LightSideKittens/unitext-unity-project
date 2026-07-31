@@ -60,14 +60,14 @@ jobs:
 
     steps:
       - name: Checkout project and packages
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_PAT }}
           lfs: true
           submodules: recursive
 
       - name: Setup .NET for LightSide state code generation
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
@@ -79,7 +79,7 @@ jobs:
           test ! -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.deps.json
 
       - name: Cache Unity Library
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
           key: shader-library-${{ matrix.project }}-${{ hashFiles('.github/ci/shader-compile/**', 'Assets/LightSide.Core/**', 'Assets/UniText/**', 'Assets/UniShapes/**', 'Assets/UniLottie/**') }}
@@ -88,7 +88,7 @@ jobs:
 
       - name: Run shader and serialized-state contract tests
         id: shader-tests
-        uses: game-ci/unity-test-runner@v4
+        uses: game-ci/unity-test-runner@08fd329f00a18efa297140b14ac28ebce742759e
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload compiler diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ShaderDiagnostics-${{ matrix.project }}
           path: artifacts/${{ matrix.project }}

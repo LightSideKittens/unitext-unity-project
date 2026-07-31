@@ -275,7 +275,7 @@ runs:
     # ----------------------------------------
     - name: Setup Node.js (WebGL)
       if: inputs.platform == 'WebGL'
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: '20'
 
@@ -324,7 +324,7 @@ runs:
     # ----------------------------------------
     - name: Checkout ci-workflows (iOS)
       if: inputs.platform == 'iOS'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         repository: LightSideKittens/ci-workflows
         token: ${{ env.GH_PAT }}

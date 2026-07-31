@@ -43,14 +43,14 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_PAT }}
           lfs: true
           submodules: recursive
 
       - name: Setup .NET for LightSide state code generation
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
@@ -68,7 +68,7 @@ jobs:
           rm -f Packages/packages-lock.json
 
       - name: Cache Library
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Library
           key: Library-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -77,7 +77,7 @@ jobs:
             Library-${{ inputs.platform }}-
 
       - name: Cache IL2CPP
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             Library/Il2cppBuildCache
@@ -88,7 +88,7 @@ jobs:
 
       - name: "${{ inputs.platform == 'iOS' && 'Generate Xcode Project (not Xcode build)' || 'Build' }}"
         timeout-minutes: 60
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v5
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -102,7 +102,7 @@ jobs:
           customParameters: -ciDebug ${{ inputs.benchmark == 'none' && inputs.debug || false }} -ciBenchmark ${{ inputs.benchmark != 'none' }} -ciTests ${{ inputs.run_tests }} -ciSlideshow ${{ inputs.slideshow }} ${{ inputs.benchmark != 'none' && '-Development' || '' }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Build-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: build
@@ -122,7 +122,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_PAT }}
           sparse-checkout: |
@@ -132,20 +132,20 @@ jobs:
             Assets/UniText.Test
 
       - name: Download Build Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: Build-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: build
 
       - name: Authenticate to Google Cloud (Android/iOS)
         if: inputs.platform == 'Android' || inputs.platform == 'iOS'
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
 
       - name: Setup Google Cloud SDK (Android/iOS)
         if: inputs.platform == 'Android' || inputs.platform == 'iOS'
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ secrets.FIREBASE_PROJECT_ID }}
 
@@ -173,7 +173,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.slideshow && 'Slideshow' || 'TestResults' }}-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: |
@@ -217,7 +217,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_PAT }}
           sparse-checkout: |
@@ -226,20 +226,20 @@ jobs:
             Assets/server.js
 
       - name: Download Build Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: Build-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: build
 
       - name: Authenticate to Google Cloud (Android/iOS)
         if: inputs.platform == 'Android' || inputs.platform == 'iOS'
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
 
       - name: Setup Google Cloud SDK (Android/iOS)
         if: inputs.platform == 'Android' || inputs.platform == 'iOS'
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ secrets.FIREBASE_PROJECT_ID }}
 
@@ -287,7 +287,7 @@ jobs:
 
       - name: Upload Benchmark Results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: BenchmarkResults-${{ inputs.benchmark }}-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: |
