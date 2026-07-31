@@ -21,6 +21,15 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
     private RectTransform draggerRect;
     private UniText[] draggableTexts;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void InstallPlayerLoopProbe()
+    {
+        var loop = PlayerLoop.GetCurrentPlayerLoop();
+        loop.subSystemList = AddPlayerLoopMarkers(loop.subSystemList, true);
+        PlayerLoop.SetPlayerLoop(loop);
+        Debug.Log("[BasicUsageSlideshow] PlayerLoop probe installed");
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void OnRuntimeStart()
     {
@@ -48,16 +57,7 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         Debug.Log("[BasicUsageSlideshow] Creating runner");
         var runner = new GameObject(nameof(BasicUsageSlideshowRunner)).AddComponent<BasicUsageSlideshowRunner>();
         runner.demo = demo;
-        InstallPlayerLoopProbe();
         Debug.Log("[BasicUsageSlideshow] Runtime initialization completed");
-    }
-
-    private static void InstallPlayerLoopProbe()
-    {
-        var loop = PlayerLoop.GetCurrentPlayerLoop();
-        loop.subSystemList = AddPlayerLoopMarkers(loop.subSystemList, true);
-        PlayerLoop.SetPlayerLoop(loop);
-        Debug.Log("[BasicUsageSlideshow] PlayerLoop probe installed");
     }
 
     private static PlayerLoopSystem[] AddPlayerLoopMarkers(PlayerLoopSystem[] systems, bool includeChildren)
