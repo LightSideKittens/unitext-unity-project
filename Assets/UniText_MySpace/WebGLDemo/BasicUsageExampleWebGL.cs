@@ -31,6 +31,7 @@ namespace LightSide.Samples
         
         private string lastSyncedText;
         private UniTextFont loadedFont;
+        private UniTextFontStack loadedFontStack;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
@@ -124,8 +125,7 @@ namespace LightSide.Samples
         /// <summary>JS → Unity. Drops the runtime-loaded font and returns to the bundled stack.</summary>
         public void ClearLoadedFont(string _ = null)
         {
-            if (demoText != null) demoText.Font = null;
-            if (loadedFont != null) { Destroy(loadedFont); loadedFont = null; }
+            ReleaseLoadedFont();
         }
 
         private IEnumerator LoadPresetFontRoutine(string url)
@@ -144,7 +144,12 @@ namespace LightSide.Samples
 
         private void ApplyFont(byte[] fontBytes, string label)
         {
-            if (demoText == null) return;
+            var stack = demoText != null ? demoText.FontStack : null;
+            if (stack == null)
+            {
+                EmitFontError("DemoText has no Font Stack.");
+                return;
+            }
 
             var font = UniTextFont.CreateFontAsset(fontBytes);
             if (font == null)
@@ -153,10 +158,30 @@ namespace LightSide.Samples
                 return;
             }
 
-            if (loadedFont != null) Destroy(loadedFont);
+            ReleaseLoadedFont();
+            stack.Families.Insert(0, new FontFamily(null, font));
             loadedFont = font;
-            demoText.Font = font;
+            loadedFontStack = stack;
             EmitFontLoaded(label);
+        }
+
+        private void ReleaseLoadedFont()
+        {
+            if (loadedFontStack != null && loadedFont != null)
+            {
+                var families = loadedFontStack.Families;
+                for (var i = 0; i < families.Count; i++)
+                {
+                    if (families[i].primary != loadedFont) continue;
+                    families.RemoveAt(i);
+                    break;
+                }
+            }
+
+            loadedFontStack = null;
+            if (loadedFont == null) return;
+            Destroy(loadedFont);
+            loadedFont = null;
         }
 
         private static void EmitFontLoaded(string label)
