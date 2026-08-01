@@ -418,6 +418,7 @@ runs:
           --app "$IPA" \
           --device model=iphone14pro,version=16.6 \
           --device model=iphone16pro,version=18.3 \
+          --device model=iphonese3,version=26.3 \
           --scenario-numbers=$SCENARIO \
           --timeout "${TIMEOUT_MINUTES}m" \
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \

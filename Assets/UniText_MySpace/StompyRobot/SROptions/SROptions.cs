@@ -15,13 +15,7 @@ public partial class SROptions : INotifyPropertyChanged
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     public static void OnStartup()
     {
-#if UNITY_WEBGL && !UNITY_EDITOR && !UNITY_6000_4_OR_NEWER
-        Debug.Log("[WebGL Startup] SROptions initializer entered");
-#endif
         SRDebug.Instance.AddOptionContainer(Current);
-#if UNITY_WEBGL && !UNITY_EDITOR && !UNITY_6000_4_OR_NEWER
-        Debug.Log("[WebGL Startup] SROptions initializer completed");
-#endif
     }
 
     public event SROptionsPropertyChanged PropertyChanged;

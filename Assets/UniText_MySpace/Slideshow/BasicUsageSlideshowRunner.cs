@@ -23,7 +23,6 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void OnRuntimeStart()
     {
-        Debug.Log("[BasicUsageSlideshow] Runtime initialization started");
         try
         {
             var markerPath = Path.Combine(Application.persistentDataPath, "test_started.txt");
@@ -34,9 +33,7 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
             Debug.LogWarning($"[BasicUsageSlideshow] Failed to write start marker: {e.Message}");
         }
 
-        Debug.Log("[BasicUsageSlideshow] Looking for sample controller");
         var demo = ObjectUtils.FindAny<BasicUsageExampleBase>();
-        Debug.Log($"[BasicUsageSlideshow] Sample controller lookup completed, found={demo != null}");
         if (demo == null)
         {
             Debug.LogError("[BasicUsageSlideshow] No BasicUsageExampleBase found in the loaded scene");
@@ -44,17 +41,13 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
             return;
         }
 
-        Debug.Log("[BasicUsageSlideshow] Creating runner");
         var runner = new GameObject(nameof(BasicUsageSlideshowRunner)).AddComponent<BasicUsageSlideshowRunner>();
         runner.demo = demo;
-        Debug.Log("[BasicUsageSlideshow] Runtime initialization completed");
     }
 
     private IEnumerator Start()
     {
-        Debug.Log("[BasicUsageSlideshow] Start entered");
         var dragger = ObjectUtils.FindAny<DraggableRect>();
-        Debug.Log($"[BasicUsageSlideshow] Draggable lookup completed, found={dragger != null}");
         draggerRect = dragger.GetComponent<RectTransform>();
         draggableTexts = dragger.GetComponentsInChildren<UniText>(true);
 

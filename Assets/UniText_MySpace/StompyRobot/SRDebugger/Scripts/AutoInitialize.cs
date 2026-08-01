@@ -23,16 +23,10 @@ namespace SRDebugger
                 [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         public static void OnLoad()
         {
-#if UNITY_WEBGL && !UNITY_EDITOR && !UNITY_6000_4_OR_NEWER
-            Debug.Log("[WebGL Startup] SRDebugger initializer entered");
-#endif
             if (Settings.Instance.IsEnabled)
             {
                 SRDebug.Init();
             }
-#if UNITY_WEBGL && !UNITY_EDITOR && !UNITY_6000_4_OR_NEWER
-            Debug.Log("[WebGL Startup] SRDebugger initializer completed");
-#endif
         }
     }
 }
