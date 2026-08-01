@@ -209,7 +209,7 @@ MonoBehaviour:
       m_Calls: []
   text: Select all
   font: {fileID: 0}
-  fontStack: {fileID: 0}
+  fontStack: {fileID: 11400000, guid: 31a87aab9fd6a924490326c2939f005f, type: 2}
   fontSize: 30
   wordWrap: 1
   padding: {x: 12, y: 0, z: 0, w: 0}
@@ -687,7 +687,7 @@ MonoBehaviour:
       m_Calls: []
   text: Cut
   font: {fileID: 0}
-  fontStack: {fileID: 0}
+  fontStack: {fileID: 11400000, guid: 31a87aab9fd6a924490326c2939f005f, type: 2}
   fontSize: 30
   wordWrap: 1
   padding: {x: 12, y: 0, z: 0, w: 0}
@@ -772,7 +772,7 @@ MonoBehaviour:
       m_Calls: []
   text: Copy
   font: {fileID: 0}
-  fontStack: {fileID: 0}
+  fontStack: {fileID: 11400000, guid: 31a87aab9fd6a924490326c2939f005f, type: 2}
   fontSize: 30
   wordWrap: 1
   padding: {x: 12, y: 0, z: 0, w: 0}
@@ -999,7 +999,7 @@ MonoBehaviour:
       m_Calls: []
   text: Paste
   font: {fileID: 0}
-  fontStack: {fileID: 0}
+  fontStack: {fileID: 11400000, guid: 31a87aab9fd6a924490326c2939f005f, type: 2}
   fontSize: 30
   wordWrap: 1
   padding: {x: 12, y: 0, z: 0, w: 0}

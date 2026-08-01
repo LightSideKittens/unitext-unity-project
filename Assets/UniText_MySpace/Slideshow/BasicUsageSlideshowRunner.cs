@@ -20,11 +20,6 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
     private RectTransform draggerRect;
     private UniText[] draggableTexts;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ProbeSubsystemRegistration()
-    {
-    }
-
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void OnRuntimeStart()
     {
