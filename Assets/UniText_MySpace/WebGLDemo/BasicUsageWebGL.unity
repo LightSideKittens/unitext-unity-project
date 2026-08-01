@@ -154,7 +154,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 12060, y: -1052.8066}
+  m_AnchoredPosition: {x: 12051, y: -1181}
   m_SizeDelta: {x: 979.7, y: 397.2998}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &21782801
@@ -171,7 +171,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextSelectable
   selectionHighlight:
     provider:
-      rid: 9223372036851175807
+      rid: -2
     paint:
       kind: 1
       color:
@@ -199,15 +199,25 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
-  selectionHandles: {fileID: 0}
-  magnifier: {fileID: 0}
-  contextMenu: {fileID: 0}
+  selectionHandles:
+    rid: 9100000000000000001
+  magnifier:
+    rid: -2
+  contextMenu:
+    rid: 9100000000000000002
   references:
     version: 2
     RefIds:
-    - rid: 9223372036851175807
-      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
-      data: 
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 9100000000000000001
+      type: {class: PrefabSelectionHandles, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 169224010249758145, guid: 950131bcf4d81a14f85e2ed9ae38ee42, type: 3}
+    - rid: 9100000000000000002
+      type: {class: PrefabTextContextMenu, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 5908307679084167090, guid: 58893016e7a47114ea7993e71c5be2e5, type: 3}
 --- !u!114 &21782802
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -241,117 +251,14 @@ MonoBehaviour:
   minFontSize: 10
   maxFontSize: 72
   styles:
-    items:
-    - modifier:
-        rid: 6670084537835847783
-      source:
-        rid: -2
-      defaultParameter: 
-      disabled: 0
-    - modifier:
-        rid: 6670084486001591225
-      source:
-        rid: -2
-      defaultParameter: 
-      disabled: 0
-    - modifier:
-        rid: 6670084537835847801
-      source:
-        rid: 6670084537835847802
-      defaultParameter: 
-      disabled: 0
+    items: []
   stylePresets:
-    items:
-    - {fileID: 11400000, guid: cf6faba06df23464a9ba2fe778a4ad3f, type: 2}
+    items: []
   useGlobalStylePreset: 1
   renderMode: 0
   references:
     version: 2
-    RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
-    - rid: 6670084486001591225
-      type: {class: HighlightModifier, ns: LightSide, asm: LightSide.UniText}
-      data:
-        modifierNodeId:
-          high: 5645180910631986634
-          low: 14569285821583330958
-        priority: 0
-        presentation:
-          provider:
-            rid: 6670084486001591248
-          paint:
-            kind: 2
-            color:
-              serializedVersion: 2
-              rgba: 0
-            swatch: fox
-          geometryMapping: 3
-          paintMapping: 0
-          shape: 0
-          fit: 0
-          angle: 71
-          scale: NaN
-          paintOffset: {x: NaN, y: NaN}
-          height: 0
-          padding:
-            value: {x: 0, y: 0}
-            unit: 2
-          cornerRadius:
-            value: 0.23
-            unit: 2
-          mergeThreshold:
-            value: 0
-            unit: 2
-          order: 0
-          tint:
-            serializedVersion: 2
-            rgba: 4294967295
-    - rid: 6670084486001591248
-      type: {class: AssetPaintProvider, ns: LightSide, asm: LightSide.UniText}
-      data:
-        asset: {fileID: 11400000, guid: 0c7ddbd2eedb4fd4fa09e6baa5ce13ef, type: 2}
-    - rid: 6670084537835847783
-      type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
-      data:
-        modifierNodeId:
-          high: 4799244966628380606
-          low: 15097189283834994079
-        weight: 0
-        mode: 0
-    - rid: 6670084537835847801
-      type: {class: InteractiveModifier, ns: LightSide, asm: LightSide.UniText}
-      data:
-        modifierNodeId:
-          high: 4634435191289234198
-          low: 425418810031263908
-        channel: {fileID: 0}
-        hoverCursor: 2
-        defaultValue: 
-        interactionPriority: 0
-        activationScope: 1
-        hitPadding:
-          value: {x: 0, y: 0}
-          unit: 2
-        minimumHitSize:
-          value: {x: 0, y: 0}
-          unit: 0
-        wrappedGapPolicy: 0
-        whitespacePolicy: 0
-        inlineObjectPolicy: 0
-        passThrough: 0
-        gestureRecognizers: []
-        effects: []
-        actions: []
-        navigationOrder: 0
-        navigationGroup: 0
-        wrapNavigation: 0
-    - rid: 6670084537835847802
-      type: {class: TriggerWordParseRule, ns: LightSide, asm: LightSide.UniText}
-      data:
-        trigger: '@'
-        extraWordChars: 
-        defaultParameter: 
+    RefIds: []
 --- !u!222 &21782803
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -583,7 +490,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1873531061}
   m_Father: {fileID: 2035672421}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -655,7 +563,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 09d7a6a52c9147e4eafc2981465663c4, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -664,7 +572,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 8.42
 --- !u!222 &69774889
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -709,8 +617,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 489.8496, y: -465.062}
-  m_SizeDelta: {x: 949.6992, y: 900.124}
+  m_AnchoredPosition: {x: 482.5752, y: -465.062}
+  m_SizeDelta: {x: 935.1504, y: 900.124}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &138799827
 MonoBehaviour:
@@ -835,8 +743,8 @@ MonoBehaviour:
   sendButton: {fileID: 1597794082}
   scrollRect: {fileID: 138799828}
   content: {fileID: 575551831}
-  leftMessagePrefab: {fileID: 905975774, guid: b47fd299ea04495ea913fe97c697c9c6, type: 3}
-  rightMessagePrefab: {fileID: 7056315331558794018, guid: c6437f012026c5b468c13ae06ff8d4a2, type: 3}
+  leftMessagePrefab: {fileID: 905975774, guid: 5cbd014685337e445a8a2c8f4bf027f7, type: 3}
+  rightMessagePrefab: {fileID: 7056315331558794018, guid: a7cd34a4231235243acb8c0ac9a94639, type: 3}
 --- !u!114 &186519507
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -947,7 +855,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextSelectable
   selectionHighlight:
     provider:
-      rid: 9223372036851175807
+      rid: -2
     paint:
       kind: 1
       color:
@@ -969,21 +877,31 @@ MonoBehaviour:
       value: 0
       unit: 2
     mergeThreshold:
-      value: -1
+      value: 0
       unit: 2
     order: 0
     tint:
       serializedVersion: 2
       rgba: 4294967295
-  selectionHandles: {fileID: 169224010249758145, guid: 950131bcf4d81a14f85e2ed9ae38ee42, type: 3}
-  magnifier: {fileID: 0}
-  contextMenu: {fileID: 5908307679084167090, guid: 0a611fc55084c6049a7bf7794b596adf, type: 3}
+  selectionHandles:
+    rid: 9100000000000000001
+  magnifier:
+    rid: -2
+  contextMenu:
+    rid: 9100000000000000002
   references:
     version: 2
     RefIds:
-    - rid: 9223372036851175807
-      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
-      data: 
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 9100000000000000001
+      type: {class: PrefabSelectionHandles, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 169224010249758145, guid: 950131bcf4d81a14f85e2ed9ae38ee42, type: 3}
+    - rid: 9100000000000000002
+      type: {class: PrefabTextContextMenu, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 5908307679084167090, guid: 0a611fc55084c6049a7bf7794b596adf, type: 3}
 --- !u!114 &206555131
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1069,8 +987,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 489.8496, y: -1075.124}
-  m_SizeDelta: {x: 949.6992, y: 20}
+  m_AnchoredPosition: {x: 482.5752, y: -1075.124}
+  m_SizeDelta: {x: 935.1504, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &233547507
 MonoBehaviour:
@@ -1710,7 +1628,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000014305, y: -900.1468}
+  m_AnchoredPosition: {x: -0.000014305, y: -900.124}
   m_SizeDelta: {x: 0, y: 40}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &575551832
@@ -1976,6 +1894,7 @@ GameObject:
   - component: {fileID: 636393885}
   - component: {fileID: 636393884}
   - component: {fileID: 636393887}
+  - component: {fileID: 636393888}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2061,6 +1980,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f672eede22fc8a24ab5dbe3938790a25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: LightSide.Core::LightSide.EventSystemBootstrap
+--- !u!114 &636393888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 636393882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
 --- !u!1 &657326747
 GameObject:
   m_ObjectHideFlags: 0
@@ -2334,12 +2297,25 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
-  selectionHandles: {fileID: 0}
-  magnifier: {fileID: 0}
-  contextMenu: {fileID: 0}
+  selectionHandles:
+    rid: 9100000000000000001
+  magnifier:
+    rid: -2
+  contextMenu:
+    rid: 9100000000000000002
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 9100000000000000001
+      type: {class: PrefabSelectionHandles, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 169224010249758145, guid: 950131bcf4d81a14f85e2ed9ae38ee42, type: 3}
+    - rid: 9100000000000000002
+      type: {class: PrefabTextContextMenu, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 5908307679084167090, guid: 58893016e7a47114ea7993e71c5be2e5, type: 3}
     - rid: 9223372036851175807
       type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
       data: 
@@ -2363,7 +2339,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  text: Raw Editable
+  text: "Raw Editable Raw Editable\u2764\nRaw Editable\nRaw Editable Editable"
   font: {fileID: 0}
   fontStack: {fileID: 11400000, guid: 31a87aab9fd6a924490326c2939f005f, type: 2}
   fontSize: 48
@@ -2375,14 +2351,77 @@ MonoBehaviour:
   minFontSize: 10
   maxFontSize: 72
   styles:
-    items: []
+    items:
+    - modifier:
+        rid: 6670084647545995755
+      source:
+        rid: -2
+      defaultParameter: 
+      disabled: 0
+    - modifier:
+        rid: 6670084647545995756
+      source:
+        rid: -2
+      defaultParameter: 
+      disabled: 0
   stylePresets:
     items: []
   useGlobalStylePreset: 1
   renderMode: 0
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 6670084647545995755
+      type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 4799244966628380606
+          low: 15097189283834994079
+        weight: 0
+        mode: 0
+    - rid: 6670084647545995756
+      type: {class: HighlightModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5645180910631986634
+          low: 14569285821583330958
+        priority: 0
+        presentation:
+          provider:
+            rid: 6670084647545995757
+          paint:
+            kind: 2
+            color:
+              serializedVersion: 2
+              rgba: 0
+            swatch: fox
+          geometryMapping: 3
+          paintMapping: 0
+          shape: 0
+          fit: 0
+          angle: 71
+          scale: NaN
+          paintOffset: {x: NaN, y: NaN}
+          height: 0
+          padding:
+            value: {x: 0, y: 0}
+            unit: 2
+          cornerRadius:
+            value: 0.23
+            unit: 2
+          mergeThreshold:
+            value: 0
+            unit: 2
+          order: 0
+          tint:
+            serializedVersion: 2
+            rgba: 4294967295
+    - rid: 6670084647545995757
+      type: {class: AssetPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data:
+        asset: {fileID: 11400000, guid: 0c7ddbd2eedb4fd4fa09e6baa5ce13ef, type: 2}
 --- !u!222 &766412406
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2401,9 +2440,9 @@ GameObject:
   m_Component:
   - component: {fileID: 830638318}
   - component: {fileID: 830638317}
-  - component: {fileID: 830638314}
-  - component: {fileID: 830638316}
   - component: {fileID: 830638315}
+  - component: {fileID: 830638316}
+  - component: {fileID: 830638314}
   m_Layer: 5
   m_Name: Text (UniText)
   m_TagString: Untagged
@@ -2544,7 +2583,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextSelectable
   selectionHighlight:
     provider:
-      rid: 9223372036851175807
+      rid: -2
     paint:
       kind: 1
       color:
@@ -2566,21 +2605,27 @@ MonoBehaviour:
       value: 0
       unit: 2
     mergeThreshold:
-      value: -1
+      value: 0
       unit: 2
     order: 0
     tint:
       serializedVersion: 2
       rgba: 4294967295
-  selectionHandles: {fileID: 0}
-  magnifier: {fileID: 0}
-  contextMenu: {fileID: 0}
+  selectionHandles:
+    rid: -2
+  magnifier:
+    rid: -2
+  contextMenu:
+    rid: 6670084647545995717
   references:
     version: 2
     RefIds:
-    - rid: 9223372036851175807
-      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
-      data: 
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 6670084647545995717
+      type: {class: PrefabTextContextMenu, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 0}
 --- !u!222 &830638317
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2644,8 +2689,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 489.8496, y: -1147.812}
-  m_SizeDelta: {x: 949.6992, y: 95.376}
+  m_AnchoredPosition: {x: 482.5752, y: -1147.812}
+  m_SizeDelta: {x: 935.1504, y: 95.376}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &900715604
 MonoBehaviour:
@@ -3643,7 +3688,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextSelectable
   selectionHighlight:
     provider:
-      rid: 9223372036851175807
+      rid: -2
     paint:
       kind: 1
       color:
@@ -3665,21 +3710,23 @@ MonoBehaviour:
       value: 0
       unit: 2
     mergeThreshold:
-      value: -1
+      value: 0
       unit: 2
     order: 0
     tint:
       serializedVersion: 2
       rgba: 4294967295
-  selectionHandles: {fileID: 0}
-  magnifier: {fileID: 0}
-  contextMenu: {fileID: 0}
+  selectionHandles:
+    rid: -2
+  magnifier:
+    rid: -2
+  contextMenu:
+    rid: -2
   references:
     version: 2
     RefIds:
-    - rid: 9223372036851175807
-      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
-      data: 
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!114 &1393396950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4503,7 +4550,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 879.6992, y: -47.688}
+  m_AnchoredPosition: {x: 865.1504, y: -47.688}
   m_SizeDelta: {x: 140, y: 95.376}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1597794082
@@ -4616,7 +4663,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 794.6992, y: 95.376}
+  m_SizeDelta: {x: 780.1504, y: 95.376}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1635096496
 MonoBehaviour:
@@ -4750,12 +4797,25 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
-  selectionHandles: {fileID: 169224010249758145, guid: 950131bcf4d81a14f85e2ed9ae38ee42, type: 3}
-  magnifier: {fileID: 0}
-  contextMenu: {fileID: 5908307679084167090, guid: 0a611fc55084c6049a7bf7794b596adf, type: 3}
+  selectionHandles:
+    rid: 9100000000000000001
+  magnifier:
+    rid: -2
+  contextMenu:
+    rid: 9100000000000000002
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 9100000000000000001
+      type: {class: PrefabSelectionHandles, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 169224010249758145, guid: 950131bcf4d81a14f85e2ed9ae38ee42, type: 3}
+    - rid: 9100000000000000002
+      type: {class: PrefabTextContextMenu, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 5908307679084167090, guid: 0a611fc55084c6049a7bf7794b596adf, type: 3}
     - rid: 9223372036851175807
       type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
       data: 
@@ -5405,8 +5465,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 489.8496, y: -990.124}
-  m_SizeDelta: {x: 949.6992, y: 120}
+  m_AnchoredPosition: {x: 482.5752, y: -990.124}
+  m_SizeDelta: {x: 935.1504, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1776109392
 MonoBehaviour:
@@ -5553,6 +5613,81 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
+--- !u!1 &1873531060
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1873531061}
+  - component: {fileID: 1873531063}
+  - component: {fileID: 1873531062}
+  m_Layer: 5
+  m_Name: Image
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1873531061
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1873531060}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 69774886}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 2, y: 2}
+  m_SizeDelta: {x: 57.62, y: 57.62}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1873531062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1873531060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.38431373}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 299188976dbd75f40a27491a95e4713a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1873531063
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1873531060}
+  m_CullTransparentMesh: 1
 --- !u!1 &1888311321
 GameObject:
   m_ObjectHideFlags: 0
@@ -5737,8 +5872,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 397.3496, y: -47.688}
-  m_SizeDelta: {x: 794.6992, y: 95.376}
+  m_AnchoredPosition: {x: 390.0752, y: -47.688}
+  m_SizeDelta: {x: 780.1504, y: 95.376}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2016080928
 MonoBehaviour:

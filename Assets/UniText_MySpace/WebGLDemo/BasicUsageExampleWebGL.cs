@@ -24,10 +24,6 @@ namespace LightSide.Samples
         [Tooltip("GameObject name React uses with unityInstance.SendMessage. " +
                  "Must match the value in DemoPage.tsx on the website.")]
         [SerializeField] private string browserBridgeObjectName = "DemoController";
-
-        [SerializeField] private Button button;
-        [SerializeField] private GameObject basicUsageContainer;
-        [SerializeField] private GameObject editableContainer;
         
         private string lastSyncedText;
         private UniTextFont loadedFont;
@@ -44,16 +40,9 @@ namespace LightSide.Samples
 
         protected override void OnInit()
         {
+            base.OnInit();
             if (!string.IsNullOrEmpty(browserBridgeObjectName) && gameObject.name != browserBridgeObjectName)
                 gameObject.name = browserBridgeObjectName;
-
-            button.onClick.AddListener(OnButtonClick);
-        }
-
-        private void OnButtonClick()
-        {
-            basicUsageContainer.SetActive(!basicUsageContainer.activeSelf);
-            editableContainer.SetActive(!editableContainer.activeSelf);
         }
 
         protected override void ApplyText(string text)

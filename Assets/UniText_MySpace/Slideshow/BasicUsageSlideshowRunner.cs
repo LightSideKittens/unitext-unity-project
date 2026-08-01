@@ -22,12 +22,10 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
     private UniText[] draggableTexts;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void InstallPlayerLoopProbe()
+    private static void RepublishPlayerLoop()
     {
         var loop = PlayerLoop.GetCurrentPlayerLoop();
-        loop.subSystemList = AddPlayerLoopMarkers(loop.subSystemList, true);
         PlayerLoop.SetPlayerLoop(loop);
-        Debug.Log("[BasicUsageSlideshow] PlayerLoop probe installed");
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -58,49 +56,6 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         var runner = new GameObject(nameof(BasicUsageSlideshowRunner)).AddComponent<BasicUsageSlideshowRunner>();
         runner.demo = demo;
         Debug.Log("[BasicUsageSlideshow] Runtime initialization completed");
-    }
-
-    private static PlayerLoopSystem[] AddPlayerLoopMarkers(PlayerLoopSystem[] systems, bool includeChildren)
-    {
-        if (systems == null) return null;
-
-        var result = new PlayerLoopSystem[systems.Length * 2];
-        var destination = 0;
-        for (var i = 0; i < systems.Length; i++)
-        {
-            var system = systems[i];
-            var marker = new PlayerLoopMarker(system.type?.FullName ?? "<unnamed>");
-            result[destination++] = new PlayerLoopSystem
-            {
-                type = typeof(PlayerLoopMarker),
-                updateDelegate = marker.Run
-            };
-
-            if (includeChildren)
-                system.subSystemList = AddPlayerLoopMarkers(system.subSystemList, false);
-
-            result[destination++] = system;
-        }
-
-        return result;
-    }
-
-    private sealed class PlayerLoopMarker
-    {
-        private readonly string phase;
-        private bool logged;
-
-        internal PlayerLoopMarker(string phase)
-        {
-            this.phase = phase;
-        }
-
-        internal void Run()
-        {
-            if (logged) return;
-            logged = true;
-            Debug.Log($"[BasicUsageSlideshow] PlayerLoop entering: {phase}");
-        }
     }
 
     private IEnumerator Start()
