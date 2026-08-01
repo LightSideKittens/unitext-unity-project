@@ -71,20 +71,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: Library
-          key: Library-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-v2-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ inputs.debug }}-${{ inputs.benchmark }}-${{ inputs.run_tests }}-${{ inputs.slideshow }}-${{ hashFiles('Assets/**/Plugins/**', 'Assets/**/*.jslib', 'Assets/**/*.jslib.meta', 'Assets/**/*.asmdef', 'Assets/**/*.asmdef.meta', 'Assets/**/*.asmref', 'Assets/**/*.asmref.meta', 'Assets/**/*.rsp', 'Assets/**/*.rsp.meta', 'Assets/LightSide.Core/Tools~/**', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}-${{ hashFiles('Assets/**', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
-            Library-${{ inputs.platform }}-${{ inputs.unity_version }}-
-            Library-${{ inputs.platform }}-
-
-      - name: Cache IL2CPP
-        uses: actions/cache@v5
-        with:
-          path: |
-            Library/Il2cppBuildCache
-            Library/Bee
-          key: IL2CPP-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ hashFiles('Assets/**/*.cs') }}
-          restore-keys: |
-            IL2CPP-${{ inputs.platform }}-${{ inputs.unity_version }}-
+            Library-v2-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ inputs.debug }}-${{ inputs.benchmark }}-${{ inputs.run_tests }}-${{ inputs.slideshow }}-${{ hashFiles('Assets/**/Plugins/**', 'Assets/**/*.jslib', 'Assets/**/*.jslib.meta', 'Assets/**/*.asmdef', 'Assets/**/*.asmdef.meta', 'Assets/**/*.asmref', 'Assets/**/*.asmref.meta', 'Assets/**/*.rsp', 'Assets/**/*.rsp.meta', 'Assets/LightSide.Core/Tools~/**', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}-
 
       - name: "${{ inputs.platform == 'iOS' && 'Generate Xcode Project (not Xcode build)' || 'Build' }}"
         timeout-minutes: 60
