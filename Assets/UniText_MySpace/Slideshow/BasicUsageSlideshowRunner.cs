@@ -5,7 +5,6 @@ using System.IO;
 using LightSide;
 using LightSide.Samples;
 using UnityEngine;
-using UnityEngine.LowLevel;
 
 /// <summary>
 /// Drives the BasicUsage sample through every slide and captures its contents for the CI artifact.
@@ -22,10 +21,8 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
     private UniText[] draggableTexts;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void RepublishPlayerLoop()
+    private static void ProbeSubsystemRegistration()
     {
-        var loop = PlayerLoop.GetCurrentPlayerLoop();
-        PlayerLoop.SetPlayerLoop(loop);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
