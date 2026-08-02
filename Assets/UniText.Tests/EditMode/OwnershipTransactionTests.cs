@@ -67,7 +67,7 @@ namespace LightSide.Tests
         }
 
         [Test]
-        public void RuntimeOwnedStyleCannotEnterPresetCollection()
+        public void ComponentOwnedStyleCannotEnterPresetCollection()
         {
             var gameObject = new GameObject("Owned Style");
             ownedObjects.Add(gameObject);
@@ -78,7 +78,7 @@ namespace LightSide.Tests
 
             text.Styles.Add(style);
             Assert.That(text.EnsureAttributeParserCreated(), Is.True);
-            Assert.That(style.Owner, Is.SameAs(text));
+            Assert.That(style.Modifier.Owner, Is.SameAs(text));
 
             Assert.Throws<InvalidOperationException>(() => preset.Styles.Add(style));
             Assert.That(preset.Styles, Is.Empty);
@@ -99,6 +99,10 @@ namespace LightSide.Tests
 
             MutateSerializedStyles(text, styles => styles.MoveArrayElement(0, 1));
             yield return null;
+            text.EnsureAttributeParserCreated();
+            Assert.That(text.Styles[0].Modifier.Owner, Is.SameAs(text));
+            Assert.That(text.AttributeParser.GetModifierRegistrationOrder(
+                text.Styles[0].Modifier), Is.GreaterThanOrEqualTo(0));
             MutateSerializedStyles(text, styles =>
                 styles.GetArrayElementAtIndex(0).FindPropertyRelative("modifier")
                     .managedReferenceValue = new BoldModifier());
@@ -125,25 +129,60 @@ namespace LightSide.Tests
         {
             var preset = CreateAsset<StylePreset>();
             preset.Styles.Add(Style.Tag(new BoldModifier(), "preset"));
+            preset.Styles.Add(Style.Tag(new ArcModifier(), "arc"));
             var gameObject = new GameObject("Preset Consumer");
             ownedObjects.Add(gameObject);
             gameObject.SetActive(false);
             var text = gameObject.AddComponent<UniText>();
             text.StylePresets.Add(preset);
             Assert.That(text.EnsureAttributeParserCreated(), Is.True);
+            gameObject.SetActive(true);
             StateEditorReceptor.Capture((IEditorSerializedStateOwner)preset);
             StateEditorReceptor.Capture((IEditorSerializedStateOwner)text);
             yield return null;
+            Assert.That(text.TryGetStyle<BoldModifier>(out var runtimeStyle), Is.True);
+            Assert.That(text.TryGetStyle<ArcModifier>(out var runtimeArcStyle), Is.True);
+            Assert.That(text.AttributeParser.GetModifierRegistrationOrder(runtimeStyle.Modifier),
+                Is.GreaterThanOrEqualTo(0));
+
+            SetSerializedStyleEnabled(preset, 0, false);
+            Assert.That(preset.Styles[0].Enabled, Is.False);
+            yield return null;
+            text.EnsureAttributeParserCreated();
+            Assert.That(text.TryGetStyle<BoldModifier>(out _), Is.False);
+            Assert.That(text.AttributeParser.GetModifierRegistrationOrder(runtimeStyle.Modifier),
+                Is.EqualTo(-1));
+            Assert.That(runtimeStyle.Modifier.Owner, Is.Null);
+
+            SetSerializedStyleEnabled(preset, 0, true);
+            Assert.That(preset.Styles[0].Enabled, Is.True);
+            yield return null;
+            text.EnsureAttributeParserCreated();
+            Assert.That(text.TryGetStyle<BoldModifier>(out var restoredStyle), Is.True);
+            Assert.That(restoredStyle, Is.SameAs(runtimeStyle));
+            Assert.That(text.AttributeParser.GetModifierRegistrationOrder(restoredStyle.Modifier),
+                Is.GreaterThanOrEqualTo(0));
+
+            MutateSerializedStyles(preset, styles => styles.MoveArrayElement(0, 1));
+            yield return null;
+            text.EnsureAttributeParserCreated();
+            Assert.That(text.TryGetStyle<ArcModifier>(out var movedStyle), Is.True);
+            Assert.That(movedStyle, Is.SameAs(runtimeArcStyle));
+            Assert.That(movedStyle.Modifier.Owner, Is.SameAs(text));
+            Assert.That(text.AttributeParser.GetModifierRegistrationOrder(movedStyle.Modifier),
+                Is.GreaterThanOrEqualTo(0));
 
             MutateSerializedStyles(preset,
                 styles => styles.DeleteArrayElementAtIndex(0), true);
             yield return null;
-            Assert.That(preset.Styles, Is.Empty);
+            Assert.That(preset.Styles.Count, Is.EqualTo(1));
+            Assert.That(text.TryGetStyle<BoldModifier>(out var retainedStyle), Is.True);
+            Assert.That(retainedStyle, Is.SameAs(runtimeStyle));
 
             Undo.PerformUndo();
             Assert.That(text.EnsureAttributeParserCreated(), Is.True);
             yield return null;
-            Assert.That(preset.Styles.Count, Is.EqualTo(1));
+            Assert.That(preset.Styles.Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -207,9 +246,19 @@ namespace LightSide.Tests
             bool recordUndo = false)
         {
             using var serialized = new SerializedObject(target);
-            mutate(serialized.FindProperty("styles"));
+            mutate(serialized.FindProperty("styles").FindPropertyRelative("items"));
             if (recordUndo) serialized.ApplyModifiedProperties();
             else serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetSerializedStyleEnabled(UnityEngine.Object target, int index,
+            bool enabled)
+        {
+            using var serialized = new SerializedObject(target);
+            var disabled = serialized.FindProperty("styles").FindPropertyRelative("items")
+                .GetArrayElementAtIndex(index).FindPropertyRelative("disabled");
+            new SerializedPropertyBinding(disabled).SetValue(!enabled,
+                enabled ? "Enable Style" : "Disable Style");
         }
 
         private static void AssertRetained<T>(IReadOnlyList<T> collection, T retained)
