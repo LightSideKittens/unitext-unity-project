@@ -40,8 +40,7 @@ public static class BenchmarkHistory
         watcher.EnableRaisingEvents = true;
 
         EditorApplication.update += RebuildChangedIndex;
-        AssemblyReloadEvents.beforeAssemblyReload += DisposeWatcher;
-        EditorApplication.quitting += DisposeWatcher;
+        LightSide.EditorLifecycle.ManagedCleaning += DisposeWatcher;
     }
 
     /// <summary>Writes a combined benchmark result into the per-suite files consumed by the history viewer.</summary>

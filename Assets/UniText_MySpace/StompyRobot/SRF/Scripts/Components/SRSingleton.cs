@@ -69,11 +69,5 @@
                 Register();
             }
         }
-
-        // Make sure the instance isn't referenced anymore when the user quit, just in case.
-        private void OnApplicationQuit()
-        {
-            _instance = null;
-        }
     }
 }
