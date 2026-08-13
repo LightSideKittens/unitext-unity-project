@@ -82,7 +82,6 @@ jobs:
             .github/actions
             .github/scripts
             Assets/server.js
-            Assets/UniText.Test
 
       - name: Download Build Artifact
         uses: actions/download-artifact@v7

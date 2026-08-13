@@ -57,9 +57,9 @@ jobs:
       - name: Build LightSide state source generator
         shell: bash
         run: |
-          dotnet build Assets/LightSide.Core/Tools~/StateCodeGen/LightSide.StateCodeGen.csproj --configuration Release
-          test -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.dll
-          test ! -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.deps.json
+          dotnet build Packages/media.lightside.core/Tools~/StateCodeGen/LightSide.StateCodeGen.csproj --configuration Release
+          test -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.dll
+          test ! -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.deps.json
 
       - name: Apply CI package manifest
         shell: bash
@@ -71,9 +71,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: Library
-          key: Library-v2-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ inputs.debug }}-${{ inputs.benchmark }}-${{ inputs.run_tests }}-${{ inputs.slideshow }}-${{ hashFiles('Assets/**/Plugins/**', 'Assets/**/*.jslib', 'Assets/**/*.jslib.meta', 'Assets/**/*.asmdef', 'Assets/**/*.asmdef.meta', 'Assets/**/*.asmref', 'Assets/**/*.asmref.meta', 'Assets/**/*.rsp', 'Assets/**/*.rsp.meta', 'Assets/LightSide.Core/Tools~/**', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}-${{ hashFiles('Assets/**', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-v2-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ inputs.debug }}-${{ inputs.benchmark }}-${{ inputs.run_tests }}-${{ inputs.slideshow }}-${{ hashFiles('Assets/**/Plugins/**', 'Assets/**/*.jslib', 'Assets/**/*.jslib.meta', 'Assets/**/*.asmdef', 'Assets/**/*.asmdef.meta', 'Assets/**/*.asmref', 'Assets/**/*.asmref.meta', 'Assets/**/*.rsp', 'Assets/**/*.rsp.meta', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}-${{ hashFiles('Assets/**', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
-            Library-v2-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ inputs.debug }}-${{ inputs.benchmark }}-${{ inputs.run_tests }}-${{ inputs.slideshow }}-${{ hashFiles('Assets/**/Plugins/**', 'Assets/**/*.jslib', 'Assets/**/*.jslib.meta', 'Assets/**/*.asmdef', 'Assets/**/*.asmdef.meta', 'Assets/**/*.asmref', 'Assets/**/*.asmref.meta', 'Assets/**/*.rsp', 'Assets/**/*.rsp.meta', 'Assets/LightSide.Core/Tools~/**', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}-
+            Library-v2-${{ inputs.platform }}-${{ inputs.unity_version }}-${{ inputs.debug }}-${{ inputs.benchmark }}-${{ inputs.run_tests }}-${{ inputs.slideshow }}-${{ hashFiles('Assets/**/Plugins/**', 'Assets/**/*.jslib', 'Assets/**/*.jslib.meta', 'Assets/**/*.asmdef', 'Assets/**/*.asmdef.meta', 'Assets/**/*.asmref', 'Assets/**/*.asmref.meta', 'Assets/**/*.rsp', 'Assets/**/*.rsp.meta', '.github/ci/Packages/**', 'Packages/**', 'ProjectSettings/**') }}-
 
       - name: "${{ inputs.platform == 'iOS' && 'Generate Xcode Project (not Xcode build)' || 'Build' }}"
         timeout-minutes: 60
@@ -118,7 +118,6 @@ jobs:
             .github/actions
             .github/scripts
             Assets/server.js
-            Assets/UniText.Test
 
       - name: Download Build Artifact
         uses: actions/download-artifact@v7

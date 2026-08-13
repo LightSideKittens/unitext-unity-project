@@ -5,18 +5,18 @@ on:
   push:
     branches: ["**"]
     paths:
-      - "Assets/LightSide.Core"
-      - "Assets/UniLottie"
-      - "Assets/UniShapes"
-      - "Assets/UniText"
+      - "Packages/media.lightside.core"
+      - "Packages/media.lightside.unilottie"
+      - "Packages/media.lightside.unishapes"
+      - "Packages/media.lightside.unitext"
       - ".github/ci/shader-compile/**"
       - ".github/workflows/shader-compile-check.yml"
   pull_request:
     paths:
-      - "Assets/LightSide.Core"
-      - "Assets/UniLottie"
-      - "Assets/UniShapes"
-      - "Assets/UniText"
+      - "Packages/media.lightside.core"
+      - "Packages/media.lightside.unilottie"
+      - "Packages/media.lightside.unishapes"
+      - "Packages/media.lightside.unitext"
       - ".github/ci/shader-compile/**"
       - ".github/workflows/shader-compile-check.yml"
 
@@ -74,15 +74,15 @@ jobs:
       - name: Build LightSide state source generator
         shell: bash
         run: |
-          dotnet build Assets/LightSide.Core/Tools~/StateCodeGen/LightSide.StateCodeGen.csproj --configuration Release
-          test -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.dll
-          test ! -f Assets/LightSide.Core/Analyzers/LightSide.StateCodeGen.deps.json
+          dotnet build Packages/media.lightside.core/Tools~/StateCodeGen/LightSide.StateCodeGen.csproj --configuration Release
+          test -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.dll
+          test ! -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.deps.json
 
       - name: Cache Unity Library
         uses: actions/cache@v5
         with:
           path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
-          key: shader-library-${{ matrix.project }}-${{ hashFiles('.github/ci/shader-compile/**', 'Assets/LightSide.Core/**', 'Assets/UniText/**', 'Assets/UniShapes/**', 'Assets/UniLottie/**') }}
+          key: shader-library-${{ matrix.project }}-${{ hashFiles('.github/ci/shader-compile/**', 'Packages/media.lightside.core/**', 'Packages/media.lightside.unitext/**', 'Packages/media.lightside.unishapes/**', 'Packages/media.lightside.unilottie/**') }}
           restore-keys: |
             shader-library-${{ matrix.project }}-
 

@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "media.lightside.core": "file:../../../../../../Assets/LightSide.Core",
+    "media.lightside.core": "file:../../../../../../Packages/media.lightside.core",
     "media.lightside.shader-compile-ci": "file:../../../package",
-    "media.lightside.unilottie": "file:../../../../../../Assets/UniLottie",
-    "media.lightside.unishapes": "file:../../../../../../Assets/UniShapes",
-    "media.lightside.unitext": "file:../../../../../../Assets/UniText",
+    "media.lightside.unilottie": "file:../../../../../../Packages/media.lightside.unilottie",
+    "media.lightside.unishapes": "file:../../../../../../Packages/media.lightside.unishapes",
+    "media.lightside.unitext": "file:../../../../../../Packages/media.lightside.unitext",
     "com.unity.burst": "1.8.4",
     "com.unity.nuget.mono-cecil": "1.11.5",
     "com.unity.test-framework": "1.1.33",
