@@ -1,0 +1,306 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2242521c80e242e289b34828e446121c, type: 3}
+  m_Name: LinkPreset
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.ModifierGraphPreset
+  root:
+    rid: 2064118853484413004
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2064118853484413004
+      type: {class: CompositeModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5220549776918268235
+          low: 17481764979319944083
+        modifiers:
+          items:
+          - rid: 2064118853484413005
+          - rid: 2064118853484413006
+          - rid: 2064118853484413007
+    - rid: 2064118853484413005
+      type: {class: LinkModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5044670104107501831
+          low: 11590748650627104943
+        channel: {fileID: 0}
+        hoverCursor: 2
+        defaultValue: 
+        interactionPriority: 0
+        activationScope: 1
+        hitPadding:
+          value: {x: 0, y: 0}
+          unit: 2
+        minimumHitSize:
+          value: {x: 0, y: 0}
+          unit: 0
+        wrappedGapPolicy: 0
+        whitespacePolicy: 0
+        inlineObjectPolicy: 0
+        passThrough: 0
+        gestureRecognizers: []
+        rules:
+        - rid: 2064118853484413008
+        - rid: 2064118853484413009
+        - rid: 2064118853484413010
+        actions: []
+        navigationOrder: 0
+        navigationGroup: 0
+        wrapNavigation: 0
+        url: 
+        autoOpenUrl: 1
+    - rid: 2064118853484413006
+      type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5174560514533080851
+          low: 290072501621264292
+        color:
+          serializedVersion: 2
+          rgba: 4294948955
+    - rid: 2064118853484413007
+      type: {class: UnderlineModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 4690731591274377667
+          low: 10321943195762908807
+        provider:
+          rid: 2064118853484413011
+        paint:
+          kind: 0
+          color:
+            serializedVersion: 2
+            rgba: 0
+          swatch: 
+        style: 0
+        thickness:
+          value: 0
+          unit: 0
+        offset:
+          value: 0
+          unit: 0
+        skipInk: 0
+        blend: -1
+    - rid: 2064118853484413008
+      type: {class: ModifierRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        selector:
+          rid: 2064118853484413012
+        playback:
+          rid: 2064118853484413013
+        scope: 1
+        trigger: 0
+        priority: 0
+        modifierTemplate:
+          rid: 2064118853484413014
+        dirtyStage: 1
+    - rid: 2064118853484413009
+      type: {class: ModifierRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        selector:
+          rid: 2064118853484413015
+        playback:
+          rid: 2064118853484413016
+        scope: 1
+        trigger: 0
+        priority: 0
+        modifierTemplate:
+          rid: 2064118853484413017
+        dirtyStage: 1
+    - rid: 2064118853484413010
+      type: {class: ModifierRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        selector:
+          rid: -2
+        playback:
+          rid: 2064118853484413018
+        scope: 1
+        trigger: 1
+        priority: 0
+        modifierTemplate:
+          rid: 2064118853484413019
+        dirtyStage: 1
+    - rid: 2064118853484413011
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 2064118853484413012
+      type: {class: AnyRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
+      data:
+        selectors:
+        - rid: 2064118853484413020
+        - rid: 2064118853484413021
+    - rid: 2064118853484413013
+      type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
+      data:
+        enterDuration: 0.18
+        exitDuration: 0.1
+        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
+        clock: 1
+        animateInitialMatch: 0
+    - rid: 2064118853484413014
+      type: {class: HighlightModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5371860462181381556
+          low: 1675883407557847467
+        priority: -10
+        presentation:
+          provider:
+            rid: 2064118853484413022
+          paint:
+            kind: 1
+            color:
+              serializedVersion: 2
+              rgba: 452952115
+            swatch: 
+          geometryMapping: 2
+          paintMapping: 0
+          shape: -1
+          fit: -1
+          angle: NaN
+          scale: NaN
+          paintOffset: {x: NaN, y: NaN}
+          height: 1
+          padding:
+            value: {x: 0.1, y: 0.06}
+            unit: 2
+          cornerRadius:
+            value: 0.15
+            unit: 2
+          mergeThreshold:
+            value: -1
+            unit: 2
+          order: 0
+          tint:
+            serializedVersion: 2
+            rgba: 4294967295
+          blend: -1
+    - rid: 2064118853484413015
+      type: {class: InteractionRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
+      data:
+        required: 2
+        excluded: 0
+    - rid: 2064118853484413016
+      type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
+      data:
+        enterDuration: 0
+        exitDuration: 0.15
+        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
+        clock: 1
+        animateInitialMatch: 0
+    - rid: 2064118853484413017
+      type: {class: HighlightModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5091356599728448686
+          low: 4024374335225117838
+        priority: -10
+        presentation:
+          provider:
+            rid: 2064118853484413023
+          paint:
+            kind: 1
+            color:
+              serializedVersion: 2
+              rgba: 1308590131
+            swatch: 
+          geometryMapping: 2
+          paintMapping: 0
+          shape: -1
+          fit: -1
+          angle: NaN
+          scale: NaN
+          paintOffset: {x: NaN, y: NaN}
+          height: 1
+          padding:
+            value: {x: 0.1, y: 0.06}
+            unit: 2
+          cornerRadius:
+            value: 0.15
+            unit: 2
+          mergeThreshold:
+            value: -1
+            unit: 2
+          order: 0
+          tint:
+            serializedVersion: 2
+            rgba: 4294967295
+          blend: -1
+    - rid: 2064118853484413018
+      type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
+      data:
+        enterDuration: 0
+        exitDuration: 0.25
+        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
+        clock: 1
+        animateInitialMatch: 0
+    - rid: 2064118853484413019
+      type: {class: HighlightModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5659359922680835672
+          low: 2743292843910919838
+        priority: -10
+        presentation:
+          provider:
+            rid: 2064118853484413024
+          paint:
+            kind: 1
+            color:
+              serializedVersion: 2
+              rgba: 1308590131
+            swatch: 
+          geometryMapping: 2
+          paintMapping: 0
+          shape: -1
+          fit: -1
+          angle: NaN
+          scale: NaN
+          paintOffset: {x: NaN, y: NaN}
+          height: 1
+          padding:
+            value: {x: 0.1, y: 0.06}
+            unit: 2
+          cornerRadius:
+            value: 0.15
+            unit: 2
+          mergeThreshold:
+            value: -1
+            unit: 2
+          order: 0
+          tint:
+            serializedVersion: 2
+            rgba: 4294967295
+          blend: -1
+    - rid: 2064118853484413020
+      type: {class: InteractionRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
+      data:
+        required: 1
+        excluded: 0
+    - rid: 2064118853484413021
+      type: {class: InteractionRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
+      data:
+        required: 2
+        excluded: 0
+    - rid: 2064118853484413022
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 2064118853484413023
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 2064118853484413024
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 

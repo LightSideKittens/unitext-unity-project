@@ -1,15 +1,15 @@
 [submodule "Assets/UniText"]
-	path = Assets/UniText
+	path = Packages/media.lightside.unitext
 	url = https://github.com/LightSideMeowshop/UniText-Dev.git
 [submodule "Assets/UniText-Public"]
 	path = Assets/UniText-Public
 	url = https://github.com/LightSideMeowshop/unitext.git
 [submodule "Assets/LightSide.Core"]
-	path = Assets/LightSide.Core
+	path = Packages/media.lightside.core
 	url = https://github.com/LightSideMeowshop/lightside-core.git
 [submodule "Assets/UniLottie"]
-	path = Assets/UniLottie
+	path = Packages/media.lightside.unilottie
 	url = https://github.com/LightSideMeowshop/UniLottie.git
 [submodule "Assets/UniShapes"]
-	path = Assets/UniShapes
+	path = Packages/media.lightside.unishapes
 	url = https://github.com/LightSideMeowshop/unishapes.git

@@ -67,6 +67,13 @@
         "com.unity.test-framework.performance": "3.2.0"
       }
     },
+    "com.unity.editorcoroutines": {
+      "version": "1.1.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ext.nunit": {
       "version": "2.1.0",
       "depth": 1,
@@ -97,6 +104,19 @@
       "depth": 1,
       "source": "builtin",
       "dependencies": {}
+    },
+    "com.unity.memoryprofiler": {
+      "version": "1.1.12",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.burst": "1.8.0",
+        "com.unity.collections": "1.2.3",
+        "com.unity.mathematics": "1.2.1",
+        "com.unity.profiling.core": "1.0.0",
+        "com.unity.editorcoroutines": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
     },
     "com.unity.mobile.android-logcat": {
       "version": "1.4.7",
@@ -129,7 +149,7 @@
     },
     "com.unity.profiling.core": {
       "version": "1.0.3",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -242,6 +262,61 @@
         "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.physics2d": "1.0.0",
         "com.unity.modules.physics": "1.0.0"
+      }
+    },
+    "media.lightside.core": {
+      "version": "file:media.lightside.core",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.burst": "1.6.0",
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.ui": "1.0.0",
+        "com.unity.nuget.newtonsoft-json": "3.2.2"
+      }
+    },
+    "media.lightside.promo": {
+      "version": "file:media.lightside.promo",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "media.lightside.core": "2.0.2",
+        "media.lightside.unishapes": "1.0.0",
+        "media.lightside.unitext": "3.0.0",
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.ui": "1.0.0",
+        "com.nosuchstudio.rtltmpro": "1.0.0"
+      }
+    },
+    "media.lightside.unilottie": {
+      "version": "file:media.lightside.unilottie",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "media.lightside.core": "1.0.5",
+        "com.unity.nuget.newtonsoft-json": "3.2.2"
+      }
+    },
+    "media.lightside.unishapes": {
+      "version": "file:media.lightside.unishapes",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "media.lightside.core": "1.0.5",
+        "com.unity.burst": "1.6.0",
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.ui": "1.0.0"
+      }
+    },
+    "media.lightside.unitext": {
+      "version": "file:media.lightside.unitext",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "media.lightside.core": "2.0.4",
+        "com.unity.burst": "1.8.29",
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.ui": "1.0.0"
       }
     },
     "com.unity.modules.accessibility": {

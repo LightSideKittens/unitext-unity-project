@@ -16,52 +16,109 @@ MonoBehaviour:
     items:
     - modifier:
         rid: 2935973566340137106
-      rule:
+      source:
         rid: 266425450685005831
+      defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2935973566340137110
-      rule:
+      source:
         rid: 266425450685005832
+      defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 2935973732210966574
-      rule:
+      source:
         rid: 266425450685005833
+      defaultParameter: 
+      disabled: 0
     - modifier:
         rid: 266424891755987266
-      rule:
+      source:
         rid: 266425450685005834
+      defaultParameter: 
+      disabled: 0
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 266424891755987266
       type: {class: FillModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        modifierNodeId:
+          high: 5297359079943295358
+          low: 16428906821464203142
+        blend: -1
+        provider:
+          rid: -2
+        mapping: 0
+        shape: -1
+        fit: -1
+        angle: NaN
+        scale: NaN
+        paintOffset: {x: NaN, y: NaN}
+        corners: 0
+        miterLimit: 2
+        tint:
+          serializedVersion: 2
+          rgba: 4294967295
+        paint:
+          kind: 0
+          color:
+            serializedVersion: 2
+            rgba: 0
+          swatch: 
+        softness:
+          value: 0
+          unit: 2
+        dilate:
+          value: 0
+          unit: 2
     - rid: 266425450685005831
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: color
+        tag: color
         defaultParameter: 
     - rid: 266425450685005832
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: line-height
+        tag: line-height
         defaultParameter: 
     - rid: 266425450685005833
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: upper
+        tag: upper
         defaultParameter: 
     - rid: 266425450685005834
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: gradient
+        tag: gradient
         defaultParameter: 
     - rid: 2935973566340137106
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        modifierNodeId:
+          high: 5659306657977014861
+          low: 8943828341681549728
+        color:
+          serializedVersion: 2
+          rgba: 4294967295
     - rid: 2935973566340137110
       type: {class: LineHeightModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        modifierNodeId:
+          high: 4848958897316781688
+          low: 1784874632993303195
+        heightValue:
+          value: 0
+          unit: 0
+        mode: 0
+        scale: 1.2
+        leading: 0
     - rid: 2935973732210966574
       type: {class: UppercaseModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        modifierNodeId:
+          high: 4720410930828651980
+          low: 6369679086796893584

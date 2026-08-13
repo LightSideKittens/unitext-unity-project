@@ -368,13 +368,13 @@ MonoBehaviour:
     items:
     - modifier:
         rid: 2031797989190140001
-      rule:
+      source:
         rid: 266425450751590472
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2031797989190140031
-      rule:
+      source:
         rid: 266425450751590473
       defaultParameter: 
       disabled: 0
@@ -388,20 +388,26 @@ MonoBehaviour:
     - rid: 266425450751590472
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: ellipsis
+        tag: ellipsis
         defaultParameter: 
     - rid: 266425450751590473
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: color
+        tag: color
         defaultParameter: 
     - rid: 2031797989190140001
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 4746676923279049673
+          low: 678250992287122822
         position: 1
     - rid: 2031797989190140031
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5699455887295004253
+          low: 7365767057562119820
         color:
           serializedVersion: 2
           rgba: 4294967295
@@ -1145,19 +1151,19 @@ MonoBehaviour:
     items:
     - modifier:
         rid: 7750513568556253269
-      rule:
+      source:
         rid: 7750513568556253270
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 7750513568556253271
-      rule:
+      source:
         rid: 7750513568556253272
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 7750513568556253273
-      rule:
+      source:
         rid: 7750513568556253274
       defaultParameter: 
       disabled: 0
@@ -1171,27 +1177,36 @@ MonoBehaviour:
     - rid: 7750513568556253269
       type: {class: ItalicModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5156417783785536664
+          low: 7253600514783103630
         style:
           mode: 0
           slant: 0
     - rid: 7750513568556253270
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: i
+        tag: i
         defaultParameter: 
     - rid: 7750513568556253271
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5752246489812761106
+          low: 11904973039009049011
         weight: 0
         mode: 0
     - rid: 7750513568556253272
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: b
+        tag: b
         defaultParameter: 
     - rid: 7750513568556253273
       type: {class: VariationModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5144284986166593743
+          low: 2711388813314546852
         weight:
           value: 400
           unit: 0
@@ -1210,7 +1225,7 @@ MonoBehaviour:
     - rid: 7750513568556253274
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: var
+        tag: var
         defaultParameter: 
 --- !u!222 &1553998144
 CanvasRenderer:
@@ -1552,13 +1567,13 @@ MonoBehaviour:
     items:
     - modifier:
         rid: 2031797989190140001
-      rule:
+      source:
         rid: 266425450751590470
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2031797989190140031
-      rule:
+      source:
         rid: 266425450751590471
       defaultParameter: 
       disabled: 0
@@ -1572,20 +1587,26 @@ MonoBehaviour:
     - rid: 266425450751590470
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: ellipsis
+        tag: ellipsis
         defaultParameter: 
     - rid: 266425450751590471
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: color
+        tag: color
         defaultParameter: 
     - rid: 2031797989190140001
       type: {class: EllipsisModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 4919380187859122191
+          low: 1753917588678113943
         position: 1
     - rid: 2031797989190140031
       type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5585019987261017764
+          low: 1199380140149247887
         color:
           serializedVersion: 2
           rgba: 4294967295
@@ -1922,238 +1943,9 @@ PrefabInstance:
       value: FullTest
       objectReference: {fileID: 0}
     - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: text
-      value: "123456. \u0644\u0644\u0644\u0644\u0644shaping  faksjd  fhak<obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/><obj=\"log\"/>lsjdfhaklsjdhafalskjdh
-        aksldjha ksl jfha skldaskjhaskdjh\n  1. \u0644\u0644\u0644\u0644\u0644shaping\n-
-        \u0644\u0644\u0644\u0644\u0644shaping  faksjd fhak lsjdfhaklsjdha falskjdh
-        aksldjha ksl jfha skldaskjhaskdjh\n  - \u0644\u0644\u0644\u0644\u0644shaping\n     
-        - \u0644\u0644\u0644\u0644\u0644shaping\n- sdfsdf\n  - sdfjslkdfs\n    -
-        dfskldfj\n12345. <b>Test numbered</b>\n  1. <u><s>Test nested numbered</s></u>\n\n[Google
-        Markdown link](https://google.com)\n\nhttps://google.com\n\n\u0645\u0631\u062D\u0628\u0627
-        \u0643\u062A\u0627\u0628 <link=\"https://google.com\">\u0634\u0645\u0633
-        Google Tag</link> Link\n\n<color=#98f>\u0627\u0644\u0639\u0631\u0628\u064A\u0629:
-        \u0645\u0631\u062D\u0628\u0627\u064B \u0628\u0627\u0644\u0639\u0627\u0644\u0645!
-        <obj=\"logo\"/> \u0647\u0630\u0627 \u0646\u064E\u0635\u0651\u064C \u0644\u0627\u062E\u062A\u0628\u0627\u0631
-        \u0627\u0644\u0627\u062A\u062C\u0627\u0647\u061B \u0639\u0631\u0628\u0649\u060C
-        \u0639\u0631\u0628\u064A\u060C \u0639\u0631\u0628\u064A\u061F\n\u0623\u0631\u0642\u0627\u0645
-        \u0639\u0631\u0628\u064A\u0629-\u0647\u0646\u062F\u064A\u0629: \u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669\u0660,
-        Arabic digits: 1234567890.\n\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u062A\u0631\u0642\u064A\u0645:
-        \u060C \u061B \u061F ! : \u060C \u2026 \u2014 (\u0634\u0631\u0637\u0629 \u0637\u0648\u064A\u0644\u0629)\u060C
-        \"\u0627\u0642\u062A\u0628\u0627\u0633\"\u060C \xAB\u0627\u0642\u062A\u0628\u0627\u0633\xBB.\n\n\u0644\u0627\u0645-\u0623\u0644\u0641:
-        \u0644\u0627 \u0644\u064E\u0627 \u0644\u0651\u064E\u0627 \u0644\u064E\u200D\u0627
-        (LAM + FATHA + ZWJ + ALEF).\n\u0633\u0644\u0633\u0644\u0629 \u0645\u0634\u0643\u0648\u0644\u0629:
-        \u0627\u064E\u0644\u0644\u0651\u0670\u0647\u064F \u0631\u064E\u0628\u0651\u064F
-        \u0627\u0644\u0652\u0639\u064E\u0627\u0644\u064E\u0645\u0650\u064A\u0646\u064E\u060C
-        \u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u0670\u0647\u0650
-        \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650.\n\n\u0641\u0627\u0631\u0633\u06CC:
-        \u0633\u0644\u0627\u0645 \u062F\u0646\u06CC\u0627! \u062D\u0631\u0648\u0641
-        \u0627\u0636\u0627\u0641\u06CC: \u067E \u0686 \u0698 \u06AF \u06CC.\n\u0641\u0627\u0635\u0644\u0647\u0654
-        \u0645\u062C\u0627\u0632\u06CC (<cspace=122>ZWNJ</cspace>): \u0645\u06CC\u200C\u0631\u0648\u0645\u060C
-        \u062E\u0627\u0646\u0647\u200C\u0647\u0627\u060C \u06A9\u062A\u0627\u0628\u200C\u0647\u0627\u060C
-        \u0646\u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u0645.\n\n\u0627\u064F\u0631\u062F\u0648:
-        \u06CC\u06C1 \u0627\u06CC\u06A9 \u062C\u0627\u0645\u0639 \u0679\u06CC\u0633\u0679
-        \u0679\u06CC\u06A9\u0633\u0679 \u06C1\u06D2\u061B \u062D\u0631\u0648\u0641:
-        \u0679\u060C \u0688\u060C \u0691\u060C \u06BA\u060C \u06C1\u060C \u06BE\u060C
-        \u06D2\u060C \u06BA\u060C \u06AF\u060C \u06A9\u060C \u06CC.\n\u0645\u062E\u0644\u0648\u0637
-        \u062C\u0645\u0644\u06C1: \u0627\u0631\u062F\u0648 (Urdu) + English + \u0627\u0639\u062F\u0627\u062F
-        \u06F1\u06F2\u06F3\u06F4.\n\n\u05E2\u05D1\u05E8\u05D9\u05EA: \u05E9\u05DC\u05D5\u05DD
-        \u05E2\u05D5\u05DC\u05DD, \u05D8\u05E7\u05E1\u05D8 \u05D1\u05D3\u05D9\u05E7\u05D4,
-        \u05DE\u05E1\u05E4\u05E8\u05D9\u05DD 1234 \u05D5-\u0665\u0666\u0667\u0668.\nMixed
-        Hebrew/English: \u05E9\u05DC\u05D5\u05DD (shalom) world 2025-12-01, test-\u05DE\u05E1\u05E4\u05E8.\n\nNested
-        brackets: (AR: \u0645\u0631\u062D\u0628\u0627 [\u0646\u0635 {\u062A\u062C\u0631\u064A\u0628\u064A}
-        \u0645\u0639 \u0623\u0642\u0648\u0627\u0633]!) and (EN: (nested [brackets]
-        {here})).\nQuotes: \"plain quotes\", \u2018single\u2019, \u201Cdouble smart\u201D,
-        \xABguillemets\xBB, \u201Elow-high\u201C.\n\nRichText: <i><b>\u063A\u0627\u0645\u0642
-        \u0639\u0631\u0628\u064A \u0645\u0631\u062D\u0628\u0627</b></i>, <i>\u05E9\u05DC\u05D5\u05DD
-        \u05DE\u05D5\u05D3\u05D2\u05E9</i>, <color=#FF0000>red English text</color>,
-        <size=150%>\u0646\u0635 \u0645\u0643\u0628\u0631</size>, <u><color=#695>test</color>
-        \u062E\u0637 \u0633\u0641\u0644\u064A</u>.\n\nZWJ forms (for shaping): \u200D\u0628
-        (forced final), \u0628\u200D (forced initial), \u200D\u0628\u200D (forced
-        medial).\nMix with diacritics + ZWJ: \u200D\u0628\u064E\u200D\u060C \u200D\u0646\u0651\u064E\u200D.\nZWNJ
-        breaking join: \u0628\u0627\u200C\u0628\u060C \u0644\u0627\u200C\u0627\u060C
-        \u0645\u06CC\u200C\u0631\u0648\u062F.\n<line-height=70>Bidi controls (LRE/RLE/PDF,
-        LRM/RLM):\nEnglish before  \u0645\u0631\u062D\u0628\u0627 \u0628\u0627\u0644\u0639\u0627\u0644\u0645 
-        after [RLE ... PDF].\nLRM/LRM: EN\u200E-\u200Etag, AR\u200F-\u200F\u0639\u0644\u0627\u0645\u0629.</line-height>\n<gradient=rainbow,L>\nMixed
-        run: \u0645\u0631\u062D\u0628\u0627 (hello) 123 in [EN], \u062B\u0645 \u0646\u0635
-        \u0639\u0631\u0628\u064A\u060C then Hebrew \u05E9\u05DC\u05D5\u05DD, \u05D5\u05D0\u05D6
-        again \u0639\u0631\u0628\u0649.\nRight-to-left with inner English: \u0647\u0630\u0627
-        \"test\" \u062F\u0627\u062E\u0644 \u062C\u0645\u0644\u0629 \u0639\u0631\u0628\u064A\u0629
-        (with brackets).\u061F\n\nBrackets around RTL: (\u0645\u0631\u062D\u0628\u0627)\u060C
-        [\u0633\u0644\u0627\u0645]\u060C {\u0634\u06A9\u0631\u06CC\u06C1} and around
-        mixed [hello \u0645\u0631\u062D\u0628\u0627 123].</gradient></color>\n\n<b>Emojis:
-        \U0001F600 \U0001F603 \U0001F601 \U0001F602 \U0001F914 \U0001F44D.</b>\n<i>RTL
-        with <upper>emojis:</upper> \u0645\u0631\u062D\u0628\u0627 \U0001F600 \u0628\u0627\u0644\u0639\u0627\u0644\u0645\u060C
-        \u0631\u0642\u0645 \u0661\u0662\u0663\u060C \u0646\u0635 \U0001F603 \u0645\u062E\u062A\u0644\u0637
-        \U0001F44D.</i>\n<gradient=rainbow>Family ZWJ emoji: \U0001F468\u200D\U0001F469\u200D\U0001F467\u200D\U0001F466,
-        flags: \U0001F1EE\U0001F1F7 (IL), \U0001F1EA\U0001F1F8 (ES), \U0001F1FA\U0001F1F8
-        (US).</gradient>\n\nBig mixed line: \u0644\u0627 + \u0644\u064E\u0627 + \u0644\u0651\u064E\u0627
-        + \u0641\u0627\u0631\u0633\u06CC \u067E\u0686\u0698\u06AF + \u0627\u064F\u0631\u062F\u0648
-        \u0679\u060C\u0688\u060C\u0691 + \u05E2\u05D1\u05E8\u05D9\u05EA \u05E9\u05DC\u05D5\u05DD
-        + English TEXT 1234 ++ emoji \U0001F600 + brackets (\u0639\u0631\u0628\u064A
-        [EN {\u05E2\u05D1\u05E8\u05D9\u05EA} 42]) + ZWNJ \u0645\u06CC\u200C\u0631\u0648\u0645
-        + ZWJ \u200D\u0628\u200D + bidi controls  \u0639\u0631\u0628\u064A \u0645\u0639 
-        EN  \u062F\u0627\u062E\u0644  done."
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[-2]'
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: styles.items.Array.size
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: styles.items.Array.data[9].rule
-      value: -2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: styles.items.Array.data[9].modifier
-      value: 7750514236629450851
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450822]'
-      value: LightSide.UniText LightSide.CompositeModifier
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450823]'
-      value: LightSide.UniText LightSide.TagRule
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450824]'
-      value: LightSide.UniText LightSide.LinkModifier
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450825]'
-      value: LightSide.UniText LightSide.ColorModifier
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450826]'
-      value: LightSide.UniText LightSide.UnderlineModifier
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450827]'
-      value: LightSide.UniText LightSide.GlobalSettingsPaintProvider
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450828]'
-      value: LightSide.UniText LightSide.CompositeModifier
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450829]'
-      value: LightSide.UniText LightSide.MarkdownLinkParseRule
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450830]'
-      value: LightSide.UniText LightSide.LinkModifier
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450831]'
-      value: LightSide.UniText LightSide.ColorModifier
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450832]'
-      value: LightSide.UniText LightSide.UnderlineModifier
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450833]'
-      value: LightSide.UniText LightSide.GlobalSettingsPaintProvider
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[2031797866453532882].mode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[2031797866453532880].weight
-      value: 700
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450823].tagName
-      value: link
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450826].provider
-      value: 7750514236629450827
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450832].provider
-      value: 7750514236629450833
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[2031797866453532882].style.mode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[2031797866453532882].style.slant
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450824].autoOpenUrl
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450824].highlighter
-      value: -2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450830].autoOpenUrl
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450830].highlighter
-      value: -2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[266425450751590462].defaultParameter
-      value: ',f'
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[266425450751590463].defaultParameter
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450823].defaultParameter
-      value: ;#4285F4FF
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450829].defaultParameter
-      value: ;#4285F4FF
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
       propertyPath: managedReferences[1000].entries.items.Array.data[0].prefab
       value: 
       objectReference: {fileID: 1061559364}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450822].modifiers.items.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: managedReferences[7750514236629450828].modifiers.items.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450822].modifiers.items.Array.data[0]'
-      value: 7750514236629450824
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450822].modifiers.items.Array.data[1]'
-      value: 7750514236629450825
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450822].modifiers.items.Array.data[2]'
-      value: 7750514236629450826
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450828].modifiers.items.Array.data[0]'
-      value: 7750514236629450830
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450828].modifiers.items.Array.data[1]'
-      value: 7750514236629450831
-      objectReference: {fileID: 0}
-    - target: {fileID: 6429926910226261883, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
-      propertyPath: 'managedReferences[7750514236629450828].modifiers.items.Array.data[2]'
-      value: 7750514236629450832
-      objectReference: {fileID: 0}
     - target: {fileID: 9001780787298192370, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
       propertyPath: m_Pivot.x
       value: 0.79593015
@@ -2237,7 +2029,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4600157662377765230, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 1de3da3384c232448bdbd04960d0b38b, type: 3}
 --- !u!224 &2081125547 stripped
 RectTransform:
@@ -2327,7 +2122,7 @@ MonoBehaviour:
     items:
     - modifier:
         rid: 4507959643864039491
-      rule:
+      source:
         rid: 4507959643864039494
       defaultParameter: 
       disabled: 0
@@ -2341,6 +2136,9 @@ MonoBehaviour:
     - rid: 4507959643864039491
       type: {class: VariationModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 4805493738429745370
+          low: 3644015316194203806
         weight:
           value: 400
           unit: 0
@@ -2366,12 +2164,12 @@ MonoBehaviour:
     - rid: 4507959643864039495
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: var1
+        tag: var1
         defaultParameter: 1000,100,0,0,12
     - rid: 4507959643864039496
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: var2
+        tag: var2
         defaultParameter: 426,100,0,0,12
 --- !u!222 &2090398507
 CanvasRenderer:

@@ -1,0 +1,25 @@
+{
+    "name": "LightSide.Promo.Editor",
+    "rootNamespace": "LightSide.Promo",
+    "references": [
+        "UnityEngine.UI",
+        "UnityEditor.UI",
+        "LightSide.Core",
+        "LightSide.Core.Editor",
+        "LightSide.UniShapes",
+        "LightSide.UniText",
+        "LightSide.Promo",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,21 @@
+{
+    "name": "LightSide.Promo",
+    "rootNamespace": "LightSide.Promo",
+    "references": [
+        "UnityEngine.UI",
+        "LightSide.Core",
+        "LightSide.UniShapes",
+        "LightSide.UniText",
+        "Unity.TextMeshPro",
+        "RTLTMPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

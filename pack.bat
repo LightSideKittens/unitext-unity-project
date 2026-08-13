@@ -1,22 +1,18 @@
 @echo off
 setlocal
 
-cd /d "%~dp0Assets\UniText"
+cd /d "%~dp0Packages\media.lightside.unitext"
 
 set BUILD_DIR=%~dp0Builds\Package
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-if exist "Samples" (
-    ren Samples Samples~
-) else (
-    echo ERROR: Samples directory not found
-    exit /b 1
-)
+call node "tools~/samples-pack.js" hide .
+if errorlevel 1 exit /b 1
 
 call npm pack
 set PACK_EXIT=%errorlevel%
 
-ren Samples~ Samples
+call node "tools~/samples-pack.js" show .
 
 if %PACK_EXIT% neq 0 (
     echo ERROR: npm pack failed

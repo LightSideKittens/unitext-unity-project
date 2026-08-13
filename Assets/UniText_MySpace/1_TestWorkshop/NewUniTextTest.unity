@@ -216,8 +216,8 @@ MonoBehaviour:
         provider:
           rid: -2
         mapping: 0
-        shape: 0
-        fit: 0
+        shape: -1
+        fit: -1
         angle: 0
         scale: 1
         paint: 
@@ -1370,8 +1370,8 @@ MonoBehaviour:
         provider:
           rid: -2
         mapping: 0
-        shape: 0
-        fit: 0
+        shape: -1
+        fit: -1
         angle: 0
         scale: 1
         paint: 
@@ -1761,14 +1761,14 @@ MonoBehaviour:
       type: {class: UppercaseModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 5346788155469332744
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         defaultParameter: 
         data:
         - range: ..
           parameter: 
     - rid: 5346788155469332750
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         defaultParameter: 
         data:
@@ -1870,7 +1870,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 4507959562506600531
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         defaultParameter: 
         data:
@@ -2535,8 +2535,8 @@ MonoBehaviour:
         provider:
           rid: -2
         mapping: 0
-        shape: 0
-        fit: 0
+        shape: -1
+        fit: -1
         angle: 0
         scale: 1
         paint: 
@@ -3453,7 +3453,7 @@ MonoBehaviour:
           unit: 0
         skipInk: 0
     - rid: 5346788241484546139
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         defaultParameter: 
         data:
@@ -3467,7 +3467,7 @@ MonoBehaviour:
           unit: 0
         monospace: 0
     - rid: 5346788241484546145
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         defaultParameter: 
         data:
@@ -3477,7 +3477,7 @@ MonoBehaviour:
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 5346788241484546155
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         defaultParameter: 
         data:
@@ -3487,7 +3487,7 @@ MonoBehaviour:
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 5346788241484546157
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         defaultParameter: 
         data:
@@ -3955,8 +3955,8 @@ MonoBehaviour:
         provider:
           rid: -2
         mapping: 0
-        shape: 0
-        fit: 0
+        shape: -1
+        fit: -1
         angle: 0
         scale: 1
         paint: '#000000FF'
@@ -4332,8 +4332,8 @@ MonoBehaviour:
         provider:
           rid: -2
         mapping: 0
-        shape: 0
-        fit: 0
+        shape: -1
+        fit: -1
         angle: 0
         scale: 1
         paint: 

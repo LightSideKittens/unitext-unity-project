@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const dir = path.join(__dirname, 'Assets', 'UniText');
+const dir = path.join(__dirname, 'Packages', 'media.lightside.unitext');
 
 const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
 delete pkg.license;

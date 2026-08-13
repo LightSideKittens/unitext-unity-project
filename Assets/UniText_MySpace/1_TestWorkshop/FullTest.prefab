@@ -147,55 +147,55 @@ MonoBehaviour:
     items:
     - modifier:
         rid: 2031797866453532880
-      rule:
+      source:
         rid: 266425450751590462
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2031797866453532882
-      rule:
+      source:
         rid: 266425450751590463
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2031797866453532884
-      rule:
+      source:
         rid: 266425450751590464
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2031797866453532886
-      rule:
+      source:
         rid: 266425450751590465
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2031797866453532888
-      rule:
+      source:
         rid: 2031797866453532889
       defaultParameter: 
       disabled: 0
     - modifier:
-        rid: 7750514236629450809
-      rule:
+        rid: 2064118853484413026
+      source:
         rid: 2031797913714425947
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2935973566340137039
-      rule:
+      source:
         rid: 266425450751590467
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2935973566340137040
-      rule:
+      source:
         rid: 266425450751590474
       defaultParameter: 
       disabled: 0
     - modifier:
         rid: 2935973566340137021
-      rule:
+      source:
         rid: 266425450751590468
       defaultParameter: 
       disabled: 0
@@ -215,8 +215,11 @@ MonoBehaviour:
           - name: log
             size: {x: 1, y: 1}
             bearingOffset: {x: 0, y: 0}
+            pivot: {x: 0, y: 0}
+            rotation: 0
             advance: 1
-            lineHeight: 0
+            lineHeightAbove: 0
+            lineHeightBelow: 0
             prefab: {fileID: 0}
     - rid: 1001
       type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
@@ -227,62 +230,114 @@ MonoBehaviour:
     - rid: 266425450751590462
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: b
-        defaultParameter: 
+        tag: b
+        defaultParameter: ',f'
     - rid: 266425450751590463
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: i
+        tag: i
         defaultParameter: 
     - rid: 266425450751590464
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: u
+        tag: u
         defaultParameter: 
     - rid: 266425450751590465
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: s
+        tag: s
         defaultParameter: 
     - rid: 266425450751590466
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: link
+        tag: link
         defaultParameter: ;#14A6FFFF
     - rid: 266425450751590467
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: size
+        tag: size
         defaultParameter: 
     - rid: 266425450751590468
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: obj
+        tag: obj
         defaultParameter: 
     - rid: 266425450751590474
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
-        tagName: cspace
+        tag: cspace
         defaultParameter: 
     - rid: 2031797866453532880
       type: {class: BoldModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        modifierNodeId:
+          high: 5365967290334706291
+          low: 13793097237204223888
+        weight: 700
+        mode: 0
     - rid: 2031797866453532882
       type: {class: ItalicModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        modifierNodeId:
+          high: 5091783997367808175
+          low: 5423395856778738844
+        style:
+          mode: 0
+          slant: 0
     - rid: 2031797866453532884
       type: {class: UnderlineModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5447144157748158738
+          low: 2276707460469727160
         provider:
           rid: 1001
+        paint:
+          kind: 0
+          color:
+            serializedVersion: 2
+            rgba: 0
+          swatch: 
+        style: 0
+        thickness:
+          value: 0
+          unit: 0
+        offset:
+          value: 0
+          unit: 0
+        skipInk: 0
+        blend: -1
     - rid: 2031797866453532886
       type: {class: StrikethroughModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5601970157282669985
+          low: 981483631644916657
         provider:
           rid: 1002
+        paint:
+          kind: 0
+          color:
+            serializedVersion: 2
+            rgba: 0
+          swatch: 
+        style: 0
+        thickness:
+          value: 0
+          unit: 0
+        offset:
+          value: 0
+          unit: 0
+        skipInk: 0
+        blend: -1
     - rid: 2031797866453532888
       type: {class: ListModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5169897969120527104
+          low: 5904577927451561093
+        level: 0
+        number: -1
         markerPlacement: 0
         bulletMarkers:
           items:
@@ -311,42 +366,39 @@ MonoBehaviour:
       type: {class: RawUrlParseRule, ns: LightSide, asm: LightSide.UniText}
       data:
         defaultParameter: ;#14A6FFFF
+    - rid: 2064118853484413026
+      type: {class: ModifierGraphModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 4804195110012875798
+          low: 5555074882898912417
+        preset: {fileID: 11400000, guid: 7ed945ce77b81814e9cd94096a6ec942, type: 2}
     - rid: 2935973566340137021
       type: {class: ObjModifier, ns: LightSide, asm: LightSide.UniText}
       data:
+        modifierNodeId:
+          high: 5644891574498030754
+          low: 7351182465831320743
+        overrides:
+          items: []
         provider:
           rid: 1000
     - rid: 2935973566340137039
       type: {class: SizeModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
+      data:
+        modifierNodeId:
+          high: 5365423644375211218
+          low: 1406990636462872194
+        size:
+          value: 24
+          unit: 0
     - rid: 2935973566340137040
       type: {class: LetterSpacingModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
-    - rid: 7750514236629450809
-      type: {class: CompositeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        modifiers:
-          items:
-          - rid: 7750514236629450810
-          - rid: 7750514236629450812
-          - rid: 7750514236629450819
-    - rid: 7750514236629450810
-      type: {class: LinkModifier, ns: LightSide, asm: LightSide.UniText}
-      data:
-        styler:
-          rid: 7750514236629450811
-        autoOpenUrl: 1
-    - rid: 7750514236629450811
-      type: {class: StateHighlightStyler, ns: LightSide, asm: LightSide.UniText}
-      data:
-    - rid: 7750514236629450812
-      type: {class: ColorModifier, ns: LightSide, asm: LightSide.UniText}
-      data: 
-    - rid: 7750514236629450819
-      type: {class: UnderlineModifier, ns: LightSide, asm: LightSide.UniText}
-      data:
-        provider:
-          rid: 7750514236629450820
-    - rid: 7750514236629450820
-      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
-      data: 
+        modifierNodeId:
+          high: 5596370509143541796
+          low: 1452385422268683168
+        spacing:
+          value: 0.3
+          unit: 0
+        monospace: 0
