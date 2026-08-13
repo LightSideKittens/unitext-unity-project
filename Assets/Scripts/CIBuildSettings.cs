@@ -9,7 +9,7 @@ public static class CIBuildSettings
 {
     private const string TestScenePath = "Assets/UniText_MySpace/1_TestWorkshop/UniTextTest.unity";
     private const string BenchmarkScenePath = "Assets/UniText_MySpace/2_BenchmarkWorkshop/1_General/General_BenchmarkTest.unity";
-    private const string SlideshowScenePath = "Assets/UniText/Samples/BasicUsage/BasicUsage.unity";
+    private const string SlideshowScenePath = "Packages/media.lightside.unitext/Samples/BasicUsage/BasicUsage.unity";
 
     static readonly BuildTargetGroup[] AllTargets =
     {
@@ -141,7 +141,12 @@ public static class CIBuildSettings
     {
         var scenes = new EditorBuildSettingsScene[scenePaths.Length];
         for (int i = 0; i < scenePaths.Length; i++)
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePaths[i]) == null)
+                throw new InvalidOperationException($"CI build scene not found: {scenePaths[i]}");
+
             scenes[i] = new EditorBuildSettingsScene(scenePaths[i], true);
+        }
         EditorBuildSettings.scenes = scenes;
 
         Debug.Log($"[CIBuildSettings] Build scenes set to: {string.Join(", ", scenePaths)}");

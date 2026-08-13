@@ -4892,11 +4892,11 @@ MonoBehaviour:
     - rid: -2
       type: {class: , ns: , asm: }
     - rid: 6670084486001591237
-      type: {class: ModifierEffect, ns: LightSide, asm: LightSide.UniText}
+      type: {class: ModifierRule, ns: LightSide, asm: LightSide.UniText}
       data:
         selector:
           rid: 6670084486001591239
-        driver:
+        playback:
           rid: 6670084486001591240
         scope: 1
         trigger: 0
@@ -4905,11 +4905,11 @@ MonoBehaviour:
           rid: 6670084486001591241
         dirtyStage: 1
     - rid: 6670084486001591238
-      type: {class: ModifierEffect, ns: LightSide, asm: LightSide.UniText}
+      type: {class: ModifierRule, ns: LightSide, asm: LightSide.UniText}
       data:
         selector:
           rid: -2
-        driver:
+        playback:
           rid: 6670084486001591242
         scope: 1
         trigger: 1
@@ -4918,12 +4918,12 @@ MonoBehaviour:
           rid: 6670084486001591243
         dirtyStage: 1
     - rid: 6670084486001591239
-      type: {class: InteractionRangeEffectSelector, ns: LightSide, asm: LightSide.UniText}
+      type: {class: InteractionRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
       data:
         required: 2
         excluded: 0
     - rid: 6670084486001591240
-      type: {class: BuiltInPropertyDriver, ns: LightSide, asm: LightSide.UniText}
+      type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
       data:
         enterDuration: 0
         exitDuration: 0.15
@@ -4968,7 +4968,7 @@ MonoBehaviour:
             serializedVersion: 2
             rgba: 4294967295
     - rid: 6670084486001591242
-      type: {class: BuiltInPropertyDriver, ns: LightSide, asm: LightSide.UniText}
+      type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
       data:
         enterDuration: 0.04
         exitDuration: 0.18
@@ -5065,7 +5065,7 @@ MonoBehaviour:
         inlineObjectPolicy: 0
         passThrough: 0
         gestureRecognizers: []
-        effects:
+        rules:
         - rid: 6670084486001591237
         - rid: 6670084486001591238
         actions: []

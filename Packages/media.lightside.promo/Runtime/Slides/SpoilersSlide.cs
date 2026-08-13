@@ -111,7 +111,7 @@ namespace LightSide.Promo
 
         private void Uncover()
         {
-            var ranges = spoiler.Ranges;
+            var ranges = spoiler.InteractiveRanges;
             if (ranges.Length > 0) spoiler.SetRevealed(ranges[0], true);
         }
 
