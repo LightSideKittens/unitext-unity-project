@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
@@ -37,7 +38,20 @@ public static class CIBuildSettings
 
         SessionState.SetBool(ConfiguredKey, true);
 
-        ConfigureBuild();
+        try
+        {
+            ConfigureBuild();
+        }
+        catch (Exception e)
+        {
+            if (Application.isBatchMode)
+            {
+                Debug.LogException(e);
+                EditorApplication.Exit(1);
+            }
+            throw;
+        }
+
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
     }
     
@@ -142,8 +156,8 @@ public static class CIBuildSettings
         var scenes = new EditorBuildSettingsScene[scenePaths.Length];
         for (int i = 0; i < scenePaths.Length; i++)
         {
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePaths[i]) == null)
-                throw new InvalidOperationException($"CI build scene not found: {scenePaths[i]}");
+            if (!File.Exists(scenePaths[i]))
+                throw new FileNotFoundException($"CI build scene not found: {scenePaths[i]}", scenePaths[i]);
 
             scenes[i] = new EditorBuildSettingsScene(scenePaths[i], true);
         }
