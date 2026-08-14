@@ -20,6 +20,36 @@ MonoBehaviour:
         rid: -2
       defaultParameter: 
       disabled: 0
+    - modifier:
+        rid: 2064118978932375684
+      source:
+        rid: -2
+      defaultParameter: 
+      disabled: 0
+    - modifier:
+        rid: 2064118978932375685
+      source:
+        rid: -2
+      defaultParameter: 
+      disabled: 0
+    - modifier:
+        rid: 2064118978932375687
+      source:
+        rid: 2064118978932375688
+      defaultParameter: 
+      disabled: 0
+    - modifier:
+        rid: 2064118978932375689
+      source:
+        rid: 2064118978932375690
+      defaultParameter: 
+      disabled: 0
+    - modifier:
+        rid: 2064118978932375693
+      source:
+        rid: -2
+      defaultParameter: 
+      disabled: 0
   references:
     version: 2
     RefIds:
@@ -32,3 +62,130 @@ MonoBehaviour:
           high: 4759396460286177308
           low: 9496760526434035087
         familyName: body
+    - rid: 2064118978932375684
+      type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5415864910910431579
+          low: 13800501434396033435
+        blend: -1
+        paintSpread: -1
+        provider:
+          rid: -2
+        mapping: 0
+        shape: -1
+        fit: -1
+        angle: NaN
+        scale: NaN
+        paintOffset: {x: NaN, y: NaN}
+        corners: 0
+        miterLimit: 2
+        tint:
+          serializedVersion: 2
+          rgba: 4294967295
+        paint:
+          kind: 0
+          color:
+            serializedVersion: 2
+            rgba: 0
+          swatch: 
+        width:
+          value: 3
+          unit: 0
+        align: 1
+        softness:
+          value: 0
+          unit: 2
+    - rid: 2064118978932375685
+      type: {class: FillModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5685914684980596297
+          low: 11806987872151634822
+        blend: -1
+        paintSpread: 0
+        provider:
+          rid: 2064118978932375686
+        mapping: 0
+        shape: -1
+        fit: -1
+        angle: NaN
+        scale: NaN
+        paintOffset: {x: NaN, y: NaN}
+        corners: 0
+        miterLimit: 2
+        tint:
+          serializedVersion: 2
+          rgba: 4294967295
+        paint:
+          kind: 2
+          color:
+            serializedVersion: 2
+            rgba: 0
+          swatch: neon
+        softness:
+          value: 0
+          unit: 2
+        dilate:
+          value: 0
+          unit: 2
+    - rid: 2064118978932375686
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 2064118978932375687
+      type: {class: SizeModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5722848107720595862
+          low: 12119622237160446348
+        size:
+          value: 24
+          unit: 0
+    - rid: 2064118978932375688
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tag: size
+        defaultParameter: 
+    - rid: 2064118978932375689
+      type: {class: RevealModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 5605433638525270571
+          low: 5238363301572227262
+        provider:
+          rid: 2064118978932375691
+        handlerName: 
+        front:
+          value: 100
+          unit: 1
+        collapse: 1
+        clock: 1
+        perRange: 0
+    - rid: 2064118978932375690
+      type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        tag: reveal
+        defaultParameter: 
+    - rid: 2064118978932375691
+      type: {class: InlineRevealHandlerProvider, ns: LightSide, asm: LightSide.UniText}
+      data:
+        entries:
+          items:
+          - name: 
+            handler:
+              rid: 2064118978932375692
+            hideHandler:
+              rid: -2
+    - rid: 2064118978932375692
+      type: {class: PopRevealHandler, ns: LightSide, asm: LightSide.UniText}
+      data:
+        duration: 0.25
+        overshoot: 1.7
+        pivot: 0
+    - rid: 2064118978932375693
+      type: {class: ArcModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        modifierNodeId:
+          high: 4845753950816402896
+          low: 12193223959214785436
+        angle: 0

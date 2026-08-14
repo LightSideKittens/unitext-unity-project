@@ -17,11 +17,6 @@ MonoBehaviour:
   systemFont: {fileID: 0}
   systemFontDisabled: 0
   emojiDisabled: 0
-  requiredShaders:
-  - {fileID: 4800000, guid: 567890678a2f1414aa440979beca4f4f, type: 3}
-  - {fileID: 4800000, guid: 16b648530a7c6024892dc64ceae434fb, type: 3}
-  - {fileID: 4800000, guid: ced7fa7465780b943a78d42718518e18, type: 3}
-  - {fileID: 4800000, guid: c108c980333655c469293ae994e2afc8, type: 3}
   includeLitShaders: 1
   textPrefab: {fileID: 7347632301909959781, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
   worldTextPrefab: {fileID: 9001889984876896436, guid: b3e56e5521aa5e74eb223fc33270bbf7, type: 3}
