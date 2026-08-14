@@ -13,7 +13,14 @@ namespace LightSide.CI
 {
     internal sealed class ShaderCompileCheck
     {
-        private static readonly string[] packageRoots =
+        /// <summary>Packages that must ship shaders — Core owns the surface family every other package renders through.</summary>
+        private static readonly string[] requiredShaderRoots =
+        {
+            "Packages/media.lightside.core"
+        };
+
+        /// <summary>Packages scanned for shaders of their own; each may legitimately ship none.</summary>
+        private static readonly string[] optionalShaderRoots =
         {
             "Packages/media.lightside.unitext",
             "Packages/media.lightside.unishapes",
@@ -73,22 +80,29 @@ namespace LightSide.CI
         private static string[] FindShaderPaths()
         {
             var shaderPaths = new List<string>();
-            foreach (var packageRoot in packageRoots)
+
+            foreach (var packageRoot in requiredShaderRoots)
             {
-                var packageShaders = AssetDatabase.FindAssets("t:Shader", new[] { packageRoot })
-                    .Select(AssetDatabase.GUIDToAssetPath)
-                    .Where(path => path.EndsWith(".shader", StringComparison.OrdinalIgnoreCase))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToArray();
+                var packageShaders = FindShadersUnder(packageRoot);
                 Assert.IsNotEmpty(packageShaders, "No shaders were found under " + packageRoot + ".");
                 shaderPaths.AddRange(packageShaders);
             }
+
+            foreach (var packageRoot in optionalShaderRoots)
+                shaderPaths.AddRange(FindShadersUnder(packageRoot));
 
             return shaderPaths
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
         }
+
+        private static string[] FindShadersUnder(string packageRoot)
+            => AssetDatabase.FindAssets("t:Shader", new[] { packageRoot })
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Where(path => path.EndsWith(".shader", StringComparison.OrdinalIgnoreCase))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
 
         private static string GetCommandLineValue(string argument)
         {
