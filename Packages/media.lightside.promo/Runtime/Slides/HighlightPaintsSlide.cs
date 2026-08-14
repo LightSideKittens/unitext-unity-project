@@ -51,13 +51,17 @@ namespace LightSide.Promo
         /// Inset between the body's rect and its text: <c>x</c> left, <c>y</c> bottom, <c>z</c> right, <c>w</c> top.
         /// </summary>
         /// <remarks>
+        /// The rect fills the well exactly and every inset lives here, so one place decides where the text sits
+        /// instead of two that have to be read together.
+        /// <para>
         /// A highlight is a surface drawn behind its range and reaches past the glyphs by its own padding, so the
-        /// sides need room inside the rect or the surface meets the well's border and reads as a clipping fault.
-        /// The top is negative: nothing is highlighted on the first line, and the room the sides need is a gap under
-        /// the title everywhere else.
+        /// sides need room or the surface meets the well's border and reads as a clipping fault. The top is the
+        /// smallest: nothing is highlighted on the first line, and the room the sides need is a gap under the title
+        /// everywhere else.
+        /// </para>
         /// </remarks>
         [SerializeField, Tooltip("Left, Bottom, Right, Top.")]
-        private Vector4 bodyPadding = new Vector4(20f, 20f, 20f, -6f);
+        private Vector4 bodyPadding = new Vector4(30f, 44f, 44f, 18f);
 
         private Claim claim;
         private Showcase panel;
@@ -71,6 +75,8 @@ namespace LightSide.Promo
 
             panel = stage.Showcase("Highlight", stage.Root, "One HighlightModifier, block geometry",
                 body, bodySize, vertical: VerticalAlignment.Top);
+
+            stage.Stretch(panel.Body.rectTransform);
 
             panel.Body.AutoSize = false;
             panel.Body.FontSize = bodySize;

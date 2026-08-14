@@ -160,7 +160,7 @@ MonoBehaviour:
           unit: 1
         collapse: 1
         clock: 1
-        perRange: 0
+        perRange: 1
     - rid: 2064118978932375690
       type: {class: TagRule, ns: LightSide, asm: LightSide.UniText}
       data:
