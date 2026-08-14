@@ -23,6 +23,12 @@ namespace LightSide.Promo
         {
         }
 
+        /// <summary>A stage that builds into <paramref name="root"/>, drawn in <paramref name="theme"/>.</summary>
+        public Stage(RectTransform root, Theme theme)
+            : this(root, theme ?? new Theme(), new CursorRegions(), new Bands())
+        {
+        }
+
         private Stage(RectTransform root, Theme theme, CursorRegions cursors, Bands bands)
         {
             Root = root;
@@ -91,6 +97,18 @@ namespace LightSide.Promo
 
         /// <summary>A stage that builds into <paramref name="root"/>, carrying this stage's theme and regions.</summary>
         public Stage For(RectTransform root) => new Stage(root, Theme, Cursors, bands);
+
+        /// <summary>
+        /// A stage for a whole frame's composition: this stage's theme and regions, and edges nothing has spoken
+        /// for yet.
+        /// </summary>
+        /// <remarks>
+        /// A reserved edge belongs to one composition. <see cref="For"/> shares it, which is what lets a headline
+        /// and the content laid out beneath it agree about where the band is; carrying it into the next composition
+        /// instead lays that one out against a band some other frame reserved, and every size in it comes out short
+        /// by an amount nothing on screen explains.
+        /// </remarks>
+        public Stage ForFrame(RectTransform root) => new Stage(root, Theme, Cursors, new Bands());
 
         /// <summary>
         /// The band left for content once headlines have taken their edges: its centre and its height.

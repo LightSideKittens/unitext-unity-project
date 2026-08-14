@@ -24,6 +24,22 @@ namespace LightSide.Promo
             "อาหารไทยอร่อยมาก! ราคา ฿250 per meal 🍜\n" +
             "My family 👨‍👩‍👧‍👦 loved it. Pizza after? 🍕";
 
+        /// <summary>
+        /// One short Arabic sentence, and the smallest string that fails every way at once.
+        /// </summary>
+        /// <remarks>
+        /// It carries a list number, a Latin name inside right-to-left text, a Western digit, a bracket pair that
+        /// must mirror, and a full stop that belongs at the visual left end. Five separate rules, one line a viewer
+        /// can hold in their head — where the postcard's eight lines ask them to find the fault themselves and they
+        /// stop looking.
+        /// <para>
+        /// The leading number is the one that catches an engine which merely reverses the string. A digit is not a
+        /// strong character, so it does not set the paragraph's direction; the Arabic does, and the number therefore
+        /// belongs on the same side as the text it numbers.
+        /// </para>
+        /// </remarks>
+        public const string Trip = "1. زرت Paris خلال 5 أيام (رحلة رائعة).";
+
         /// <summary>The Arabic line carrying a phone number: bidirectional resolution at its hardest.</summary>
         public const string Phone = "اتصل بي على +972-50-123-4567 الساعة 8 PM 📞";
 
@@ -33,8 +49,8 @@ namespace LightSide.Promo
         /// <summary>Thai with no spaces between words, plus a currency symbol and a price.</summary>
         public const string Thai = "อาหารไทยอร่อยมาก! ราคา ฿250 per meal 🍜";
 
-        /// <summary>Devanagari conjuncts and matras around a Latin word.</summary>
-        public const string Hindi = "देखी \"हिन्दी सिनेमा\" festival — incredible! 🎬";
+        /// <summary>Devanagari conjuncts and matras, with nothing else in the line to blame a failure on.</summary>
+        public const string Hindi = "देखी \"हिन्दी सिनेमा\" 🎬";
 
         /// <summary>A four-person family: seven codepoints joined into one glyph.</summary>
         public const string Family = "My family 👨‍👩‍👧‍👦 loved it. Pizza after? 🍕";

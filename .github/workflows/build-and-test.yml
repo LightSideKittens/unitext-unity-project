@@ -105,8 +105,8 @@ jobs:
     timeout-minutes: 45
     runs-on: ${{
       inputs.platform == 'StandaloneWindows64' && 'windows-latest' ||
-      inputs.platform == 'StandaloneOSX' && 'macos-14' ||
-      inputs.platform == 'iOS' && 'macos-14' ||
+      inputs.platform == 'StandaloneOSX' && 'macos-26' ||
+      inputs.platform == 'iOS' && 'macos-26' ||
       'ubuntu-latest'
       }}
 
@@ -207,8 +207,8 @@ jobs:
     timeout-minutes: 45
     runs-on: ${{
       inputs.platform == 'StandaloneWindows64' && 'windows-latest' ||
-      inputs.platform == 'StandaloneOSX' && 'macos-14' ||
-      inputs.platform == 'iOS' && 'macos-14' ||
+      inputs.platform == 'StandaloneOSX' && 'macos-26' ||
+      inputs.platform == 'iOS' && 'macos-26' ||
       'ubuntu-latest'
       }}
 

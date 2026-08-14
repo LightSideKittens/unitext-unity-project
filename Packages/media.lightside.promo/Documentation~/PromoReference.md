@@ -190,7 +190,7 @@ dirty flag. Nineteen `RevealHandler`s (Fade, Scale, Slide, Spin, Tint, Pop, Drop
 Domino, Flip, Stretch, Swing, Spiral, Burst, Shake, Glitch, Rain, Wave, Skew,
 Chaos) and eleven phase-driven glyph modifiers come free.
 
-**`RevealModifier.Fill` decides *which* glyphs are visible; a `RevealHandler`
+**`RevealModifier.Front` decides *which* glyphs are visible; a `RevealHandler`
 decides what each one *does* as it arrives — and without one the reveal is a
 hard cut.**
 
@@ -207,7 +207,7 @@ steps frames faster than the wall clock every glyph freezes at the start of its
 animation. `Stage.Reveal` therefore subscribes the handler to the event:
 
 ```csharp
-var modifier = new RevealModifier { Fill = 1f, Collapse = false };
+var modifier = new RevealModifier { Front = UnitValue.Percent(100f), Collapse = false };
 modifier.GlyphRevealing += reveal.Apply;
 text.Styles.Add(Style.WholeText(modifier));
 ```
@@ -227,7 +227,7 @@ a few dozen milliseconds on any real sentence and reads as a pop.
 4.5): neighbours overlap and each glyph moves for longer without the reveal
 itself slowing down.
 
-**Overlap cannot ride on `RevealModifier.Fill`, and the reason is worth knowing
+**Overlap cannot ride on `RevealModifier.Front`, and the reason is worth knowing
 before trying it again.** That frontier does two jobs at once — it decides
 visibility *and* it feeds `Progress = clamp01(front - ordinal)` — and it stops at
 `count`. A glyph at ordinal `k` needs it to reach `k + spread`:
@@ -278,7 +278,7 @@ colour token cannot express one.
   the text.
 - `SetAllDirty()`, `SetVerticesDirty()` and `SetMaterialDirty()` are deliberate
   no-ops. Use `SetDirty(UniTextDirty)`.
-- **Not all text animation is cheap.** `RevealModifier.Fill` is mesh-only while
+- **Not all text animation is cheap.** `RevealModifier.Front` is mesh-only while
   `Collapse == false`; with `Collapse == true` it reflows every frame.
   `VariationModifier`'s axis setters (`Weight`, `Width`, `Italic`, `Slant`,
   `OpticalSize`), `RollingModifier.Wheel` and `ScrambleModifier.Charset` re-parse,
@@ -335,6 +335,12 @@ dead* on the thing it just did.
 **No shot is ever still.** Push-in is default-on at 0.035 over a slide. A frame
 with zero motion reads as a screenshot.
 
+**Push-in eats the margins, and it eats the outermost one first.** It scales the
+whole content from the centre, so by a slide's last frame every edge has moved
+outward by 1.75% of the half-frame — 17 px at 1920 wide. An element placed 38 px
+from the edge is 6 px from it when the shot ends. Size an outer margin from where
+it lands at full push-in, not from where it is built.
+
 **The caveat that outranks it:** anything the eye or a cursor is aiming at enters
 with **opacity only**, never a transform. A moving target means the pointer and
 its target disagree about where the target is for as long as the animation runs.
@@ -377,6 +383,43 @@ Treat the table above as the floor, not the target, and give every frame one
 dominant element.
 
 Parse hex through `LightSide.ColorParsing.TryParse`, not by hand.
+
+**A livery is a `Theme` subclass, picked on the reel.** `Reel.theme` is
+`[SerializeReference, TypeSelector]`, so the palette is chosen and edited in the
+reel's own inspector; every value is a serialized field behind a property, and
+every stage derived by `Stage.For` shares the one instance. `DaylightTheme` is
+the second livery: warm paper `#FDE3B7`, one violet `#480D8B`, and every other
+product-surface value derived from those two through `Theme.Mix`, `Lift`, `Sink`
+and `Fade`. Its neutral set stays cool on purpose — on a dark livery the product
+is told apart by being the lit thing in the frame, which a light one cannot
+offer, so temperature carries the distinction instead.
+
+**Colours are baked into shapes at build time.** A livery reaches the frame
+through `Rebuild`, never on its own; there is no `OnValidate` sledgehammer,
+because a 24-slide rebuild per colour-picker frame locks the editor.
+
+A brand ramp authored for near-black does not survive a light ground — the
+orange end all but vanishes. `DaylightTheme` deepens the whole ramp with `Sink`.
+
+**The livery owns the faces too.** `Theme.DisplayFace` is worn by `Claim`'s
+headline, `Headline` and a `Metric` figure; `Theme.BodyFace` by everything else,
+applied in `Stage.Label`. Both unassigned leaves the reel on the OS cascade,
+which is what it shipped as. One family in two weights — Fira Sans ExtraBold
+over Medium — rather than two families: two sans faces at 32 px read as an
+accident, and the contrast a frame needs is available in weight and width.
+
+**A livery dresses chrome, never the subject.** `Showcase.Body` and
+`UniTextSpecimen` clear the face after `Label` builds them. The body of a
+showcase and the text in a comparison are what the shot is arguing about — a
+panel claiming a project needs no font assets, itself set in one, argues against
+itself. Titles, claims, captions, ledger rows and chips are chrome and take the
+livery.
+
+**A single-script face is safe as either.** The provider resolves the assigned
+font first, then the font stack, then `SystemFont.Default` as an always-on final
+fallback (`UniTextFontProvider.cs:152`), so a Latin display face on the
+eight-script frame shapes the other seven through the OS exactly as no face at
+all would. Fonts live in `Assets/Fonts/Promo/` with their licence beside them.
 
 ---
 
@@ -425,17 +468,32 @@ sheet has been rendered and read.
 
 | Type | File | What it is |
 |---|---|---|
-| `Reel` | `Runtime/Reel/Reel.cs` | `Fps`, `Frame`, `Duration`, `FrameCount`, `Playing`, `Seek(seconds)`, `Rebuild()`. Collects `Slide` children in sibling order. |
+| `Reel` | `Runtime/Reel/Reel.cs` | `Fps`, `Frame`, `Duration`, `FrameCount`, `Playing`, `Theme`, `Seek(seconds)`, `Rebuild()`. Collects `Slide` children in sibling order. |
 | `Slide` | `Runtime/Reel/Slide.cs` | `Seconds`, `Enter`, `PushIn`, `Rect`, `Content`, `Group`; override `OnBuild(Stage)` and `OnRender(float local)`. |
 | `SlideTransition` | `Runtime/Reel/SlideTransition.cs` | `Seconds`, `Apply(from, to, t)`, `Restore(slide)`. Concrete: `Cut`, `CrossFade`, `Push`, `Lift`. |
 | `Ease` | core, `Runtime/Math/Ease.cs` | `Of`, `Cubic`, `Evaluate`, **`Window(local, start, seconds)`**, `Lerp`, and the M3 presets. |
 | `Spring` | core, `Runtime/Math/Spring.cs` | `Evaluate(seconds)`, `Lerp`, `Ratio`, `SettleTime()`, `Critical()`, seven presets. |
 | `Stage` | `Runtime/Stage/Stage*.cs` | Context (`Root`, `Theme`, `Frame`, `For`, `Fit`, anchors); layout (`Node`, `Stretch`, `Anchor`, `Box`, `Row`, `Column`, `Size`, `Pad`); paint (`FillOf`, `Solid`, `Linear`, `Radial`, `Angular`, `Ramped`, `Textured`, `AddStroke/Shadow/InnerShadow/Bevel`); widgets (`Shape`, `Backdrop`, `Panel`, `Card`, `Field`, `Button`, `Bar`, `Label`, `Headline`, `Caption`, `BrandFill`); pose (`Alpha`, `Progress`, `Scale`). |
-| `Theme` | `Runtime/Stage/Theme.cs` | Palette, `Brand` ramp, radius / padding / type scales, `Inner(outer, gap)`. |
+| `Theme` | `Runtime/Stage/Theme.cs` | Palette, `Brand` ramp, radius / padding / type scales, `Inner(outer, gap)`, and the derivation statics `Mix` / `Lift` / `Sink` / `Fade`. Subclass it for a livery. |
 | `Widget` | `Runtime/Stage/Widget.cs` | `Shape`, `Rect`, `Fill`, `Outline`; converts implicitly to `RectTransform`. |
 | `Beat` / `PointerTimeline` / `Pointer` | `Runtime/Pointer/` | `Beat.To/Wait/Click/Drag/Key`; the timeline compiles them into a path, presses, keystrokes and named spans; `Pointer.Pose(seconds)` draws it. Build with `stage.Pointer(start, beats)` — **last**, so it is above what it operates. |
 | `PointerTiming` | `Runtime/Pointer/PointerTiming.cs` | Fitts constants, travel clamp, peak-speed floor, bow, dwells, press and ripple floors. |
 | `Cue` | `Runtime/Reel/Cue.cs` | A named moment. `Slide.Cue(...)` declares one, `Reel.CueSheet()` collects them onto the reel's clock, capture writes `cues.csv`. |
+| `Mark` | `Runtime/Stage/Mark.cs` | `stage.Mark(panel, spec)` — a `Ring` around a glyph or an `Underline` beneath it. `MarkSpec` is serialized data: `centre` and `size` are fractions of the panel, and become the mark's anchors, so nothing is measured. |
+
+### A comparison teaches one rule at a time
+
+`VersusSlide` is authored once per case and added to the reel several times.
+A paragraph exercising eight rules at once shows everything and teaches nothing:
+the difference is on screen and nobody who has not already been told what to
+look for finds it. Give a case a short string, set it large in
+`VersusFlow.Rows`, and circle the glyph that moved; the whole postcard comes
+last, in `Columns`, as the payoff rather than the argument.
+
+**Where a mark goes is not derivable.** Which glyph an engine misplaced is
+visible in a rendered frame and nowhere else — build the shot, read the contact
+sheet, then fill `marks` in the inspector and scrub. That loop is the reason
+they are serialized data and not code.
 
 ### The four shapes a shot is built from
 
@@ -477,7 +535,7 @@ from both directions:
 
 | | `stage.Reveal(text, handler, spread)` | `stage.Typewriter(text, handler)` |
 |---|---|---|
-| Frontier | `GlyphReveal.Fill`, its own, running past the glyph count | `RevealModifier.Fill`, the engine's |
+| Frontier | `GlyphReveal.Fill`, its own, running past the glyph count | `RevealModifier.Front`, the engine's |
 | Unreached text | drawn at alpha 0 — **still occupies its line** | collapsed out of shaping and layout |
 | Overlap | several glyphs mid-flight (`Theme.RevealSpread`) | one, the frontier cluster |
 | Cost | mesh rebuild | reflow |
@@ -518,9 +576,10 @@ cause first.
 | # | Slide | What it proves |
 |---|---|---|
 | 01 | `ScriptsSlide` | Eight writing systems, shaped |
-| 02 | `VersusSlide` | TMP / RTLTMPro / UniText, same string |
-| 03 | `ConformanceSlide` | 891 757 official tests, zero failures |
-| 04 | `SystemFontsSlide` | A project with no font files in it |
+| 02a–c | `VersusSlide` ×3 | TMP / RTLTMPro / UniText: one Arabic line, one Hindi line, then the whole postcard |
+| 03 | `SystemFontsSlide` | A project with no font files in it |
+| 03b | `CjkSlide` | A wall of Han, Hangul and kana, none of it in the project |
+| 04 | `ConformanceSlide` | 891 757 official tests, zero failures |
 | 05 | `EmojiSlide` | Composed sequences from the OS, 0 KB |
 | 06 | `AssetChurnSlide` | The repository stays clean |
 | 07 | `BuildSizeSlide` | No baked atlas; Zstd-22 on what ships |
@@ -666,6 +725,12 @@ changes still use `SetText`, which does not dirty the scene.
 
 ### Traps inside this package
 
+- **A reserved edge belongs to one frame.** `Stage.For` shares the band a
+  `Claim` reserved, which is how content laid out under a headline knows the top
+  is spoken for. `Stage.ForFrame` starts a composition with the edges free, and
+  it is what the reel hands each slide — sharing them across slides makes every
+  slide after the first lay itself out against a band some other slide reserved,
+  and `ContentHeight` comes out short by an amount nothing on screen explains.
 - **`Stage.Alpha` reaches one graphic and nothing beneath it.** A `Graphic`'s
   colour never propagates to children, so fading a `Panel` that way leaves its
   brand accent bar and every child at full opacity. Build a `CanvasGroup` with

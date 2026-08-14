@@ -48,7 +48,7 @@ namespace LightSide.Promo
                 $"{lead}<spoiler>{secret}</spoiler>{tail}",
                 new Vector2(-stage.Width * 0.18f, stage.ContentCentre),
                 new Vector2(stage.Width * 0.56f, stage.ContentHeight * 0.62f),
-                stage.ContentHeight * 0.085f, HorizontalAlignment.Left);
+                stage.ContentHeight * 0.085f, HorizontalAlignment.Left, VerticalAlignment.Top);
 
             spoiler = new SpoilerModifier();
             panel.Body.Styles.Add(Style.Tag(spoiler, "spoiler"));
@@ -84,8 +84,9 @@ namespace LightSide.Promo
         /// The cover's centre, and a <see cref="CursorType.Link"/> region over it so the pointer wears a hand.
         /// </summary>
         /// <remarks>
-        /// The body is one line, aligned to the middle of its rect, so the covered phrase sits on the rect's own
-        /// vertical centre and only its horizontal offset has to be measured.
+        /// Both offsets are measured. The body is aligned to the top of its rect, so the covered phrase sits half a
+        /// line box below the rect's top edge and that far along the line — neither figure survives a change of
+        /// alignment, face or size unless it is asked for rather than assumed.
         /// <para>
         /// Called before the typewriter is attached, and it has to be. A collapsing reveal at
         /// <see cref="RevealModifier.Fill"/> zero removes every cluster from shaping and layout, so the text has no
@@ -98,11 +99,14 @@ namespace LightSide.Promo
             coverWidth = Width(secret);
 
             var rect = panel.Body.rectTransform;
-            var local = new Vector2(-rect.rect.width * 0.5f + Width(lead) + coverWidth * 0.5f, 0f);
+            var line = Stage.LineBox(panel.Body);
+            var local = new Vector2(
+                -rect.rect.width * 0.5f + Width(lead) + coverWidth * 0.5f,
+                rect.rect.height * 0.5f - line * 0.5f);
             var point = (Vector2)stage.Root.InverseTransformPoint(rect.TransformPoint(local));
 
             var hit = stage.Node("Cover", stage.Root);
-            stage.Box(hit, point, new Vector2(coverWidth, panel.Body.CurrentFontSize * 1.4f));
+            stage.Box(hit, point, new Vector2(coverWidth, line));
             stage.Cursors.Add(hit, CursorType.Link);
             return point;
         }

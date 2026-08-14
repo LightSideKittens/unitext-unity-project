@@ -37,5 +37,13 @@ namespace LightSide.Promo
         /// <summary>Scales <paramref name="rect"/> uniformly in the plane.</summary>
         public static void Scale(RectTransform rect, float scale) =>
             rect.localScale = new Vector3(scale, scale, 1f);
+
+        /// <summary>Scales <paramref name="rect"/> independently along each axis, for squash and stretch.</summary>
+        public static void Scale(RectTransform rect, float x, float y) =>
+            rect.localScale = new Vector3(x, y, 1f);
+
+        /// <summary>Rotates <paramref name="rect"/> in the plane of the frame.</summary>
+        public static void Spin(RectTransform rect, float degrees) =>
+            rect.localRotation = Quaternion.Euler(0f, 0f, degrees);
     }
 }

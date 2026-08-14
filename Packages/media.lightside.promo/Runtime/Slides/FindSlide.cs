@@ -54,7 +54,7 @@ namespace LightSide.Promo
 
             panel.Body.Styles.Add(Style.FromSource(matches, new HighlightModifier
             {
-                Paint = PaintRef.Solid(new Color(theme.Orange.r, theme.Orange.g, theme.Orange.b, 0.35f)),
+                Paint = PaintRef.Solid(Theme.Fade(theme.Orange, 0.35f)),
                 GeometryMapping = GeometryMapping.Range,
                 Height = RangeHeight.Content,
                 Padding = new UnitVector2(new Vector2(0.14f, 0.06f), UnitKind.Em),
@@ -89,6 +89,7 @@ namespace LightSide.Promo
 
             Cue("writeon", First);
             for (var i = 0; i < queries.Length; i++) Cue("search", FirstSearch + i * Beat);
+            Cue("settled", FirstSearch + (queries.Length - 1) * Beat + Cycles * (Beat / (Cycles + 1)));
         }
 
         private void Search(string query)

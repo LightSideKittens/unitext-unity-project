@@ -38,7 +38,7 @@ namespace LightSide.Promo
             panel = stage.Showcase("Chat", stage.Root, "No tags in this text — the rules find the words",
                 body, new Vector2(-stage.Width * 0.18f, stage.ContentCentre),
                 new Vector2(stage.Width * 0.56f, stage.ContentHeight * 0.94f),
-                stage.ContentHeight * 0.085f);
+                stage.ContentHeight * 0.085f, vertical: VerticalAlignment.Top);
 
             BindMention(theme);
             BindHashtag(stage);
@@ -65,7 +65,7 @@ namespace LightSide.Promo
             {
                 new HighlightModifier
                 {
-                    Paint = PaintRef.Solid(new Color(theme.Violet.r, theme.Violet.g, theme.Violet.b, 0.42f)),
+                    Paint = PaintRef.Solid(Theme.Fade(theme.Violet, 0.42f)),
                     GeometryMapping = GeometryMapping.Range,
                     Height = RangeHeight.Content,
                     Padding = new UnitVector2(new Vector2(0.22f, 0.08f), UnitKind.Em),

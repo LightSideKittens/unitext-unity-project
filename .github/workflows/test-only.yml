@@ -68,8 +68,8 @@ jobs:
       matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
     runs-on: ${{
       matrix.platform == 'StandaloneWindows64' && 'windows-latest' ||
-      matrix.platform == 'StandaloneOSX' && 'macos-14' ||
-      matrix.platform == 'iOS' && 'macos-14' ||
+      matrix.platform == 'StandaloneOSX' && 'macos-26' ||
+      matrix.platform == 'iOS' && 'macos-26' ||
       'ubuntu-latest'
       }}
 

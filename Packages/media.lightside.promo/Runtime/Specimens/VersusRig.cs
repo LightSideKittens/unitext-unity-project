@@ -1,8 +1,34 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace LightSide.Promo
 {
+    /// <summary>What a shot concludes about one engine.</summary>
+    /// <remarks>
+    /// A tone rather than a colour, so a verdict that changes from one case to the next carries its pill's colour
+    /// with it. The same word must not arrive in two colours because it landed on two different panels.
+    /// </remarks>
+    public enum VerdictTone
+    {
+        /// <summary>It does not work.</summary>
+        Broken,
+
+        /// <summary>It works part of the way.</summary>
+        Partial,
+
+        /// <summary>It is correct.</summary>
+        Pass
+    }
+
+    /// <summary>One engine's verdict, as authored data.</summary>
+    [Serializable]
+    public struct VerdictSpec
+    {
+        public string label;
+        public VerdictTone tone;
+    }
+
     /// <summary>One engine's column, as data.</summary>
     public readonly struct VersusEntry
     {
@@ -43,9 +69,11 @@ namespace LightSide.Promo
         /// <summary>One engine's built column.</summary>
         public readonly struct Column
         {
-            internal Column(Widget surface, RectTransform body, UniText title, Widget verdict, UniText verdictLabel)
+            internal Column(Widget surface, CanvasGroup group, RectTransform body, UniText title, Widget verdict,
+                UniText verdictLabel)
             {
                 Surface = surface;
+                Group = group;
                 Body = body;
                 Title = title;
                 Verdict = verdict;
@@ -53,6 +81,9 @@ namespace LightSide.Promo
             }
 
             public Widget Surface { get; }
+
+            /// <summary>Opacity of the whole column; a graphic's own colour never reaches its children.</summary>
+            public CanvasGroup Group { get; }
 
             /// <summary>Where the specimen goes.</summary>
             public RectTransform Body { get; }
@@ -87,6 +118,6 @@ namespace LightSide.Promo
 
         /// <summary>Fades a whole column, chrome and all.</summary>
         public void PoseColumn(int index, float alpha) =>
-            Stage.Group(columns[index].Surface.Rect).alpha = Mathf.Clamp01(alpha);
+            columns[index].Group.alpha = Mathf.Clamp01(alpha);
     }
 }

@@ -20,6 +20,7 @@ namespace LightSide.Promo
         /// <summary>Opacity of the whole panel; a graphic's own colour never reaches its children.</summary>
         public CanvasGroup Group { get; }
 
+        /// <summary>The panel's caption, or null when it was built without one and the well took that space.</summary>
         public UniText Title { get; }
 
         /// <summary>The inset well, for a shot that puts more than the body text inside the panel.</summary>
@@ -54,6 +55,11 @@ namespace LightSide.Promo
         /// counted still lands inside the well instead of over its edge — the well's height is known when the shot is
         /// built and the text's is not, because it depends on where the words happen to wrap.
         /// </para>
+        /// <para>
+        /// The body carries no face. <see cref="Promo.Theme.BodyFace"/> dresses the frame's chrome, and the body is
+        /// the text the shot is arguing about: a panel claiming a project needs no font assets, set in one, argues
+        /// against itself. Assign <c>Body.Font</c> afterwards on a shot whose point is a particular typeface.
+        /// </para>
         /// </remarks>
         public Showcase Showcase(string name, Transform parent, string title, string markup,
             Vector2 position, Vector2 size, float bodySize = 0f,
@@ -65,18 +71,26 @@ namespace LightSide.Promo
             Box(panel.Rect, position, new Vector2(size.x, Mathf.Max(size.y, ShowcaseMinHeight(ceiling))));
             var group = Group(panel.Rect);
 
-            var titleBar = Theme.Body * 1.6f;
-            var head = Label(panel.Rect, title, Theme.Body, Theme.TextSoft,
-                HorizontalAlignment.Left, VerticalAlignment.Middle, stretch: false);
-            Anchor(head.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -Theme.PadXl), new Vector2(-Theme.PadXl * 2f, titleBar));
+            var titled = !string.IsNullOrEmpty(title);
+            var titleBar = titled ? Theme.Body * 1.6f : 0f;
+            var gap = titled ? Theme.PadXl : 0f;
+
+            UniText head = null;
+            if (titled)
+            {
+                head = Label(panel.Rect, title, Theme.Body, Theme.TextSoft,
+                    HorizontalAlignment.Left, VerticalAlignment.Middle, stretch: false);
+                Anchor(head.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
+                    new Vector2(0f, -Theme.PadXl), new Vector2(-Theme.PadXl * 2f, titleBar));
+            }
 
             var well = Field(name + " Well", panel.Rect, out var ring, Theme.Inner(Theme.RadiusXl, Theme.PadXl));
             Anchor(well.Rect, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
-                new Vector2(0f, -(titleBar + Theme.PadXl) * 0.5f),
-                new Vector2(-Theme.PadXl * 2f, -(Theme.PadXl * 2f + titleBar + Theme.PadXl)));
+                new Vector2(0f, -(titleBar + gap) * 0.5f),
+                new Vector2(-Theme.PadXl * 2f, -(Theme.PadXl * 2f + titleBar + gap)));
 
             var body = Label(well.Rect, markup, ceiling, Theme.Text, horizontal, vertical);
+            body.Font = null;
             Stretch(body.rectTransform, Theme.PadLg, Theme.PadLg, Theme.PadLg, Theme.PadLg);
 
             body.MaxFontSize = ceiling;
@@ -112,10 +126,16 @@ namespace LightSide.Promo
         /// </remarks>
         public float ShowcaseMinHeight(float bodySize) =>
             Theme.PadXl * 3f + Theme.Body * 1.6f + Theme.PadLg * 2f +
-            (bodySize > 0f ? bodySize : Theme.Body) * LineBox;
+            (bodySize > 0f ? bodySize : Theme.Body) * LineRatio;
 
-        /// <summary>Height one line occupies, as a multiple of its size.</summary>
-        private const float LineBox = 1.45f;
+        /// <summary>
+        /// Height one line occupies, as a multiple of its size.
+        /// </summary>
+        /// <remarks>
+        /// An estimate, and unavoidably one: a panel reserves its height before it has any text to measure. Where a
+        /// component already exists, <see cref="LineBox"/> asks it instead of guessing.
+        /// </remarks>
+        private const float LineRatio = 1.45f;
 
         /// <summary>
         /// How far below its ceiling a body may shrink to fit.

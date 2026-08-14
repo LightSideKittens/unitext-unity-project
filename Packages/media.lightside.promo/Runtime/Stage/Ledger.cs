@@ -83,12 +83,27 @@ namespace LightSide.Promo
             var k = Mathf.Clamp01(t);
 
             row.Rect.anchoredPosition = new Vector2(Mathf.LerpUnclamped(-Slide, 0f, k), row.Rect.anchoredPosition.y);
-            Stage.Alpha(row.Label, k);
-            if (row.Trailing) Stage.Alpha(row.Trailing, k);
+            Fade(index, k);
+        }
+
+        /// <summary>
+        /// Sets row <paramref name="index"/>'s opacity, leaving it where it is.
+        /// </summary>
+        /// <remarks>
+        /// A row that is already in place and merely quiet, rather than one arriving: a shot whose rows are a
+        /// standing list the eye returns to needs the opacity without the travel that <see cref="Pose"/> couples to
+        /// it.
+        /// </remarks>
+        public void Fade(int index, float alpha)
+        {
+            var row = rows[index];
+
+            Stage.Alpha(row.Label, alpha);
+            if (row.Trailing) Stage.Alpha(row.Trailing, alpha);
             if (!row.HasBadge) return;
 
-            Stage.Alpha(row.Badge.Shape, k);
-            Stage.Alpha(row.BadgeLabel, k);
+            Stage.Alpha(row.Badge.Shape, alpha);
+            Stage.Alpha(row.BadgeLabel, alpha);
         }
 
         /// <summary>Replaces a row's trailing value, for a count that climbs.</summary>

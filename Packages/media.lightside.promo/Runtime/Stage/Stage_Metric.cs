@@ -51,7 +51,7 @@ namespace LightSide.Promo
             var rect = Node(name, parent);
             Box(rect, position, new Vector2(width, height));
 
-            var number = Label(rect, figure, size, Theme.Text, stretch: false);
+            var number = Label(rect, figure, size, Theme.Text, stretch: false, face: Theme.DisplayFace);
             Anchor(number.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
                 Vector2.zero, new Vector2(0f, size * 1.35f));
             number.WordWrap = false;

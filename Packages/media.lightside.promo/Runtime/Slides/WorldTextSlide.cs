@@ -19,6 +19,11 @@ namespace LightSide.Promo
     /// Word wrap is off on every number. A world text lays out inside its own rect like any other, and a figure wide
     /// enough to break would lose its tail off the bottom of a rect sized for one line.
     /// </para>
+    /// <para>
+    /// Only the right column is the product surface. Two dark branded panels read as two of ours, and a viewer who
+    /// cannot tell which side is being sold has nothing to take from the two numbers under them. The numbers flying
+    /// over the paper column are inked to match it, for the same reason its title is.
+    /// </para>
     /// </remarks>
     public sealed class WorldTextSlide : Slide
     {
@@ -69,9 +74,9 @@ namespace LightSide.Promo
             var height = stage.ContentHeight * 0.96f;
 
             left = BuildColumn(stage, "Tmp", "TextMeshPro", theme.Coral, new Vector2(-offset, stage.ContentCentre),
-                new Vector2(width, height));
+                new Vector2(width, height), product: false);
             right = BuildColumn(stage, "UniText", "UniText", theme.Violet, new Vector2(offset, stage.ContentCentre),
-                new Vector2(width, height));
+                new Vector2(width, height), product: true);
 
             places = new Vector2[Count];
             sizes = new float[Count];
@@ -92,24 +97,25 @@ namespace LightSide.Promo
                 sizes[i] = stage.ContentHeight * (crit ? 0.105f : 0.062f);
 
                 uni[i] = BuildUni(stage, right.Stage, i, value, crit ? theme.Magenta : theme.Text);
-                tmp[i] = BuildTmp(stage, left.Stage, i, value, crit ? theme.Magenta : theme.Text);
+                tmp[i] = BuildTmp(stage, left.Stage, i, value, crit ? theme.Magenta : theme.Ink);
             }
 
             for (var i = 0; i < Count; i++) Cue("hit", First + i * Gap);
         }
 
         private Column BuildColumn(Stage stage, string name, string title, Color accent,
-            Vector2 position, Vector2 size)
+            Vector2 position, Vector2 size, bool product)
         {
-            var panel = stage.Panel(name, stage.Root);
+            var panel = product ? stage.Panel(name, stage.Root) : stage.Card(name, stage.Root);
+            var soft = product ? stage.Theme.TextSoft : stage.Theme.InkSoft;
             stage.Box(panel.Rect, position, size);
 
-            var head = stage.Label(panel.Rect, title, stage.Theme.Body, stage.Theme.TextSoft,
+            var head = stage.Label(panel.Rect, title, stage.Theme.Body, soft,
                 HorizontalAlignment.Left, VerticalAlignment.Middle, stretch: false);
             stage.Anchor(head.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -stage.Theme.PadXl), new Vector2(-stage.Theme.PadXl * 2f, stage.Theme.Body * 1.5f));
 
-            var caption = stage.Label(panel.Rect, "draw calls", stage.Theme.Small, stage.Theme.TextSoft,
+            var caption = stage.Label(panel.Rect, "draw calls", stage.Theme.Small, soft,
                 HorizontalAlignment.Center, VerticalAlignment.Middle, stretch: false);
             stage.Anchor(caption.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -(stage.Theme.PadXl + stage.Theme.Body * 1.5f + stage.Theme.Title * 1.15f)),

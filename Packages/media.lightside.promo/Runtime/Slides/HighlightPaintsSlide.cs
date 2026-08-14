@@ -37,6 +37,28 @@ namespace LightSide.Promo
             "Mark a range and it becomes a surface: <hl>one connected mesh across every line it wraps onto, " +
             "rounded where the range really begins and ends, and seamless everywhere it merely broke</hl>.";
 
+        /// <summary>
+        /// Point size of the body, held rather than fitted.
+        /// </summary>
+        /// <remarks>
+        /// This shot sets its own size and turns auto-fit off: the highlight's geometry is the subject, and a body
+        /// that quietly shrinks to fit its well changes the wrap, which changes the shape being demonstrated. The
+        /// cost is the one auto-fit was there to pay — edit the sentence and nothing stops it running past the well.
+        /// </remarks>
+        [SerializeField, Min(1f)] private float bodySize = 80f;
+
+        /// <summary>
+        /// Inset between the body's rect and its text: <c>x</c> left, <c>y</c> bottom, <c>z</c> right, <c>w</c> top.
+        /// </summary>
+        /// <remarks>
+        /// A highlight is a surface drawn behind its range and reaches past the glyphs by its own padding, so the
+        /// sides need room inside the rect or the surface meets the well's border and reads as a clipping fault.
+        /// The top is negative: nothing is highlighted on the first line, and the room the sides need is a gap under
+        /// the title everywhere else.
+        /// </remarks>
+        [SerializeField, Tooltip("Left, Bottom, Right, Top.")]
+        private Vector4 bodyPadding = new Vector4(20f, 20f, 20f, -6f);
+
         private Claim claim;
         private Showcase panel;
         private RevealModifier typewriter;
@@ -48,7 +70,11 @@ namespace LightSide.Promo
             claim = stage.Claim(stage.Root, headline, sub);
 
             panel = stage.Showcase("Highlight", stage.Root, "One HighlightModifier, block geometry",
-                body, stage.ContentHeight * 0.11f);
+                body, bodySize, vertical: VerticalAlignment.Top);
+
+            panel.Body.AutoSize = false;
+            panel.Body.FontSize = bodySize;
+            panel.Body.Padding = bodyPadding;
 
             highlight = new HighlightModifier
             {

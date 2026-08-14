@@ -26,6 +26,7 @@ namespace LightSide.Promo
         private const float MaxStep = 0.034f;
 
         [SerializeField] private Vector2Int frameSize = new Vector2Int(1920, 1080);
+        [SerializeReference, TypeSelector] private Theme theme = new Theme();
         [SerializeField] private int fps = 60;
         [SerializeField] private bool playing = true;
         [SerializeField] private bool loop = true;
@@ -92,7 +93,24 @@ namespace LightSide.Promo
         }
 
         /// <summary>The build context, which slides use to create their content.</summary>
-        public Stage Stage => stage ??= new Stage((RectTransform)transform);
+        public Stage Stage => stage ??= new Stage((RectTransform)transform, Theme);
+
+        /// <summary>
+        /// The livery every slide is drawn in.
+        /// </summary>
+        /// <remarks>
+        /// Read while a slide builds and baked into the shapes it creates, so content already on screen keeps the
+        /// palette it was made with: a livery reaches the frame through <see cref="Rebuild"/>.
+        /// </remarks>
+        public Theme Theme
+        {
+            get => theme ??= new Theme();
+            set
+            {
+                theme = value ?? new Theme();
+                stage = null;
+            }
+        }
 
         /// <summary>
         /// Composes the frame at <paramref name="seconds"/> and holds it, wrapping into the reel's length while it
@@ -145,7 +163,7 @@ namespace LightSide.Promo
                 Stage.Fit(slide.Rect);
                 try
                 {
-                    slide.Build(Stage.For(slide.Rect));
+                    slide.Build(Stage.ForFrame(slide.Rect));
                 }
                 catch (Exception exception)
                 {
@@ -154,6 +172,8 @@ namespace LightSide.Promo
                         slide);
                     Debug.LogException(exception, slide);
                 }
+
+                ReportOverrun(slide);
             }
 
             Seek(time);
@@ -303,6 +323,30 @@ namespace LightSide.Promo
             rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = FrameSize;
             rect.localScale = Vector3.one;
+        }
+
+        /// <summary>
+        /// Reports a slide whose own cues land after it ends.
+        /// </summary>
+        /// <remarks>
+        /// A slide's timings are constants inside it and its duration is authored on the reel, so nothing connects
+        /// the two: a demonstration built from a start, a count and a step outgrows its slide silently, and the only
+        /// symptom is a cut that arrives before the thing being demonstrated finishes. Cues are where a slide says
+        /// when its moments are, which makes them the one place the overrun can be seen without running the film.
+        /// <para>
+        /// A warning rather than a failure: a shot deliberately cut short is a legitimate thing to author, and a
+        /// slide that declares no cues is not reporting a length at all and cannot be checked.
+        /// </para>
+        /// </remarks>
+        private static void ReportOverrun(Slide slide)
+        {
+            var last = 0f;
+            for (var i = 0; i < slide.Cues.Count; i++) last = Mathf.Max(last, slide.Cues[i].At);
+            if (last <= slide.Seconds) return;
+
+            Debug.LogWarning(
+                $"[Promo] '{slide.name}' has a cue at {last:0.00}s and is {slide.Seconds:0.00}s long, so its last " +
+                $"{last - slide.Seconds:0.00}s never plays.", slide);
         }
 
         private bool NeedsBuild()

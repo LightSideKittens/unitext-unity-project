@@ -23,6 +23,17 @@ namespace LightSide.Promo
             "<li>Thai and Lao word breaking, with no spaces to go on</li>\n\n" +
             "<smallcaps>Small caps</smallcaps> · H<sub>2</sub>O · x<sup>2</sup> · <upper>upper</upper>";
 
+        /// <summary>
+        /// Point size of the body, held rather than fitted.
+        /// </summary>
+        /// <remarks>
+        /// Every line in the well is a different feature at a different size — ruby above the type, a list beside
+        /// its markers, a subscript below the baseline. Auto-fit picks one size for the block, so it is the ruby's
+        /// headroom or the superscript's rise that decides how large every other line comes out; holding the size
+        /// puts that back where it was authored.
+        /// </remarks>
+        [SerializeField, Min(1f)] private float bodySize = 50f;
+
         private Claim claim;
         private Showcase panel;
         private RevealModifier typewriter;
@@ -37,7 +48,10 @@ namespace LightSide.Promo
             panel = stage.Showcase("Typography", stage.Root, "Every line below is one tag",
                 body, new Vector2(-stage.Width * 0.18f, stage.ContentCentre),
                 new Vector2(stage.Width * 0.56f, stage.ContentHeight * 0.94f),
-                stage.ContentHeight * 0.088f);
+                bodySize);
+
+            panel.Body.AutoSize = false;
+            panel.Body.FontSize = bodySize;
 
             panel.Body.Styles.Add(Style.FromSource(new RubyParseRule(), new RubyModifier()));
             panel.Body.Styles.Add(Style.Tag(new ListModifier(), "li"));
@@ -51,7 +65,7 @@ namespace LightSide.Promo
             facts = stage.Ledger("Facts", stage.Root, "What the layout knows", new[]
             {
                 new LedgerEntry("Ruby clears the line above", "yes", "✓", theme.Violet),
-                new LedgerEntry("Thai · Lao · Khmer · Burmese", "word breaks", "✓", theme.Violet),
+                new LedgerEntry("Thai, Lao, Khmer, Burmese", "yes", "✓", theme.Violet),
                 new LedgerEntry("Korean line breaking", "yes", "✓", theme.Violet),
                 new LedgerEntry("Justification", "script-aware", "✓", theme.Violet),
                 new LedgerEntry("Arabic kashida", "yes", "✓", theme.Magenta)

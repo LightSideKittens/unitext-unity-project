@@ -97,8 +97,7 @@ namespace LightSide.Promo
                 : Shape(name, parent, ShapeKind.RoundedRect, radius);
 
             Ramped(widget.Fill, Theme.Brand, PaintProjectionKind.Linear, 100f);
-            AddShadow(widget.Shape, new Color(Theme.Violet.r, Theme.Violet.g, Theme.Violet.b, 0.45f),
-                new Vector2(0f, -6f), 22f);
+            AddShadow(widget.Shape, Promo.Theme.Fade(Theme.Violet, 0.45f), new Vector2(0f, -6f), 22f);
             AddBevel(widget.Shape, 120f, 12f, 0.9f);
             AddBevel(widget.Shape, 300f, 10f, 0.7f, true);
             return widget;
@@ -129,13 +128,16 @@ namespace LightSide.Promo
         /// <c>SetText</c>, which does not dirty the scene.
         /// </remarks>
         public UniText Label(Transform parent, string text, float size, Color color,
-            HAlign horizontal = HAlign.Center, VAlign vertical = VAlign.Middle, bool stretch = true)
+            HAlign horizontal = HAlign.Center, VAlign vertical = VAlign.Middle, bool stretch = true,
+            UniTextFont face = null)
         {
             var rect = Node("Label", parent);
             if (stretch) Stretch(rect);
 
             var label = rect.gameObject.AddComponent<UniText>();
             label.raycastTarget = false;
+            var chosen = face ? face : Theme.BodyFace;
+            if (chosen) label.Font = chosen;
             label.FontSize = size;
             label.color = color;
             label.HorizontalAlignment = horizontal;
@@ -225,6 +227,36 @@ namespace LightSide.Promo
         }
 
         /// <summary>
+        /// Height of one line of <paramref name="text"/> at its resolved size, in that component's own units.
+        /// </summary>
+        /// <remarks>
+        /// The vertical companion to <see cref="Advance"/>, and needed for the same reason: anything aimed at a line
+        /// of type has to know where the line is, and a line box typed as a multiple of the point size drifts as
+        /// soon as the face changes. A text aligned to the top of its rect puts its first line's centre half of this
+        /// below the rect's top edge.
+        /// </remarks>
+        /// <exception cref="InvalidOperationException">The component declined to measure.</exception>
+        public static float LineBox(UniText text)
+        {
+            var size = text.CurrentFontSize;
+            var height = text.MeasureText(new TextMeasureOptions
+            {
+                text = "M",
+                wordWrap = false,
+                autoSize = false,
+                fontSize = size,
+                padding = Vector4.zero
+            }).y;
+
+            if (height > 0f) return height;
+
+            throw new InvalidOperationException(
+                $"[Promo] '{text.name}' measured its line box as {height} at size {size}. A line has a height, so " +
+                "the component had nothing to shape — the usual cause is a collapsing reveal, which takes every " +
+                "cluster out of layout. Measure before attaching one.");
+        }
+
+        /// <summary>
         /// Applies <paramref name="modifier"/> to the first occurrence of <paramref name="word"/>, and reports
         /// whether it was found.
         /// </summary>
@@ -277,7 +309,7 @@ namespace LightSide.Promo
         /// </remarks>
         /// <summary>
         /// A typewriter that <em>removes</em> what it has not reached yet, and whose frontier is the modifier's own
-        /// <see cref="RevealModifier.Fill"/>.
+        /// <see cref="RevealModifier.Front"/>.
         /// </summary>
         /// <remarks>
         /// This, never <see cref="Reveal"/>, is what text carrying range decorations needs. A highlight, a mention
@@ -379,7 +411,7 @@ namespace LightSide.Promo
 
         /// <summary>The dominant line of a frame: one phrase, at <see cref="Promo.Theme.Hero"/>.</summary>
         public UniText Headline(Transform parent, string text) =>
-            Label(parent, text, Theme.Hero, Theme.Text);
+            Label(parent, text, Theme.Hero, Theme.Text, face: Theme.DisplayFace);
 
         /// <summary>The line under a headline, never competing with it.</summary>
         public UniText Caption(Transform parent, string text) =>

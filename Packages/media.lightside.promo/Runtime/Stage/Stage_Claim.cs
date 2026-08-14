@@ -43,24 +43,25 @@ namespace LightSide.Promo
         /// silently overlapping the content is not.
         /// </para>
         /// </remarks>
-        public Claim Claim(Transform parent, string headline, string sub = null, bool top = true)
+        public Claim Claim(Transform parent, string headline, string sub = null, bool top = true, float size = 0f)
         {
+            var head = size > 0f ? size : Theme.Head;
             var edge = top ? Half.y : -Half.y;
             var direction = top ? -1f : 1f;
-            var margin = Height * 0.055f;
-            var first = edge + direction * (margin + Theme.Head * 0.75f);
+            var margin = Mathf.Max(Height * 0.055f, head * Air);
+            var first = edge + direction * (margin + head * 0.75f);
 
-            var title = Label(parent, headline, Theme.Head, Theme.Text);
-            Box(title.rectTransform, new Vector2(0f, first), new Vector2(Width * 0.86f, Theme.Head * 1.5f));
+            var title = Label(parent, headline, head, Theme.Text, face: Theme.DisplayFace);
+            Box(title.rectTransform, new Vector2(0f, first), new Vector2(Width * 0.86f, head * 1.5f));
             title.WordWrap = false;
 
-            var used = margin + Theme.Head * 1.5f;
+            var used = margin + head * 1.5f;
             UniText note = null;
 
             if (!string.IsNullOrEmpty(sub))
             {
                 note = Label(parent, sub, Theme.Body, Theme.TextSoft);
-                Box(note.rectTransform, new Vector2(0f, first + direction * (Theme.Head * 0.9f + Theme.Body * 0.6f)),
+                Box(note.rectTransform, new Vector2(0f, first + direction * (head * 0.9f + Theme.Body * 0.6f)),
                     new Vector2(Width * 0.86f, Theme.Body * 1.6f));
                 note.WordWrap = false;
                 used += Theme.Body * 1.7f;
@@ -69,6 +70,16 @@ namespace LightSide.Promo
             Reserve(top, used + Gutter);
             return new Claim(title, note);
         }
+
+        /// <summary>
+        /// Clear space above a headline as a fraction of its own size, once that beats the frame's own margin.
+        /// </summary>
+        /// <remarks>
+        /// A fixed margin is air at <see cref="Promo.Theme.Head"/> and a crowd at twice it: the bigger the type, the
+        /// more room it needs to sit in before it reads as placed rather than as pushed against the edge. Below
+        /// roughly 96 points the frame's margin still wins, so no shot laid out against the old fixed one moves.
+        /// </remarks>
+        private const float Air = 0.62f;
 
         /// <summary>Breathing room between a headline and whatever the shot puts under it.</summary>
         private float Gutter => Height * 0.035f;

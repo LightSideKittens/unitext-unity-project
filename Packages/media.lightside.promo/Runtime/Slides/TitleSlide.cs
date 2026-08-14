@@ -32,7 +32,7 @@ namespace LightSide.Promo
             glow = stage.Shape("Glow", stage.Root, ShapeKind.Circle);
             stage.Box(glow.Rect, Vector2.zero, Vector2.one * (stage.Height * 1.02f));
             var pool = theme.Glow;
-            Stage.Radial(glow.Fill, pool, new Color(pool.r, pool.g, pool.b, 0f), 1f);
+            Stage.Radial(glow.Fill, pool, Theme.Fade(pool, 0f), 1f);
 
             mark = stage.Shape("Mark", stage.Root, ShapeKind.RoundedRect, theme.RadiusXxl);
             stage.Box(mark.Rect, new Vector2(0f, stage.Height * 0.157f), Vector2.one * (stage.Height * 0.222f));

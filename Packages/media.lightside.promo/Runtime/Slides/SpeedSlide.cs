@@ -12,6 +12,9 @@ namespace LightSide.Promo
     public sealed class SpeedSlide : Slide
     {
         [SerializeField] private string headline = "Faster. By a lot.";
+
+        /// <summary>Point size of the headline, which on this shot competes with the figure rather than labels it.</summary>
+        [SerializeField, Min(0f)] private float headlineSize = 140f;
         [SerializeField] private string figure = "2–20×";
         [SerializeField] private string against = "faster than TextMeshPro and UI Toolkit";
         [SerializeField] private string payoff = "And it stops allocating. No garbage, no stutter.";
@@ -24,7 +27,7 @@ namespace LightSide.Promo
         {
             stage.Backdrop(stage.Root);
 
-            claim = stage.Claim(stage.Root, headline);
+            claim = stage.Claim(stage.Root, headline, size: headlineSize);
             note = stage.Claim(stage.Root, payoff, top: false);
 
             gap = stage.Metric("Gap", stage.Root, figure, against,
