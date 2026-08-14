@@ -4927,7 +4927,7 @@ MonoBehaviour:
       data:
         enterDuration: 0
         exitDuration: 0.15
-        easing: 1
+        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
         clock: 1
         animateInitialMatch: 0
     - rid: 6670084486001591241
@@ -4972,7 +4972,7 @@ MonoBehaviour:
       data:
         enterDuration: 0.04
         exitDuration: 0.18
-        easing: 1
+        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
         clock: 1
         animateInitialMatch: 0
     - rid: 6670084486001591243
