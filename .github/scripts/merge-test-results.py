@@ -12,17 +12,13 @@ from pathlib import Path
 
 def extract_device_name(filepath: str) -> str:
     """Extract device name from Firebase results path."""
-    # iOS: iphone14pro-16.6-en-portrait
-    match = re.search(r'(iphone\d+pro|iphone\d+)-[\d.]+-[a-z]+-[a-z]+', filepath)
-    if match:
-        return match.group(1)
-
-    # Android: oriole-33-en-portrait
-    match = re.search(r'(oriole|shiba|a54x|dm3q|austin)-\d+-[a-z]+-[a-z]+', filepath)
-    if match:
-        return match.group(1)
-
-    return "device"
+    match = re.search(
+        r'(?:^|[/\\])(?:bundle-\d+-)?([^/\\]+)-[\d.]+-[A-Za-z_]+-(?:portrait|landscape)(?=[/\\]|$)',
+        filepath,
+    )
+    if not match:
+        raise ValueError(f"Firebase device axis not found in path: {filepath}")
+    return match.group(1)
 
 
 def merge_results(output_path: str, input_paths: list[str]) -> tuple[int, int]:

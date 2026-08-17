@@ -13,6 +13,11 @@ on:
         required: false
         type: number
         default: 300
+      legacy_android_devices:
+        description: '📟 Affected legacy Android devices (3 instead of standard 6)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -124,6 +129,7 @@ jobs:
           mode: test
           unity_version: ${{ matrix.unity_version }}
           timeout: ${{ inputs.test_timeout }}
+          legacy_android_devices: ${{ inputs.legacy_android_devices }}
 
       - name: Upload Test Results
         if: always()

@@ -22,6 +22,10 @@ on:
         required: false
         type: boolean
         default: false
+      legacy_android_devices:
+        required: false
+        type: boolean
+        default: false
       slideshow:
         description: "Capture a screenshot of every BasicUsage sample slide instead of running tests (mutually exclusive with tests/benchmark; the build carries the sample scene)"
         required: false
@@ -159,6 +163,7 @@ jobs:
           mode: test
           unity_version: ${{ inputs.unity_version }}
           timeout: ${{ inputs.test_timeout }}
+          legacy_android_devices: ${{ inputs.legacy_android_devices }}
 
       - name: Upload Test Results
         if: always()
@@ -262,6 +267,7 @@ jobs:
           suite: ${{ inputs.benchmark }}
           unity_version: ${{ inputs.unity_version }}
           timeout: ${{ inputs.benchmark_timeout }}
+          legacy_android_devices: ${{ inputs.legacy_android_devices }}
 
       - name: Emit viewer site streams
         if: always()

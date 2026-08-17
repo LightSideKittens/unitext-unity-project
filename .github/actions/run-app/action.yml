@@ -24,6 +24,10 @@ inputs:
     description: 'Timeout in seconds'
     required: false
     default: '1800'
+  legacy_android_devices:
+    description: 'Replace the standard Android device park with affected legacy devices'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -440,6 +444,7 @@ runs:
         APP_TIMEOUT: ${{ inputs.timeout }}
         APP_MODE: ${{ inputs.mode }}
         APP_SUITE: ${{ inputs.suite }}
+        LEGACY_ANDROID_DEVICES: ${{ inputs.legacy_android_devices }}
       run: |
         set -uo pipefail
         APK=$(find ${{ inputs.build_path }} -name "*.apk" | head -1)
@@ -463,18 +468,29 @@ runs:
         RESULTS_DIR="${{ inputs.platform }}-${{ inputs.mode }}-${{ inputs.unity_version }}-${{ github.run_id }}"
         echo "FIREBASE_RESULTS_DIR=$RESULTS_DIR" >> $GITHUB_ENV
 
-        # Device park: GPU vendors x driver generations x API floor x low-end.
+        if [ "$LEGACY_ANDROID_DEVICES" = "true" ]; then
+          DEVICES=(
+            --device model=RMX3231,version=30
+            --device model=aruba,version=30
+            --device model=TECNO-BF6,version=31
+          )
+        else
+          DEVICES=(
+            --device model=shiba,version=34
+            --device model=dm3q,version=34
+            --device model=frankel,version=36
+            --device model=pa3q,version=35
+            --device model=a06,version=35
+            --device model=SH-01L,version=28
+          )
+        fi
+
         set +e
         timeout --signal=INT --kill-after=30s "${FIREBASE_WAIT_SECONDS}s" \
           gcloud firebase test android run \
           --type game-loop \
           --app "$APK" \
-          --device model=shiba,version=34 \
-          --device model=dm3q,version=34 \
-          --device model=frankel,version=36 \
-          --device model=pa3q,version=35 \
-          --device model=a06,version=35 \
-          --device model=SH-01L,version=28 \
+          "${DEVICES[@]}" \
           --scenario-numbers=$SCENARIO \
           --timeout "${TIMEOUT_MINUTES}m" \
           --results-bucket="$FIREBASE_RESULTS_BUCKET" \

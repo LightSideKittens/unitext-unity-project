@@ -62,6 +62,10 @@ on:
         description: '🧪 Run tests'
         type: boolean
         default: true
+      legacy_android_devices:
+        description: '📟 Affected legacy Android devices (3 instead of standard 6)'
+        type: boolean
+        default: false
       slideshow:
         description: '🎞️ Slideshow screenshots (BasicUsage sample, overrides tests)'
         type: boolean
@@ -113,6 +117,7 @@ jobs:
       debug: ${{ inputs.debug == true }}
       benchmark: ${{ inputs.benchmark }}
       run_tests: ${{ inputs.run_tests == true }}
+      legacy_android_devices: ${{ inputs.legacy_android_devices }}
       slideshow: ${{ inputs.slideshow == true }}
     secrets: inherit
 
