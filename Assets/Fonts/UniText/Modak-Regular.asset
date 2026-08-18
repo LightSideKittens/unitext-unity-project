@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Modak-Regular
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 11773641578}
+  payloadSourceHash: 028e9b78b3ffe38272b40c630c3719f47af38dc2f2c39b0ee14509f7b67d0a44
+  payloadRawLength: 648368
   fontDataHash: -1121325718
   italicStyle: 30
   spacingOffset: 0

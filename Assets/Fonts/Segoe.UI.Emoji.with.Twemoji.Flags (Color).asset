@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Segoe.UI.Emoji.with.Twemoji.Flags (Color)
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextColorFont
   payload: {fileID: 12173973928}
+  payloadSourceHash: 8b983ad1060f53e4b6478589583bb1ce5666948e2504e5439cb46eee9f2d7e05
+  payloadRawLength: 13167436
   fontDataHash: -720993368
   italicStyle: 30
   spacingOffset: 0

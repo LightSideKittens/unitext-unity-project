@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Molend_subset2
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 12174159544}
+  payloadSourceHash: 583db28f3f23aca7239cb0158d4dab9029a73c4ef227dded8a88a14c4d9a12d3
+  payloadRawLength: 2084
   fontDataHash: -720807752
   italicStyle: 30
   spacingOffset: 0

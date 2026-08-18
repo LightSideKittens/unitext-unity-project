@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: FSP DEMO - PODIUM Sharp 8.12
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9390359986}
+  payloadSourceHash: acafd7d9ee8d1a95d17e8d9eb22d3c1ab52e7821b72d11010fe69669e5b96dbd
+  payloadRawLength: 19200
   fontDataHash: 790359986
   italicStyle: 30
   spacingOffset: 0

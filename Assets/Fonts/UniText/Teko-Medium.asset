@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Teko-Medium
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 8985274338}
+  payloadSourceHash: 015eaa6bc176367f008e2bc942a636f1a108a85097ce3e42de7574a129af663f
+  payloadRawLength: 154668
   fontDataHash: 385274338
   italicStyle: 30
   spacingOffset: 0

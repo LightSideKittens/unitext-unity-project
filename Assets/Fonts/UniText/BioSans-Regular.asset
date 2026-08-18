@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: BioSans-Regular
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9708308451}
+  payloadSourceHash: c6f10d4c49d7bcb31f59ddba4edac136d547388e6b031166d2093f1d3225d7e1
+  payloadRawLength: 51264
   fontDataHash: 1108308451
   italicStyle: 30
   spacingOffset: 0

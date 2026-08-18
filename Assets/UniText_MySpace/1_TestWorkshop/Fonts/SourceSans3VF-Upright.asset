@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: SourceSans3VF-Upright
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9667537970}
+  payloadSourceHash: 97671f8b051ea1fa861a01e97137941ada75f0de431f37323158a8624252ce68
+  payloadRawLength: 538164
   fontDataHash: 1067537970
   italicStyle: 30
   spacingOffset: 0

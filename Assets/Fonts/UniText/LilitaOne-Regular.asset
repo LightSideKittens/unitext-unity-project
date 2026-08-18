@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: LilitaOne-Regular
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9395661274}
+  payloadSourceHash: 25eb884482d0246974076c0c046e2e27c34f4b7a86acd377be817c875d84192b
+  payloadRawLength: 28092
   fontDataHash: 795661274
   italicStyle: 30
   spacingOffset: 0

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: NotoSansHebrew-Regular
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 11257739309}
+  payloadSourceHash: 3877acc1a0443392cea316fb4531aca9446a22fd75b58ef0158a515a7d43114e
+  payloadRawLength: 48036
   fontDataHash: -1637227987
   italicStyle: 30
   faceInfo:

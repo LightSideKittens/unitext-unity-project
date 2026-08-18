@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: NotoSansArabic-Regular
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9665304077}
+  payloadSourceHash: 5cdf85a2936499a9d533b9999400dd5ef04cc808a6c08657d4dfbf02c4cdc304
+  payloadRawLength: 194176
   fontDataHash: 1065304077
   italicStyle: 30
   spacingOffset: 0

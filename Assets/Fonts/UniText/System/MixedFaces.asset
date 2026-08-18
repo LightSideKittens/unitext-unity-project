@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: MixedFaces
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9389974903}
+  payloadSourceHash: a6cb2f835284032308999ba935dd0841108c98b9eda4ea9839163c8535fed4cd
+  payloadRawLength: 3725340
   fontDataHash: 789974903
   italicStyle: 30
   spacingOffset: 0

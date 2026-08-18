@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: FiraSans-Regular
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9322984232}
+  payloadSourceHash: 16e0c623075a017e0463690103ffc8c617cc6540ccdaf651bbc1fd00548907af
+  payloadRawLength: 456996
   fontDataHash: 722984232
   italicStyle: 30
   spacingOffset: 0

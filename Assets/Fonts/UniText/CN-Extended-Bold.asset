@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: CN-Extended-Bold
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 12112105168}
+  payloadSourceHash: 02afefda5c7a92f0618f7f95e1d4a1be7b9579e48a8c89bce7a9698c934ab708
+  payloadRawLength: 21615988
   fontDataHash: -782862128
   italicStyle: 30
   spacingOffset: 0

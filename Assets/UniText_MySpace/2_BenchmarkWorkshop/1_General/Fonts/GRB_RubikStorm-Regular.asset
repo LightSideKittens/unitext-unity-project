@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: GRB_RubikStorm-Regular
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 8706059417}
+  payloadSourceHash: 70ce22b293d381fbe3fa72280414e7d249001582e515d8b1eb543be1d2cde735
+  payloadRawLength: 795576
   fontDataHash: 106059417
   italicStyle: 30
   spacingOffset: 0

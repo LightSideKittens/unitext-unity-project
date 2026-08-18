@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: PodiumSharp-8.12
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 11240407330}
+  payloadSourceHash: abdb68b2436d66af6fb57126e20eb51c44749358a65ffb687175352ac561ba31
+  payloadRawLength: 77212
   fontDataHash: -1654559966
   italicStyle: 30
   spacingOffset: 0

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Saira-VariableFont_wdth,wght
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 12537168661}
+  payloadSourceHash: 82e2f6389b4f223dcf57e8bbaf24a09f1655ae1e823b6ec7b91bd750564bac4b
+  payloadRawLength: 481912
   fontDataHash: -357798635
   italicStyle: 21.8
   spacingOffset: 0

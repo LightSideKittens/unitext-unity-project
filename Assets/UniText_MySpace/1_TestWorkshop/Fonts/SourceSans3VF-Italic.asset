@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: SourceSans3VF-Italic
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9405887418}
+  payloadSourceHash: 8475280abf4770c23f0aa3691e86473269dc2ea75986305f1c410f877e6454d1
+  payloadRawLength: 303192
   fontDataHash: 805887418
   italicStyle: 30
   spacingOffset: 0

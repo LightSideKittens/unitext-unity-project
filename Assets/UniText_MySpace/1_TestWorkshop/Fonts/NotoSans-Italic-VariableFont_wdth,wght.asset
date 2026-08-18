@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: NotoSans-Italic-VariableFont_wdth,wght
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 9481698024}
+  payloadSourceHash: 08f5f99798f533aa9e1048fee155e0235b5a76c50f50faa47e0627633ed5354d
+  payloadRawLength: 2300468
   fontDataHash: 881698024
   italicStyle: 30
   spacingOffset: 0
