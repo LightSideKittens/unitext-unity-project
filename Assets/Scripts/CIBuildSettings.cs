@@ -10,7 +10,7 @@ public static class CIBuildSettings
 {
     private const string TestScenePath = "Assets/UniText_MySpace/1_TestWorkshop/UniTextTest.unity";
     private const string BenchmarkScenePath = "Assets/UniText_MySpace/2_BenchmarkWorkshop/1_General/General_BenchmarkTest.unity";
-    private const string SlideshowScenePath = "Packages/media.lightside.unitext/Samples/BasicUsage/BasicUsage.unity";
+    private const string SlideshowScenePath = "Assets/UniText_MySpace/WebGLDemo/BasicUsageWebGL.unity";
 
     static readonly BuildTargetGroup[] AllTargets =
     {

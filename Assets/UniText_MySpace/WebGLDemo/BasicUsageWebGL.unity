@@ -199,6 +199,8 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
+    blend: -1
+    spread: -1
   selectionHandles:
     rid: 9100000000000000001
   magnifier:
@@ -250,6 +252,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items: []
   stylePresets:
@@ -883,6 +887,8 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
+    blend: -1
+    spread: -1
   selectionHandles:
     rid: 9100000000000000001
   magnifier:
@@ -933,6 +939,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items: []
   stylePresets:
@@ -1193,6 +1201,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items: []
   stylePresets:
@@ -1392,6 +1402,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items: []
   stylePresets:
@@ -1739,6 +1751,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items: []
   stylePresets:
@@ -1824,6 +1838,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items:
     - modifier:
@@ -1868,7 +1884,6 @@ MonoBehaviour:
         spacing:
           value: 0.3
           unit: 0
-        monospace: 0
     - rid: 5346788061360161104
       type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -2297,6 +2312,8 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
+    blend: -1
+    spread: -1
   selectionHandles:
     rid: 9100000000000000001
   magnifier:
@@ -2350,6 +2367,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items:
     - modifier:
@@ -2418,6 +2437,8 @@ MonoBehaviour:
           tint:
             serializedVersion: 2
             rgba: 4294967295
+          blend: -1
+          spread: -1
     - rid: 6670084647545995757
       type: {class: AssetPaintProvider, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -2518,6 +2539,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items:
     - modifier:
@@ -2611,6 +2634,8 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
+    blend: -1
+    spread: -1
   selectionHandles:
     rid: -2
   magnifier:
@@ -3638,16 +3663,9 @@ MonoBehaviour:
     - rid: 6670084341371502660
       type: {class: NativeFieldOverlayBehavior, ns: LightSide, asm: LightSide.UniText}
       data:
-        style:
-          placeholder: 
-          characterLimit: 0
-          androidBackgroundResource: 
-          androidTextAppearanceResource: 
-          androidThemeResource: 
-          iOSAccessibilityIdentifier: 
-          webGLCssClass: 
-          webGLId: 
-          webGLInlineStyle: 
+        presenterId: system
+        identifier: 
+        presenterData: 
     - rid: 7750513807591473559
       type: {class: CaretContextBehavior, ns: LightSide, asm: LightSide.UniText}
       data:
@@ -3716,6 +3734,8 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
+    blend: -1
+    spread: -1
   selectionHandles:
     rid: -2
   magnifier:
@@ -3758,6 +3778,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items:
     - modifier:
@@ -4677,8 +4699,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afdd023f9edb444984f01a513352ce58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 1
-  unscaledTime: 0
 --- !u!114 &1635096497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4722,7 +4742,7 @@ MonoBehaviour:
     - rid: 6670085000000000001
       type: {class: SubmitKeyBehavior, ns: LightSide, asm: LightSide.UniText}
       data:
-        submit: 0
+        submit: 1
         keepFocusOnSubmit: 1
     - rid: 7750514006606479510
       type: {class: CaretContextBehavior, ns: LightSide, asm: LightSide.UniText}
@@ -4797,6 +4817,8 @@ MonoBehaviour:
     tint:
       serializedVersion: 2
       rgba: 4294967295
+    blend: -1
+    spread: -1
   selectionHandles:
     rid: 9100000000000000001
   magnifier:
@@ -4850,6 +4872,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items:
     - modifier:
@@ -4927,7 +4951,13 @@ MonoBehaviour:
       data:
         enterDuration: 0
         exitDuration: 0.15
-        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
+        easing:
+          kind: 0
+          type: 1
+          controls: {x: 0, y: 0, z: 0, w: 0}
+          keys: []
+          authoredControls: {x: 0, y: 0, z: 0, w: 0}
+          authoredKeys: []
         clock: 1
         animateInitialMatch: 0
     - rid: 6670084486001591241
@@ -4967,12 +4997,20 @@ MonoBehaviour:
           tint:
             serializedVersion: 2
             rgba: 4294967295
+          blend: -1
+          spread: -1
     - rid: 6670084486001591242
       type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
       data:
         enterDuration: 0.04
         exitDuration: 0.18
-        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
+        easing:
+          kind: 0
+          type: 1
+          controls: {x: 0, y: 0, z: 0, w: 0}
+          keys: []
+          authoredControls: {x: 0, y: 0, z: 0, w: 0}
+          authoredKeys: []
         clock: 1
         animateInitialMatch: 0
     - rid: 6670084486001591243
@@ -5012,6 +5050,8 @@ MonoBehaviour:
           tint:
             serializedVersion: 2
             rgba: 4294967295
+          blend: -1
+          spread: -1
     - rid: 6670084486001591244
       type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
       data: 
@@ -5108,6 +5148,8 @@ MonoBehaviour:
         modifierNodeId:
           high: 5286635046055683605
           low: 9578560265025139589
+        blend: -1
+        paintSpread: -1
         provider:
           rid: 7750514006606479473
         mapping: 0
@@ -5577,6 +5619,8 @@ MonoBehaviour:
   autoSize: 0
   minFontSize: 10
   maxFontSize: 72
+  fitSteps:
+    items: []
   styles:
     items: []
   stylePresets:
@@ -6036,14 +6080,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: LightSide.UniText.Samples::LightSide.Samples.BasicUsageExample
   demoText: {fileID: 512799961}
   statusText: {fileID: 2146591882}
-  registerModifiersOnStart: 1
   demoPaints: {fileID: 11400000, guid: a4d9f2c7e1b83046a5c9e2d1f7b3086c, type: 2}
   demoSprites: {fileID: 11400000, guid: 87d69303c8b0b354e980df7e45cb3139, type: 2}
   mathFont: {fileID: 11400000, guid: 6ec2fbb4803b1254f8207b646dfb3383, type: 2}
   button: {fileID: 69774887}
   basicUsageContainer: {fileID: 1195603032}
   editableContainer: {fileID: 563878550}
+  keyboardCaptureField: {fileID: 1393396948}
   browserBridgeObjectName: DemoController
+  addressablePrefab:
+    m_AssetGUID: 03b77032b5af11d4dacba471ec41f7d0
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
 --- !u!1 &2117427058
 GameObject:
   m_ObjectHideFlags: 0
@@ -6187,6 +6237,8 @@ MonoBehaviour:
   autoSize: 1
   minFontSize: 10
   maxFontSize: 43
+  fitSteps:
+    items: []
   styles:
     items:
     - modifier:

@@ -18,6 +18,10 @@ namespace LightSide.Promo
         private InspectorSliderInt scrubber;
         private Label readout;
 
+        /// <inheritdoc/>
+        public sealed override bool UseDefaultMargins() => false;
+
+        /// <inheritdoc/>
         public override VisualElement CreateInspectorGUI()
         {
             reel = (Reel)target;

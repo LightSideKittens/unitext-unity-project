@@ -28,6 +28,10 @@ inputs:
     description: 'Replace the standard Android device park with affected legacy devices'
     required: false
     default: 'false'
+  screen_recording:
+    description: 'Keep the Firebase device screen recording under screen-recording/ and cut full-screen PNGs of the soft-keyboard states out of it. The recording is the only capture that contains OS-owned layers - keyboard, status and navigation bars; no in-player capture reaches them on any platform.'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -510,6 +514,7 @@ runs:
       shell: bash
       env:
         APP_MODE: ${{ inputs.mode }}
+        SCREEN_RECORDING: ${{ inputs.screen_recording }}
       run: |
         set -uo pipefail
 
@@ -523,6 +528,17 @@ runs:
         find ./firebase-results \( -name "logcat" -o -name "*.txt" -o -name "*.log" -o -name "syslog*" \) -type f 2>/dev/null | while read -r f; do
           echo "----- $f -----"; cat "$f" 2>/dev/null || true
         done
+
+        if [ "$SCREEN_RECORDING" = "true" ]; then
+          find ./firebase-results -type f \( -iname '*.mp4' -o -iname '*.mov' \) 2>/dev/null | while read -r v; do
+            REL="${v#./firebase-results/}"
+            DEV="${REL%%/*}"
+            mkdir -p "screen-recording/$DEV"
+            mv -f "$v" "screen-recording/$DEV/$(basename "$v")"
+          done
+          echo "=== device screen recordings ==="
+          find screen-recording -type f 2>/dev/null || echo "  (none)"
+        fi
 
         find ./firebase-results -type f \( -iname '*.ipa' -o -iname '*.apk' -o -iname '*.aab' -o -iname '*.mp4' -o -iname '*.mov' \) -delete 2>/dev/null || true
         rm -rf ./firebase-results/*.app 2>/dev/null || true
@@ -612,3 +628,53 @@ runs:
           python3 "$GITHUB_WORKSPACE/.github/scripts/merge-test-results.py" \
             testResults.xml $TEST_FILES
         fi
+
+    - name: Extract soft-keyboard screenshots from device recordings
+      if: always() && inputs.screen_recording == 'true' && (inputs.platform == 'Android' || inputs.platform == 'iOS')
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        RECORDINGS=$(find screen-recording -type f \( -iname '*.mp4' -o -iname '*.mov' \) 2>/dev/null || true)
+        if [ -z "$RECORDINGS" ]; then
+          echo "::error title=No screen recording::Firebase returned no device recording; the soft-keyboard screenshots have no source"
+          exit 1
+        fi
+
+        command -v ffmpeg >/dev/null 2>&1 || {
+          if command -v apt-get >/dev/null 2>&1; then sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          else brew install ffmpeg
+          fi
+        }
+
+        # Closing timeline of every mobile slideshow run: 10s portrait with the keyboard up, the
+        # rotation, 10s landscape, then the completion report. TEARDOWN covers the recording that
+        # Firebase keeps past that report; each state is sampled at the middle of its 10s window, so
+        # a few seconds of drift on either side still land inside it.
+        TEARDOWN=3
+        LANDSCAPE_BEFORE_END=$((TEARDOWN + 5))
+        PORTRAIT_BEFORE_END=$((TEARDOWN + 5 + 10 + 3))
+
+        for v in $RECORDINGS; do
+          DEV=$(basename "$(dirname "$v")")
+          OUT="screenshots/$DEV"
+          mkdir -p "$OUT"
+
+          DURATION=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$v")
+          echo "$DEV: recording ${DURATION}s"
+
+          for STATE in portrait landscape; do
+            case $STATE in
+              portrait)  BEFORE_END=$PORTRAIT_BEFORE_END ;;
+              landscape) BEFORE_END=$LANDSCAPE_BEFORE_END ;;
+            esac
+
+            # Pairs with the player's own capture of the same moment, so the two sit side by side.
+            BASE=$(basename "$(ls "$OUT"/*-keyboard-$STATE.png 2>/dev/null | head -1)" .png 2>/dev/null || true)
+            [ -n "$BASE" ] || BASE="keyboard-$STATE"
+
+            AT=$(awk -v d="$DURATION" -v b="$BEFORE_END" 'BEGIN { t = d - b; print (t > 0 ? t : 0) }')
+            echo "  $STATE: ${AT}s -> $OUT/$BASE-fullscreen.png"
+            ffmpeg -nostdin -loglevel error -y -ss "$AT" -i "$v" -frames:v 1 "$OUT/$BASE-fullscreen.png"
+          done
+        done

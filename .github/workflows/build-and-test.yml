@@ -164,6 +164,7 @@ jobs:
           unity_version: ${{ inputs.unity_version }}
           timeout: ${{ inputs.test_timeout }}
           legacy_android_devices: ${{ inputs.legacy_android_devices }}
+          screen_recording: ${{ inputs.slideshow }}
 
       - name: Upload Test Results
         if: always()
@@ -185,6 +186,17 @@ jobs:
         with:
           name: SlideshowScreenshots-${{ inputs.unity_version }}-${{ inputs.platform }}
           path: screenshots/
+          retention-days: 7
+
+      # Device screen recording: the only artifact that carries the OS-owned layers — the soft
+      # keyboard, status and navigation bars — which no in-player capture reaches on any platform.
+      - name: Upload Slideshow Screen Recording
+        if: always() && inputs.slideshow && (inputs.platform == 'Android' || inputs.platform == 'iOS')
+        uses: actions/upload-artifact@v6
+        with:
+          name: SlideshowRecording-${{ inputs.unity_version }}-${{ inputs.platform }}
+          path: screen-recording/
+          if-no-files-found: warn
           retention-days: 7
 
       - name: Test Summary

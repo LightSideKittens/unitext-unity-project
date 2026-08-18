@@ -19,7 +19,9 @@ public static class TestScreenshot
     private static RenderTexture renderTexture;
 
     /// <summary>
-    /// Captures a screenshot and stores it for test artifacts.
+    /// Re-renders one camera offscreen at no less than 1920x1080 and stores the result for test
+    /// artifacts. Nothing outside that camera reaches the image — screen-space-overlay canvases,
+    /// other cameras and OS-owned layers such as the soft keyboard are absent.
     /// </summary>
     /// <param name="name">Screenshot name (without extension)</param>
     /// <param name="camera">Camera to render from. If null, uses Camera.main</param>

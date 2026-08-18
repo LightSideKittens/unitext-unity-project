@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
@@ -24,10 +25,16 @@ namespace LightSide.Samples
         [Tooltip("GameObject name React uses with unityInstance.SendMessage. " +
                  "Must match the value in DemoPage.tsx on the website.")]
         [SerializeField] private string browserBridgeObjectName = "DemoController";
+
+        [Header("Slideshow")]
+        [SerializeField] private AssetReferenceGameObject addressablePrefab;
         
         private string lastSyncedText;
         private UniTextFont loadedFont;
         private UniTextFontStack loadedFontStack;
+
+        internal AssetReferenceGameObject AddressablePrefab => addressablePrefab;
+        internal UniText SlideshowText => demoText;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
