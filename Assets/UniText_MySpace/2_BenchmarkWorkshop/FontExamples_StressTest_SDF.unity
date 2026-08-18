@@ -2345,11 +2345,11 @@ MonoBehaviour:
     - modifier:
         rid: 266425359752233041
       rule:
-        rid: 266425359752233042
+        rid: -2
     - modifier:
         rid: 266425359752233043
       rule:
-        rid: 266425359752233044
+        rid: -2
   stylePresets:
     items: []
   renderMode: 0
@@ -2362,25 +2362,10 @@ MonoBehaviour:
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
-    - rid: 266425359752233042
-      type: {class: OutlineRangeRule, ns: LightSide, asm: LightSide.UniText}
-      data:
-        range: ..
-        dilate: 0.05
-        color: {r: 0, g: 0, b: 0, a: 1}
     - rid: 266425359752233043
       type: {class: ShadowModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
-    - rid: 266425359752233044
-      type: {class: ShadowRangeRule, ns: LightSide, asm: LightSide.UniText}
-      data:
-        range: ..
-        dilate: 0.16
-        color: {r: 0, g: 0, b: 0, a: 0.5}
-        offsetX: 0
-        offsetY: 0
-        softness: 0.67
 --- !u!222 &1529240486
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2464,7 +2449,7 @@ MonoBehaviour:
     - modifier:
         rid: 266425364373307595
       rule:
-        rid: 266425364373307596
+        rid: -2
   stylePresets:
     items: []
   renderMode: 0
@@ -2477,12 +2462,6 @@ MonoBehaviour:
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
-    - rid: 266425364373307596
-      type: {class: OutlineRangeRule, ns: LightSide, asm: LightSide.UniText}
-      data:
-        range: ..
-        dilate: 0.08
-        color: {r: 0, g: 0, b: 0, a: 1}
 --- !u!222 &1660377101
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2618,11 +2597,11 @@ MonoBehaviour:
     - modifier:
         rid: 266425359752233041
       rule:
-        rid: 266425359752233042
+        rid: -2
     - modifier:
         rid: 266425359752233043
       rule:
-        rid: 266425359752233044
+        rid: -2
   stylePresets:
     items: []
   renderMode: 0
@@ -2635,25 +2614,10 @@ MonoBehaviour:
       type: {class: StrokeModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
-    - rid: 266425359752233042
-      type: {class: OutlineRangeRule, ns: LightSide, asm: LightSide.UniText}
-      data:
-        range: ..
-        dilate: 0.28
-        color: {r: 0, g: 0, b: 0, a: 1}
     - rid: 266425359752233043
       type: {class: ShadowModifier, ns: LightSide, asm: LightSide.UniText}
       data:
         fixedPixelSize: 0
-    - rid: 266425359752233044
-      type: {class: ShadowRangeRule, ns: LightSide, asm: LightSide.UniText}
-      data:
-        range: ..
-        dilate: 0.16
-        color: {r: 0, g: 0, b: 0, a: 0.5}
-        offsetX: 0
-        offsetY: 0
-        softness: 0.67
 --- !u!222 &1855808705
 CanvasRenderer:
   m_ObjectHideFlags: 0

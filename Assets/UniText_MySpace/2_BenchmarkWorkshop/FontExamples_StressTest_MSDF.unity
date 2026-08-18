@@ -1792,13 +1792,13 @@ MonoBehaviour:
       data:
         fixedPixelSize: 0
     - rid: 4507959310606401849
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
           parameter: 0.11
     - rid: 4507959310606401850
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data: []
 --- !u!222 &929570772
@@ -2718,13 +2718,13 @@ MonoBehaviour:
       data:
         fixedPixelSize: 0
     - rid: 4507959310606401832
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
           parameter: 0.18
     - rid: 4507959310606401833
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 

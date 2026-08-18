@@ -74,14 +74,13 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
                 yield return CaptureTallSlide(results, name, systemFontText);
         }
 
-        if (Application.isMobilePlatform)
-            yield return CaptureKeyboardStates(results, count);
-
+        var nextSlide = count;
 #if !UNITY_WEBGL
-        yield return CaptureAddressablePrefab(results, count + (Application.isMobilePlatform ? 2 : 0));
-        if (Application.isMobilePlatform)
-            yield return RestoreKeyboardRecordingTail();
+        yield return CaptureAddressablePrefab(results, nextSlide);
+        nextSlide++;
 #endif
+        if (Application.isMobilePlatform)
+            yield return CaptureKeyboardStates(results, nextSlide);
 
         TestScreenshot.Cleanup();
         Debug.Log($"[BasicUsageSlideshow] Captured {results.Total} screenshots from {count} slides");
@@ -120,7 +119,12 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         }
     }
 
-    /// <summary>Captures the editable screen with the soft keyboard raised in portrait and landscape orientations.</summary>
+    /// <summary>
+    /// Captures the editable screen with the soft keyboard raised in portrait and landscape
+    /// orientations. Runs last: the device screen recording is the only capture that contains the
+    /// OS-owned keyboard layer, and the run-app action cuts its full-screen frames at fixed
+    /// offsets from that recording's end.
+    /// </summary>
     private IEnumerator CaptureKeyboardStates(TestResultCollection results, int slideCount)
     {
         var field = demo.KeyboardCaptureField;
@@ -142,10 +146,14 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
 
         Screen.orientation = ScreenOrientation.LandscapeLeft;
         yield return WaitForOrientation(portrait: false);
+        field.Activate();
         yield return CaptureKeyboardState(results, $"slide-{slideCount + 1:D2}-keyboard-landscape");
     }
 
-    /// <summary>Waits out the system keyboard animation and the field's reaction to it, then captures.</summary>
+    /// <summary>
+    /// Waits out the system keyboard animation and the field's reaction to it, captures, then
+    /// holds the state so the frame cut out of the device screen recording lands inside it.
+    /// </summary>
     private static IEnumerator CaptureKeyboardState(TestResultCollection results, string name)
     {
         var start = DateTime.UtcNow;
@@ -154,20 +162,18 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         var visible = UniTextNativeInput.IsKeyboardVisible;
         TestScreenshot.Capture(name);
         Record(results, name, start, visible ? null : "Soft keyboard never became visible");
+
+        var dwellUntil = Time.realtimeSinceStartup + stateDwell;
+        while (Time.realtimeSinceStartup < dwellUntil) yield return null;
     }
 
-    /// <summary>
-    /// Holds the state long enough for the frame cut out of the device screen recording to land
-    /// inside it; the extraction in the run-app action is offset against this dwell.
-    /// </summary>
     private static IEnumerator SettleKeyboardState()
     {
         var deadline = Time.realtimeSinceStartup + keyboardTimeout;
         while (!UniTextNativeInput.IsKeyboardVisible && Time.realtimeSinceStartup < deadline)
             yield return null;
 
-        var dwellUntil = Time.realtimeSinceStartup + stateDwell;
-        while (Time.realtimeSinceStartup < dwellUntil) yield return null;
+        for (var f = 0; f < settleFrames; f++) yield return null;
     }
 
     private static IEnumerator WaitForOrientation(bool portrait)
@@ -206,6 +212,13 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         textObject.SetActive(false);
 
         AsyncOperationHandle<GameObject> handle = default;
+        string loggedError = null;
+        Application.LogCallback onLog = (condition, _, type) =>
+        {
+            if ((type == LogType.Exception || type == LogType.Error) && loggedError == null)
+                loggedError = condition;
+        };
+        Application.logMessageReceived += onLog;
         try
         {
             GameObject instance = null;
@@ -232,33 +245,24 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
 
             instance.transform.SetSiblingIndex(siblingIndex);
             for (var f = 0; f < settleFrames; f++) yield return null;
+            if (loggedError != null)
+            {
+                TestScreenshot.Capture(name);
+                Record(results, name, start,
+                    $"An error was logged while instantiating the addressable prefab: {loggedError}");
+                yield break;
+            }
             Capture(results, name);
         }
         finally
         {
+            Application.logMessageReceived -= onLog;
             if (handle.IsValid()) Addressables.ReleaseInstance(handle);
             text.transform.SetSiblingIndex(siblingIndex);
             textObject.SetActive(wasActive);
         }
     }
 
-    private IEnumerator RestoreKeyboardRecordingTail()
-    {
-        var field = demo.KeyboardCaptureField;
-        if (field == null) yield break;
-
-        demo.ShowEditable(true);
-        for (var f = 0; f < settleFrames; f++) yield return null;
-
-        Screen.orientation = ScreenOrientation.Portrait;
-        yield return WaitForOrientation(portrait: true);
-        field.Activate();
-        yield return SettleKeyboardState();
-
-        Screen.orientation = ScreenOrientation.LandscapeLeft;
-        yield return WaitForOrientation(portrait: false);
-        yield return SettleKeyboardState();
-    }
 #endif
 
     private static void Capture(TestResultCollection results, string name)

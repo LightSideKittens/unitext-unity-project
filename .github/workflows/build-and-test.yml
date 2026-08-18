@@ -69,6 +69,13 @@ jobs:
         shell: bash
         run: |
           cp .github/ci/Packages/manifest.json Packages/manifest.json
+          # Addressables 1.x calls SBP 2.6.1's broken CreateBuiltInShadersBundle wrapper; Unity 6000.x
+          # editors force SBP 2.6.1, so they must pair it with Addressables 2.x (needs Unity 2023.1+,
+          # so the 2022.3 jobs keep the 1.x pin from the manifest).
+          if [[ "${{ inputs.unity_version }}" == 6000.* ]]; then
+            jq '.dependencies["com.unity.addressables"] = "2.9.1"' Packages/manifest.json > Packages/manifest.json.tmp
+            mv Packages/manifest.json.tmp Packages/manifest.json
+          fi
           rm -f Packages/packages-lock.json
           rm -rf Packages/media.lightside.promo
 

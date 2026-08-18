@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29d993da439e04a4b9da5e0cfc34be86, type: 3}
   m_Name: SystemFont
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextSystemFont
-  fontData: 
   fontDataHash: 316311009
   italicStyle: 30
   spacingOffset: 0
