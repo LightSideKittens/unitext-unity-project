@@ -74,13 +74,11 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
                 yield return CaptureTallSlide(results, name, systemFontText);
         }
 
-        var nextSlide = count;
 #if !UNITY_WEBGL
-        yield return CaptureAddressablePrefab(results, nextSlide);
-        nextSlide++;
+        yield return CaptureAddressablePrefab(results, count);
 #endif
         if (Application.isMobilePlatform)
-            yield return CaptureKeyboardStates(results, nextSlide);
+            yield return CaptureKeyboardStates(results);
 
         TestScreenshot.Cleanup();
         Debug.Log($"[BasicUsageSlideshow] Captured {results.Total} screenshots from {count} slides");
@@ -125,7 +123,7 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
     /// OS-owned keyboard layer, and the run-app action cuts its full-screen frames at fixed
     /// offsets from that recording's end.
     /// </summary>
-    private IEnumerator CaptureKeyboardStates(TestResultCollection results, int slideCount)
+    private IEnumerator CaptureKeyboardStates(TestResultCollection results)
     {
         var field = demo.KeyboardCaptureField;
         if (field == null)
@@ -142,17 +140,20 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         yield return WaitForOrientation(portrait: true);
 
         field.Activate();
-        yield return CaptureKeyboardState(results, $"slide-{slideCount:D2}-keyboard-portrait");
+        yield return CaptureKeyboardState(results, "keyboard-portrait");
 
         Screen.orientation = ScreenOrientation.LandscapeLeft;
         yield return WaitForOrientation(portrait: false);
         field.Activate();
-        yield return CaptureKeyboardState(results, $"slide-{slideCount + 1:D2}-keyboard-landscape");
+        yield return CaptureKeyboardState(results, "keyboard-landscape");
     }
 
     /// <summary>
-    /// Waits out the system keyboard animation and the field's reaction to it, captures, then
-    /// holds the state so the frame cut out of the device screen recording lands inside it.
+    /// Waits out the system keyboard animation and the field's reaction to it, records whether the
+    /// keyboard came up, then holds the state so the frame cut out of the device screen recording
+    /// lands inside it. Takes no in-player screenshot: the camera render that
+    /// <see cref="TestScreenshot"/> produces cannot contain the OS-owned keyboard layer, which is
+    /// the whole subject of this state.
     /// </summary>
     private static IEnumerator CaptureKeyboardState(TestResultCollection results, string name)
     {
@@ -160,7 +161,6 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         yield return SettleKeyboardState();
 
         var visible = UniTextNativeInput.IsKeyboardVisible;
-        TestScreenshot.Capture(name);
         Record(results, name, start, visible ? null : "Soft keyboard never became visible");
 
         var dwellUntil = Time.realtimeSinceStartup + stateDwell;

@@ -420,6 +420,8 @@ runs:
 
         command -v gtimeout >/dev/null 2>&1 || brew install coreutils
         set +e
+        # The iOS 16 device is the matrix's only source of a screen recording, and therefore of the
+        # soft-keyboard frames: Test Lab returns no video for iOS 18+.
         gtimeout --signal=INT --kill-after=30s "${FIREBASE_WAIT_SECONDS}s" \
           gcloud beta firebase test ios run \
           --type game-loop \
@@ -635,9 +637,12 @@ runs:
       run: |
         set -euo pipefail
 
+        # Test Lab records only some of the matrix: iOS 18+ devices return no video at all
+        # (https://firebase.google.com/docs/test-lab/ios/available-testing-devices), which is why the
+        # iOS matrix keeps one iOS 16 device. Devices without a recording are skipped, not failed.
         RECORDINGS=$(find screen-recording -type f \( -iname '*.mp4' -o -iname '*.mov' \) 2>/dev/null || true)
         if [ -z "$RECORDINGS" ]; then
-          echo "::error title=No screen recording::Firebase returned no device recording; the soft-keyboard screenshots have no source"
+          echo "::error title=No screen recording::No device in the matrix returned a recording, so the soft-keyboard frames have no source. On iOS this means no device below iOS 18 ran."
           exit 1
         fi
 
@@ -669,9 +674,8 @@ runs:
               landscape) BEFORE_END=$LANDSCAPE_BEFORE_END ;;
             esac
 
-            # Pairs with the player's own capture of the same moment, so the two sit side by side.
-            BASE=$(basename "$(ls "$OUT"/*-keyboard-$STATE.png 2>/dev/null | head -1)" .png 2>/dev/null || true)
-            [ -n "$BASE" ] || BASE="keyboard-$STATE"
+            # Matches the test record the player writes for the same state.
+            BASE="keyboard-$STATE"
 
             AT=$(awk -v d="$DURATION" -v b="$BEFORE_END" 'BEGIN { t = d - b; print (t > 0 ? t : 0) }')
             echo "  $STATE: ${AT}s -> $OUT/$BASE-fullscreen.png"

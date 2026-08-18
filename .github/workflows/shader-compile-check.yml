@@ -43,7 +43,7 @@ jobs:
             pipeline: builtin
           - name: Built-in - Unity 6000.5
             project: builtin-6000
-            unity: 6000.5.4f1
+            unity: 6000.5.8f1
             pipeline: builtin
           - name: URP 14 - Unity 2022.3
             project: urp14
@@ -55,7 +55,7 @@ jobs:
             pipeline: urp
           - name: URP 17.5 - Unity 6000.5
             project: urp17-latest
-            unity: 6000.5.4f1
+            unity: 6000.5.8f1
             pipeline: urp
 
     steps:
