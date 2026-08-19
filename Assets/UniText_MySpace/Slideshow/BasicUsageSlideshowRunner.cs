@@ -49,6 +49,11 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         runner.demo = demo;
     }
 
+    /// <summary>
+    /// Captures every slide, then the editable matrix, and delivers the collection. Delivery sits in
+    /// a finally: anything escaping a capture phase would otherwise take every result already
+    /// collected with it, including the slides, which had nothing to do with the failure.
+    /// </summary>
     private IEnumerator Start()
     {
         var dragger = ObjectUtils.FindAny<DraggableRect>();
@@ -59,9 +64,6 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         var count = demo.ExampleCount;
         Debug.Log($"[BasicUsageSlideshow] Capturing {count} slides");
 
-        // Delivery is the last thing the run does, so anything that escapes the capture phases would
-        // otherwise take every result already collected with it — including the slides, which had
-        // nothing to do with the failure.
         try
         {
             for (var i = 0; i < count; i++)

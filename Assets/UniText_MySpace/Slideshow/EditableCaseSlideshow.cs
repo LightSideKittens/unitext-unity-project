@@ -15,7 +15,15 @@ using UnityEngine;
 internal static class EditableCaseSlideshow
 {
     /// <summary>Hold per state. Long enough to read a frame off the recording, no longer.</summary>
-    private const float stateDwell = 1.5f;
+    private const float stateDwell = 1.2f;
+
+    /// <summary>
+    /// How long the keyboard has to stay in a state before that state counts. A configuration
+    /// change restarts the input producer, which takes the keyboard down and puts it straight back
+    /// up, so a single sample lands on whichever side of that dip the frame happened to fall.
+    /// </summary>
+    private const float keyboardStableWindow = 0.35f;
+
     private const int settleFrames = 8;
     private const float keyboardTimeout = 8f;
     private const float orientationTimeout = 8f;
@@ -57,13 +65,20 @@ internal static class EditableCaseSlideshow
     }
 
     /// <summary>
-    /// Applies one case, raises the keyboard, records whether it came up, and holds the result. A
-    /// configuration failure is recorded and the run continues: one broken case must not cost the
-    /// remaining coverage.
+    /// Applies one case from a released session, raises the keyboard, records whether it came up,
+    /// and holds the result. Every case starts with the keyboard down: reconfiguring a focused
+    /// field restarts the input producer asynchronously, so a check that samples during that
+    /// restart reads the previous keyboard leaving rather than the new one arriving, and word
+    /// wrapping — which never reaches an already-open native field — would be lost. A configuration
+    /// failure is recorded and the run continues: one broken case must not cost the remaining
+    /// coverage.
     /// </summary>
     private static IEnumerator Play(EditableRig rig, TestResultCollection results, EditableCase state)
     {
         var start = DateTime.UtcNow;
+        rig.Field.Defocus();
+        yield return HoldKeyboard(visible: false);
+
         string error = null;
         try
         {
@@ -81,14 +96,8 @@ internal static class EditableCaseSlideshow
             yield break;
         }
 
-        if (rig.NeedsReopen)
-        {
-            rig.Field.Defocus();
-            for (var f = 0; f < settleFrames; f++) yield return null;
-        }
-
         rig.Field.Activate();
-        yield return SettleKeyboard();
+        yield return HoldKeyboard(visible: true);
         yield return rig.RunLive();
 
         Record(results, state.Name, start,
@@ -98,10 +107,15 @@ internal static class EditableCaseSlideshow
         while (Time.realtimeSinceStartup < until) yield return null;
     }
 
+    /// <summary>
+    /// The portrait matrix. Wrapping and newline acceptance are independent, so every pairing
+    /// produces a different native control; the declared return key lands on the key itself while
+    /// the key is free to carry it, and on the presenter's own control once line breaks claim it.
+    /// A push into an already focused replica travels the authoritative path a rejected edit also
+    /// takes, and a case without the overlay behavior leaves the native field invisible.
+    /// </summary>
     private static IEnumerable<EditableCase> Portrait()
     {
-        // Line shape: wrapping and newline acceptance are independent, and every pairing produces a
-        // different native control.
         yield return new("shape-single-line", r => r.NoWrap().SingleLine().Text(Short));
         yield return new("shape-single-line-long", r => r.NoWrap().SingleLine().Text(Long));
         yield return new("shape-wrapping-no-paragraphs",
@@ -109,7 +123,6 @@ internal static class EditableCaseSlideshow
         yield return new("shape-multiline", r => r.Text(Long));
         yield return new("shape-multiline-no-wrap", r => r.NoWrap().Text(Paragraphs));
 
-        // The declared action lands on the key itself while the key is free to carry it.
         yield return new("return-default", r => r.NoWrap().SingleLine().Text(Short));
         yield return new("return-go", r => r.NoWrap().SingleLine().Return(ReturnKeyType.Go).Text(Short));
         yield return new("return-search", r => r.NoWrap().SingleLine().Return(ReturnKeyType.Search).Text(Short));
@@ -119,8 +132,6 @@ internal static class EditableCaseSlideshow
         yield return new("return-done", r => r.NoWrap().SingleLine().Return(ReturnKeyType.Done).Text(Short));
         yield return new("return-enter", r => r.NoWrap().SingleLine().Return(ReturnKeyType.Enter).Text(Short));
 
-        // A field that accepts line breaks spends the key on them, so the same declaration has to
-        // surface as the presenter's own control instead.
         yield return new("action-none", r => r.Text(Short));
         yield return new("action-go", r => r.Return(ReturnKeyType.Go).Text(Short));
         yield return new("action-search", r => r.Return(ReturnKeyType.Search).Text(Short));
@@ -146,7 +157,6 @@ internal static class EditableCaseSlideshow
         yield return new("content-cjk", r => r.Text(Cjk));
         yield return new("content-emoji", r => r.Text(Emoji));
 
-        // The authoritative push into a focused replica — the path a filter rejection also takes.
         yield return new("live-grow", r => r.Placeholder("Type a message").Then(Short).Then(Long));
         yield return new("live-clear", r => r.Placeholder("Type a message").Text(Long).Then(string.Empty));
 
@@ -165,7 +175,6 @@ internal static class EditableCaseSlideshow
 
         yield return new("decorator-supporting-text", r => r.NoWrap().SingleLine().Supporting("Required"));
 
-        // Without the overlay behavior the native field is invisible and UniText renders instead.
         yield return new("transparent-single-line", r => r.Transparent().NoWrap().SingleLine().Text(Short));
         yield return new("transparent-multiline", r => r.Transparent().Text(Long));
         yield return new("transparent-password",
@@ -180,13 +189,22 @@ internal static class EditableCaseSlideshow
         yield return new("landscape-number-pad", r => r.NoWrap().SingleLine().Layout(KeyboardType.NumberPad));
     }
 
-    private static IEnumerator SettleKeyboard()
+    /// <summary>
+    /// Waits until the keyboard has been in <paramref name="visible"/> for a whole
+    /// <see cref="keyboardStableWindow"/>, or until the timeout. A momentary reading is not the
+    /// state: the flag flips twice around a producer restart.
+    /// </summary>
+    private static IEnumerator HoldKeyboard(bool visible)
     {
         var deadline = Time.realtimeSinceStartup + keyboardTimeout;
-        while (!UniTextNativeInput.IsKeyboardVisible && Time.realtimeSinceStartup < deadline)
+        var heldSince = -1f;
+        while (Time.realtimeSinceStartup < deadline)
+        {
+            if (UniTextNativeInput.IsKeyboardVisible != visible) heldSince = -1f;
+            else if (heldSince < 0f) heldSince = Time.realtimeSinceStartup;
+            else if (Time.realtimeSinceStartup - heldSince >= keyboardStableWindow) yield break;
             yield return null;
-
-        for (var f = 0; f < settleFrames; f++) yield return null;
+        }
     }
 
     private static IEnumerator WaitForOrientation(bool portrait)

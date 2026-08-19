@@ -7,9 +7,9 @@ using UnityEngine;
 /// <summary>
 /// Configures one <see cref="UniTextEditable"/> from a blank slate for a single slideshow case.
 /// Every call applies immediately: mutating <c>Behaviors</c> enables the behavior synchronously, and
-/// the behaviors that reshape the native field raise their own session invalidation. Word wrapping
-/// is the exception — it never reaches an already-open native field, so a change to it reports
-/// through <see cref="NeedsReopen"/> and the caller re-focuses.
+/// the behaviors that reshape the native field raise their own session invalidation. The caller
+/// configures a released field and opens it afterwards, which is also what makes word wrapping
+/// take — it never reaches an already-open native field.
 /// </summary>
 internal sealed class EditableRig
 {
@@ -24,14 +24,10 @@ internal sealed class EditableRig
     private UniText placeholderLabel;
     private UniText counterLabel;
     private UniText supportingLabel;
-    private bool needsReopen;
 
     internal EditableRig(UniTextEditable field) => this.field = field;
 
     internal UniTextEditable Field => field;
-
-    /// <summary>Whether the native control has to be rebuilt before the case is shown.</summary>
-    internal bool NeedsReopen => needsReopen;
 
     /// <summary>
     /// Drops every behavior the previous case left — including the ones authored in the scene — and
@@ -40,7 +36,6 @@ internal sealed class EditableRig
     /// </summary>
     internal EditableRig Reset()
     {
-        needsReopen = false;
         live.Clear();
         field.Behaviors.Clear();
         field.BehaviorPresets.Clear();
@@ -167,10 +162,7 @@ internal sealed class EditableRig
 
     private EditableRig Wrap(bool on)
     {
-        var component = field.TextComponent;
-        if (component.WordWrap == on) return this;
-        component.WordWrap = on;
-        needsReopen = true;
+        field.TextComponent.WordWrap = on;
         return this;
     }
 
