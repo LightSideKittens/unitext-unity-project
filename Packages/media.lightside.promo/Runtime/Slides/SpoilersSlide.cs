@@ -61,7 +61,7 @@ namespace LightSide.Promo
                 new LedgerEntry("SpoilerModifier", "one tag", "1", theme.Violet),
                 new LedgerEntry("Cover", "a highlight", "2", theme.Violet),
                 new LedgerEntry("State", "on identity", "3", theme.Violet),
-                new LedgerEntry("Follows a wrap", "yes", "✓", theme.Magenta)
+                new LedgerEntry("Follows a wrap", "yes", "✓", theme.Pass)
             }, new Vector2(stage.Width * 0.3f, stage.ContentCentre), stage.Width * 0.36f, onBrand: true);
 
             pointer = stage.Pointer(stage.At(0.18f, 0.12f), new[]

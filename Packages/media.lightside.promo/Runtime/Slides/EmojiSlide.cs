@@ -56,9 +56,9 @@ namespace LightSide.Promo
 
             facts = stage.Ledger("Facts", stage.Root, "One cluster each, composed on the device", new[]
             {
-                new LedgerEntry("Family", "4 people, 3 joiners", "✓", theme.Violet),
-                new LedgerEntry("Profession", "person + laptop", "✓", theme.Violet),
-                new LedgerEntry("Skin tone", "base + modifier", "✓", theme.Violet)
+                new LedgerEntry("Family", "4 people, 3 joiners", "✓", theme.Pass),
+                new LedgerEntry("Profession", "person + laptop", "✓", theme.Pass),
+                new LedgerEntry("Skin tone", "base + modifier", "✓", theme.Pass)
             }, new Vector2(stage.Width * 0.246f, stage.ContentCentre - stage.ContentHeight * 0.26f),
                 stage.Width * 0.4f, onBrand: true);
 

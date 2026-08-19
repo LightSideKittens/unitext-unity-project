@@ -99,9 +99,9 @@ namespace LightSide.Promo
 
             facts = stage.Ledger("Facts", stage.Root, "What the axis gives you", new[]
             {
-                new LedgerEntry("Font assets", "1", "✓", theme.Violet),
-                new LedgerEntry("Weights", "any 100–900", "✓", theme.Violet),
-                new LedgerEntry("Set at runtime", "yes", "✓", theme.Violet),
+                new LedgerEntry("Font assets", "1", "✓", theme.Pass),
+                new LedgerEntry("Weights", "any 100–900", "✓", theme.Pass),
+                new LedgerEntry("Set at runtime", "yes", "✓", theme.Pass),
                 new LedgerEntry("TextMeshPro", "no axis", "✗", theme.Coral),
                 new LedgerEntry("UI Toolkit", "no axis", "✗", theme.Coral)
             }, new Vector2(stage.Width * 0.3f, stage.ContentCentre), stage.Width * 0.36f, onBrand: true);

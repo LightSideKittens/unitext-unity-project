@@ -65,9 +65,9 @@ namespace LightSide.Promo
         /// <summary>The pills, in the order the engines are listed. Adjust once the frame has been looked at.</summary>
         [SerializeField] private VerdictSpec[] verdicts =
         {
+            new VerdictSpec { label = "PERFECT", tone = VerdictTone.Pass },
             new VerdictSpec { label = "BROKEN", tone = VerdictTone.Broken },
-            new VerdictSpec { label = "PARTIAL", tone = VerdictTone.Partial },
-            new VerdictSpec { label = "PERFECT", tone = VerdictTone.Pass }
+            new VerdictSpec { label = "PARTIAL", tone = VerdictTone.Partial }
         };
 
         /// <summary>What is wrong and where, authored against a rendered frame.</summary>
@@ -96,7 +96,7 @@ namespace LightSide.Promo
             var entries = new VersusEntry[Engines.Length];
             for (var i = 0; i < entries.Length; i++)
                 entries[i] = new VersusEntry(Engines[i], verdicts[i].label, Fill(theme, verdicts[i].tone),
-                    isProduct: i == Engines.Length - 1);
+                    isProduct: i == 0);
 
             rig = stage.Versus(stage.Root, entries, flow);
 
@@ -104,13 +104,13 @@ namespace LightSide.Promo
             var stacked = flow == VersusFlow.Rows;
             specimens = new Specimen[]
             {
-                stage.TmpSpecimen(rig[0].Body, tmpFont, size, theme.Ink,
+                stage.UniTextSpecimen(rig[0].Body, size, theme.Text,
+                    vertical: stacked ? VAlign.Middle : VAlign.Top),
+                stage.TmpSpecimen(rig[1].Body, tmpFont, size, theme.Ink,
                     stacked ? TextAlignmentOptions.Left : TextAlignmentOptions.TopLeft),
-                stage.RtlTmpSpecimen(rig[1].Body, tmpFont, size, theme.Ink, rightToLeft
+                stage.RtlTmpSpecimen(rig[2].Body, tmpFont, size, theme.Ink, rightToLeft
                     ? (stacked ? TextAlignmentOptions.Right : TextAlignmentOptions.TopRight)
-                    : (stacked ? TextAlignmentOptions.Left : TextAlignmentOptions.TopLeft)),
-                stage.UniTextSpecimen(rig[2].Body, size, theme.Text,
-                    vertical: stacked ? VAlign.Middle : VAlign.Top)
+                    : (stacked ? TextAlignmentOptions.Left : TextAlignmentOptions.TopLeft))
             };
 
             for (var i = 0; i < specimens.Length; i++) specimens[i].SetText(message);
@@ -159,10 +159,20 @@ namespace LightSide.Promo
             _ => theme.Green
         };
 
-        /// <summary>The engines, in the order a viewer meets them: the common one, its patch, then ours.</summary>
+        /// <summary>
+        /// The engines, in the order a viewer meets them: ours first, then the common one and its patch.
+        /// </summary>
+        /// <remarks>
+        /// The answer goes first. A viewer who reads two broken lines before the correct one spends both of them not
+        /// knowing what correct looks like, and arrives at the third with nothing to compare against.
+        /// <para>
+        /// Index 0 is the product. Verdict pills, specimens and every <c>MarkSpec</c> panel index count from this
+        /// array, so a change here is a change to all four.
+        /// </para>
+        /// </remarks>
         private static readonly string[] Engines =
         {
-            "TextMeshPro", "TextMeshPro + RTL plugin", "UniText"
+            "UniText", "TextMeshPro", "TextMeshPro + RTL plugin"
         };
 
         /// <summary>When the surfaces arrive: after the headline has had the frame to itself.</summary>

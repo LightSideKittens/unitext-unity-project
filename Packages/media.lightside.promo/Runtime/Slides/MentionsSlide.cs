@@ -51,7 +51,7 @@ namespace LightSide.Promo
                 new LedgerEntry("HighlightModifier", "the chip", "2", theme.Violet),
                 new LedgerEntry("FillModifier", "the ink", "3", theme.Violet),
                 new LedgerEntry("InteractiveModifier", "the tap", "4", theme.Violet),
-                new LedgerEntry("Lines of code", "0", "✓", theme.Magenta)
+                new LedgerEntry("Lines of code", "0", "✓", theme.Pass)
             }, new Vector2(stage.Width * 0.3f, stage.ContentCentre), stage.Width * 0.36f, onBrand: true);
 
             Cue("writeon", First);

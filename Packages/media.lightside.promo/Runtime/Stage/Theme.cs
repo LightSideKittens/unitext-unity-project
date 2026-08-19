@@ -35,6 +35,7 @@ namespace LightSide.Promo
         [SerializeField] private Color magenta = Hex("#F03CD0");
         [SerializeField] private Color violet = Hex("#7B3FF2");
         [SerializeField] private Color glow = Hex("#C13BE0");
+        [SerializeField] private Color pass = Hex("#34D399");
 
         [SerializeField] private Color background = Hex("#14101F");
         [SerializeField] private Color bar = Hex("#1D1730");
@@ -77,6 +78,7 @@ namespace LightSide.Promo
         [SerializeField] private float hero = 168f;
         [SerializeField] private float title = 104f;
         [SerializeField] private float head = 64f;
+        [SerializeField] private float lead = 54f;
         [SerializeField] private float body = 42f;
         [SerializeField] private float small = 32f;
 
@@ -85,6 +87,16 @@ namespace LightSide.Promo
         public Color Magenta { get => magenta; set => magenta = value; }
         public Color Violet { get => violet; set => violet = value; }
         public Color Glow { get => glow; set => glow = value; }
+
+        /// <summary>
+        /// The colour of a passed check.
+        /// </summary>
+        /// <remarks>
+        /// Deliberately outside the brand ramp. A tick in a brand colour reads as decoration on a surface that is
+        /// already brand-coloured; green is the one hue a viewer takes as a verdict without being told, which is what
+        /// lets a column of ticks be scanned instead of read.
+        /// </remarks>
+        public Color Pass { get => pass; set => pass = value; }
 
         public Color Background { get => background; set => background = value; }
         public Color Bar { get => bar; set => bar = value; }
@@ -155,6 +167,9 @@ namespace LightSide.Promo
         public float Hero { get => hero; set => hero = value; }
         public float Title { get => title; set => title = value; }
         public float Head { get => head; set => head = value; }
+        /// <summary>The line under a large figure: bigger than body copy, quieter than a heading.</summary>
+        public float Lead { get => lead; set => lead = value; }
+
         public float Body { get => body; set => body = value; }
         public float Small { get => small; set => small = value; }
 

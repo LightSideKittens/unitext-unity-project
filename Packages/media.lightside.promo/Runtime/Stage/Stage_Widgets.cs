@@ -401,6 +401,7 @@ namespace LightSide.Promo
             var chip = Shape(name, parent, ShapeKind.Capsule);
             Solid(chip.Fill, fill);
             label = Label(chip.Rect, text, Theme.Small, ink);
+            label.Styles.Add(Style.WholeText(new BoldModifier()));
             return chip;
         }
 

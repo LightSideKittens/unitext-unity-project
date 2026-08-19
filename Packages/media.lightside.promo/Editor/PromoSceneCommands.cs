@@ -85,7 +85,8 @@ namespace LightSide.Promo
             var reel = reelObject.GetComponent<Reel>();
             camera.orthographicSize = reel.FrameSize.y * 0.5f;
 
-            AddSlide<ScriptsSlide>(reelRect, "01 Script Wall", 6.5f, new Cut());
+            AddSlide<OpeningSlide>(reelRect, "00 Opening", 5.75f, new Cut());
+            AddSlide<ScriptsSlide>(reelRect, "01 Script Wall", 6.5f, new Push());
             var versusArabic = AddSlide<VersusSlide>(reelRect, "02a Versus Arabic", 8f, new Push());
             var versusHindi = AddSlide<VersusSlide>(reelRect, "02b Versus Hindi", 8f, new Push());
             var versusAll = AddSlide<VersusSlide>(reelRect, "02c Versus Everything", 9f, new Push());
@@ -122,10 +123,10 @@ namespace LightSide.Promo
                 "The number, the brackets and the full stop all belong at the other end.");
             WireMarks(versusArabic, new[]
             {
-                Ring(1, 0.982f, 4.3f, MarkTone.Fault),
-                Ring(2, 0.982f, 4.3f, MarkTone.Pass),
-                Ring(1, 0.508f, 5.1f, MarkTone.Fault),
-                Ring(2, 0.508f, 5.1f, MarkTone.Pass)
+                Ring(2, 0.982f, 4.3f, MarkTone.Fault),
+                Ring(0, 0.982f, 4.3f, MarkTone.Pass),
+                Ring(2, 0.508f, 5.1f, MarkTone.Fault),
+                Ring(0, 0.508f, 5.1f, MarkTone.Pass)
             });
 
             WireCase(versusHindi, tmp, DemoText.Hindi, false, VersusFlow.Rows, 0.058f, 1.4f,
@@ -134,11 +135,11 @@ namespace LightSide.Promo
 
             WireMarks(versusHindi, new[]
             {
-                Underline(0, 0.155f, 0.31f, 4.4f, MarkTone.Fault),
                 Underline(1, 0.155f, 0.31f, 4.4f, MarkTone.Fault),
-                Underline(2, 0.155f, 0.31f, 4.4f, MarkTone.Pass),
-                Note(0, Unreadable, 5f),
-                Note(1, Unreadable, 5f)
+                Underline(2, 0.155f, 0.31f, 4.4f, MarkTone.Fault),
+                Underline(0, 0.155f, 0.31f, 4.4f, MarkTone.Pass),
+                Note(1, Unreadable, 5f),
+                Note(2, Unreadable, 5f)
             });
 
             WireCase(versusAll, tmp, DemoText.Postcard, false, VersusFlow.Columns, 0.026f, 2.6f,

@@ -64,11 +64,11 @@ namespace LightSide.Promo
 
             facts = stage.Ledger("Facts", stage.Root, "What the layout knows", new[]
             {
-                new LedgerEntry("Ruby clears the line above", "yes", "✓", theme.Violet),
-                new LedgerEntry("Thai, Lao, Khmer, Burmese", "yes", "✓", theme.Violet),
-                new LedgerEntry("Korean line breaking", "yes", "✓", theme.Violet),
-                new LedgerEntry("Justification", "script-aware", "✓", theme.Violet),
-                new LedgerEntry("Arabic kashida", "yes", "✓", theme.Magenta)
+                new LedgerEntry("Ruby clears the line above", "yes", "✓", theme.Pass),
+                new LedgerEntry("Thai, Lao, Khmer, Burmese", "yes", "✓", theme.Pass),
+                new LedgerEntry("Korean line breaking", "yes", "✓", theme.Pass),
+                new LedgerEntry("Justification", "script-aware", "✓", theme.Pass),
+                new LedgerEntry("Arabic kashida", "yes", "✓", theme.Pass)
             }, new Vector2(stage.Width * 0.3f, stage.ContentCentre), stage.Width * 0.36f, onBrand: true);
 
             Cue("writeon", First);

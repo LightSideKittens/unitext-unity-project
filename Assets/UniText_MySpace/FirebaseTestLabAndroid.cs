@@ -178,12 +178,15 @@ public static class FirebaseTestLabAndroid
     }
 
     /// <summary>
-    /// Signals test completion to Firebase Test Lab by finishing the activity.
+    /// Signals test completion to Firebase Test Lab by finishing the activity, then kills its own
+    /// process. All results must be written beforehand. The kill lands before the player's native
+    /// deinitialization, so engine shutdown defects cannot reach the device's crash record; a
+    /// self-SIGKILL leaves no tombstone. Does not return.
     /// </summary>
     public static void NotifyTestComplete()
     {
 #if UNITY_ANDROID && !UNITY_EDITOR
-        Debug.Log("[FirebaseTestLabAndroid] Test complete, finishing activity...");
+        Debug.Log("[FirebaseTestLabAndroid] Test complete, finishing activity and exiting...");
         try
         {
             activity?.Call("finish");
@@ -191,6 +194,16 @@ public static class FirebaseTestLabAndroid
         catch (Exception e)
         {
             Debug.LogError($"[FirebaseTestLabAndroid] Failed to finish activity: {e.Message}");
+        }
+
+        try
+        {
+            using var process = new AndroidJavaClass("android.os.Process");
+            process.CallStatic("killProcess", process.CallStatic<int>("myPid"));
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FirebaseTestLabAndroid] Failed to kill process: {e.Message}");
         }
 #endif
     }

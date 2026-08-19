@@ -30,7 +30,7 @@ namespace LightSide.Promo
         [SerializeField, TextArea(3, 8)]
         private string body =
             "A picture is a glyph.\n" +
-            "Sulejman <sprite=cat> approves.\n" +
+            "Suleiman <sprite=cat> approves.\n" +
             "It wraps, selects and copies.";
 
         private Claim claim;
@@ -54,11 +54,11 @@ namespace LightSide.Promo
 
             facts = stage.Ledger("Facts", stage.Root, "What inline really means", new[]
             {
-                new LedgerEntry("Takes an advance", "yes", "✓", theme.Violet),
-                new LedgerEntry("Wraps with the line", "yes", "✓", theme.Violet),
-                new LedgerEntry("Caret steps over it", "one press", "✓", theme.Violet),
-                new LedgerEntry("Included in a selection", "yes", "✓", theme.Violet),
-                new LedgerEntry("Survives copy and paste", "yes", "✓", theme.Magenta)
+                new LedgerEntry("Takes an advance", "yes", "✓", theme.Pass),
+                new LedgerEntry("Wraps with the line", "yes", "✓", theme.Pass),
+                new LedgerEntry("Caret steps over it", "one press", "✓", theme.Pass),
+                new LedgerEntry("Included in a selection", "yes", "✓", theme.Pass),
+                new LedgerEntry("Survives copy and paste", "yes", "✓", theme.Pass)
             }, new Vector2(stage.Width * 0.3f, stage.ContentCentre), stage.Width * 0.36f, onBrand: true);
 
             Cue("writeon", First);

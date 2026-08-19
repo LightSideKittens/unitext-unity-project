@@ -52,7 +52,7 @@ namespace LightSide.Promo
 
             clean = stage.Ledger("Clean", stage.Root, "Changes — UniText", new[]
             {
-                new LedgerEntry("working tree clean", null, "✓", theme.Violet)
+                new LedgerEntry("working tree clean", null, "✓", theme.Pass)
             }, new Vector2(offset, lift), column, onBrand: true, minHeight: dirty.Height);
 
             shown = dirty.Count;

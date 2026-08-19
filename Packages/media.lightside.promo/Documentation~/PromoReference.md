@@ -506,12 +506,25 @@ things *arrive* rather than appear.
 | `stage.Claim(parent, headline, sub, top)` | `Claim` | The lines the shot argues with. **Reserves its band** — build it first, then lay content out against `ContentCentre` / `ContentHeight`. |
 | `stage.Showcase(name, parent, title, markup, …)` | `Showcase` | A product panel with one titled well of live text. `Panel`, `Group`, `Title`, `Well`, `Body`, `Ring`. The default for any feature shot. |
 | `stage.Ledger(name, parent, title, entries, …)` | `Ledger` | Titled rows with a badge and a trailing value. Facts, file lists, layer stacks. |
-| `stage.Meters(name, parent, title, entries, …)` | `Meters` | Titled labelled bars. Every quantitative claim. Fractions are authored, never derived from the values. |
+| `stage.Meters(name, parent, title, entries, …)` | `Meters` | Titled labelled bars. **A ratio only** — see below. Fractions are authored, never derived from the values. |
 | `stage.Metric(name, parent, figure, caption, …)` | `Metric` | One large brand-painted figure with words under it. |
 
 `Showcase` carries **markup**, so the slide binds the tags it uses before the
 first render — a tag with no `Style` behind it renders as the literal text it is
 written as, which on a marketing frame is worse than showing nothing.
+
+### A bar is an instrument for a proportion
+
+Reach for `Meters` only when the claim *is* a ratio — 80–250 MB against a few,
+12 MB against 4.4. Anything else and the bar answers a question the shot never
+asked.
+
+The conformance panel taught this the hard way: four suites, every one passed in
+full, drawn as four bars under four unequal counts. Every viewer read the same
+thing — *some fraction of the tests passed* — which is the exact opposite of the
+claim, and no amount of labelling fixes it, because a bar is read before a label
+is. Pass and fail is a `Ledger` of ticks; the counts live in the trailing column,
+where a number reads as a size and not as a score.
 
 ### Nothing on a frame may decide its own height
 
@@ -557,6 +570,12 @@ fades them exactly like a face glyph.
 Inline media is the uncertain case — it emits its own quad rather than a face —
 so the slides that carry a sprite use `Typewriter` by default rather than
 assume.
+
+**A centred line must never collapse.** Collapsed text is removed from layout, so
+a centred paragraph re-centres itself on every character the frontier adds and
+the words slide sideways out from under the reader. `Typewriter` is for text
+aligned to an edge that stays put; a centred line types with `Reveal`, whose
+layout is settled before the first glyph arrives.
 
 Everything else — plain type, where the point is the letters — wants `Reveal`,
 whose wave is calmer and whose lines do not shift under the eye.

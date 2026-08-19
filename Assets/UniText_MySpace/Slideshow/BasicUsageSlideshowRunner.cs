@@ -19,8 +19,6 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
 {
     private const int settleFrames = 12;
     private const float pageOverlap = 0.2f;
-    private const float keyboardTimeout = 10f;
-    private const float stateDwell = 10f;
 
     private BasicUsageExampleWebGL demo;
     private RectTransform draggerRect;
@@ -78,7 +76,7 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         yield return CaptureAddressablePrefab(results, count);
 #endif
         if (Application.isMobilePlatform)
-            yield return CaptureKeyboardStates(results);
+            yield return RunEditableCases(results);
 
         TestScreenshot.Cleanup();
         Debug.Log($"[BasicUsageSlideshow] Captured {results.Total} screenshots from {count} slides");
@@ -118,12 +116,11 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
     }
 
     /// <summary>
-    /// Captures the editable screen with the soft keyboard raised in portrait and landscape
-    /// orientations. Runs last: the device screen recording is the only capture that contains the
-    /// OS-owned keyboard layer, and the run-app action cuts its full-screen frames at fixed
-    /// offsets from that recording's end.
+    /// Hands the editable screen to <see cref="EditableCaseSlideshow"/>, which drives it through
+    /// every native configuration. Runs last: those states live in the device screen recording, and
+    /// the recording is the only capture that reaches the OS-owned keyboard and native field.
     /// </summary>
-    private IEnumerator CaptureKeyboardStates(TestResultCollection results)
+    private IEnumerator RunEditableCases(TestResultCollection results)
     {
         var field = demo.KeyboardCaptureField;
         if (field == null)
@@ -136,54 +133,7 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         demo.ShowEditable(true);
         for (var f = 0; f < settleFrames; f++) yield return null;
 
-        Screen.orientation = ScreenOrientation.Portrait;
-        yield return WaitForOrientation(portrait: true);
-
-        field.Activate();
-        yield return CaptureKeyboardState(results, "keyboard-portrait");
-
-        Screen.orientation = ScreenOrientation.LandscapeLeft;
-        yield return WaitForOrientation(portrait: false);
-        field.Activate();
-        yield return CaptureKeyboardState(results, "keyboard-landscape");
-    }
-
-    /// <summary>
-    /// Waits out the system keyboard animation and the field's reaction to it, records whether the
-    /// keyboard came up, then holds the state so the frame cut out of the device screen recording
-    /// lands inside it. Takes no in-player screenshot: the camera render that
-    /// <see cref="TestScreenshot"/> produces cannot contain the OS-owned keyboard layer, which is
-    /// the whole subject of this state.
-    /// </summary>
-    private static IEnumerator CaptureKeyboardState(TestResultCollection results, string name)
-    {
-        var start = DateTime.UtcNow;
-        yield return SettleKeyboardState();
-
-        var visible = UniTextNativeInput.IsKeyboardVisible;
-        TestScreenshot.CaptureWindow($"{name}-window");
-        Record(results, name, start, visible ? null : "Soft keyboard never became visible");
-
-        var dwellUntil = Time.realtimeSinceStartup + stateDwell;
-        while (Time.realtimeSinceStartup < dwellUntil) yield return null;
-    }
-
-    private static IEnumerator SettleKeyboardState()
-    {
-        var deadline = Time.realtimeSinceStartup + keyboardTimeout;
-        while (!UniTextNativeInput.IsKeyboardVisible && Time.realtimeSinceStartup < deadline)
-            yield return null;
-
-        for (var f = 0; f < settleFrames; f++) yield return null;
-    }
-
-    private static IEnumerator WaitForOrientation(bool portrait)
-    {
-        var deadline = Time.realtimeSinceStartup + keyboardTimeout;
-        while ((Screen.height > Screen.width) != portrait && Time.realtimeSinceStartup < deadline)
-            yield return null;
-
-        for (var f = 0; f < settleFrames; f++) yield return null;
+        yield return EditableCaseSlideshow.Run(field, results);
     }
 
 #if !UNITY_WEBGL

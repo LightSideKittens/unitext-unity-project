@@ -15,14 +15,6 @@ public static class TestScreenshot
     private static extern void AddTestScreenshot(string name, string base64);
 #endif
 
-#if UNITY_IOS && !UNITY_EDITOR
-    [DllImport("__Internal")]
-    private static extern IntPtr UniTextTestScreenshot_CaptureWindow(out int length);
-
-    [DllImport("__Internal")]
-    private static extern void UniTextTestScreenshot_FreeWindowCapture(IntPtr buffer);
-#endif
-
     private static Camera screenshotCamera;
     private static RenderTexture renderTexture;
 
@@ -89,36 +81,6 @@ public static class TestScreenshot
         UnityEngine.Object.Destroy(texture);
 
         Save(name, pngBytes);
-    }
-
-    /// <summary>
-    /// Captures the app's own UIKit window, which contains the OS-drawn views UniText overlays on
-    /// the Unity view — the native input field and its presenter surface. The camera render in
-    /// <see cref="Capture"/> cannot reach them. The soft keyboard is a separate system window and
-    /// is never included. Does nothing off iOS.
-    /// </summary>
-    /// <param name="name">Screenshot name (without extension)</param>
-    public static void CaptureWindow(string name)
-    {
-#if UNITY_IOS && !UNITY_EDITOR
-        var buffer = UniTextTestScreenshot_CaptureWindow(out var length);
-        if (buffer == IntPtr.Zero || length <= 0)
-        {
-            Debug.LogWarning($"[TestScreenshot] Window capture produced no image: {name}");
-            return;
-        }
-
-        try
-        {
-            var pngBytes = new byte[length];
-            Marshal.Copy(buffer, pngBytes, 0, length);
-            Save(name, pngBytes);
-        }
-        finally
-        {
-            UniTextTestScreenshot_FreeWindowCapture(buffer);
-        }
-#endif
     }
 
     /// <summary>Routes an already-encoded PNG through the platform artifact channel (persistentDataPath/Screenshots, the WebGL JS bridge, the iOS game-loop results dir) — the single save path shared by test captures and benchmark captures.</summary>

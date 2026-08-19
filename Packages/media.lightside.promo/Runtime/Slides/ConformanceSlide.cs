@@ -3,17 +3,17 @@ using UnityEngine;
 namespace LightSide.Promo
 {
     /// <summary>
-    /// The official Unicode conformance suites, each run to completion, beside the total they add up to.
+    /// The official Unicode conformance suites, each ticked off, beside the total they add up to.
     /// </summary>
     /// <remarks>
-    /// Every bar settles full, which is the point: a conformance suite is not a score to be high on, it is a gate that
-    /// is either passed or not. A shot that drew these to a scale would invite the viewer to compare four numbers
-    /// nobody can compare — the comparison that matters is against every engine that publishes no figure at all.
+    /// Ticks rather than bars. A conformance suite is a gate that is either passed or not, and a bar is an instrument
+    /// for a proportion — drawn under four unequal counts it reads as "this fraction of them passed", which is the
+    /// opposite of the claim. The counts stay as trailing values, where they are read as sizes rather than as scores.
     /// </remarks>
     public sealed class ConformanceSlide : Slide
     {
-        [SerializeField] private string headline = "Correct is not an opinion here.";
-        [SerializeField] private string sub = "Every official Unicode suite, run in full.";
+        [SerializeField] private string headline = "Every language comes out right.";
+        [SerializeField] private string sub = "Checked against the official tests, not just claimed.";
         [SerializeField] private string total = "891 757";
         [SerializeField] private string totalCaption = "conformance tests · zero failures";
 
@@ -21,27 +21,28 @@ namespace LightSide.Promo
 
         private Claim claim;
         private Metric metric;
-        private Meters suites;
+        private Ledger suites;
 
         protected override void OnBuild(Stage stage)
         {
+            var theme = stage.Theme;
             stage.Backdrop(stage.Root);
             claim = stage.Claim(stage.Root, headline, sub);
 
             metric = stage.Metric("Total", stage.Root, total, totalCaption,
-                new Vector2(-stage.Width * 0.26f, stage.ContentCentre), stage.Width * 0.4f,
+                new Vector2(-stage.Width * 0.265f, stage.ContentCentre), stage.Width * 0.4f,
                 stage.ContentHeight * 0.3f);
 
-            suites = stage.Meters("Suites", stage.Root, "Unicode conformance", new[]
+            suites = stage.Ledger("Suites", stage.Root, "Unicode conformance · every suite in full", new[]
             {
-                new MeterEntry("UAX #9 · Bidirectional Algorithm", "861 948", 1f, true),
-                new MeterEntry("UAX #14 · Line Breaking", "19 338", 1f, true),
-                new MeterEntry("UAX #24 · Script Detection", "9 705", 1f, true),
-                new MeterEntry("UAX #29 · Grapheme Clusters", "766", 1f, true)
-            }, new Vector2(stage.Width * 0.25f, stage.ContentCentre), stage.Width * 0.42f);
+                new LedgerEntry("UAX #9 · Bidirectional", "861 948", "✓", theme.Pass),
+                new LedgerEntry("UAX #14 · Line breaking", "19 338", "✓", theme.Pass),
+                new LedgerEntry("UAX #24 · Script detection", "9 705", "✓", theme.Pass),
+                new LedgerEntry("UAX #29 · Grapheme clusters", "766", "✓", theme.Pass)
+            }, new Vector2(stage.Width * 0.24f, stage.ContentCentre), stage.Width * 0.44f, onBrand: true);
 
             Cue("figure", First);
-            for (var i = 0; i < suites.Count; i++) Cue("bar", First + Gap + i * Step);
+            for (var i = 0; i < suites.Count; i++) Cue("tick", First + Gap + i * Step);
         }
 
         protected override void OnRender(float local)
@@ -50,12 +51,12 @@ namespace LightSide.Promo
             metric.Pose(local - First);
 
             for (var i = 0; i < suites.Count; i++)
-                suites.Pose(i, enter.Window(local, First + Gap + i * Step, BarIn));
+                suites.Pose(i, enter.Window(local, First + Gap + i * Step, RowIn));
         }
 
         private const float First = 0.4f;
         private const float Gap = 0.5f;
-        private const float Step = 0.24f;
-        private const float BarIn = 0.6f;
+        private const float Step = 0.22f;
+        private const float RowIn = 0.4f;
     }
 }

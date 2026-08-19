@@ -46,7 +46,7 @@ namespace LightSide.Promo
             Vector2 position, float width, float figureSize = 0f)
         {
             var size = figureSize > 0f ? figureSize : Theme.Title;
-            var height = size * 1.35f + Theme.Body * 1.6f;
+            var height = size * 1.35f + Theme.Lead * 1.6f;
 
             var rect = Node(name, parent);
             Box(rect, position, new Vector2(width, height));
@@ -60,9 +60,9 @@ namespace LightSide.Promo
             UniText words = null;
             if (!string.IsNullOrEmpty(caption))
             {
-                words = Label(rect, caption, Theme.Body, Theme.TextSoft, stretch: false);
+                words = Label(rect, caption, Theme.Lead, Theme.TextSoft, stretch: false);
                 Anchor(words.rectTransform, Vector2.zero, new Vector2(1f, 0f), new Vector2(0.5f, 0f),
-                    Vector2.zero, new Vector2(0f, Theme.Body * 1.6f));
+                    Vector2.zero, new Vector2(0f, Theme.Lead * 1.6f));
                 words.WordWrap = false;
             }
 

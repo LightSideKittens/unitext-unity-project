@@ -49,10 +49,10 @@ namespace LightSide.Promo
 
             facts = stage.Ledger("Facts", stage.Root, "What that costs", new[]
             {
-                new LedgerEntry("Font assets imported", "0", "✓", theme.Violet),
-                new LedgerEntry("Atlas textures baked", "0", "✓", theme.Violet),
-                new LedgerEntry("Fallback chains to maintain", "0", "✓", theme.Violet),
-                new LedgerEntry("Scripts the OS covers", "all of them", "✓", theme.Violet),
+                new LedgerEntry("Font assets imported", "0", "✓", theme.Pass),
+                new LedgerEntry("Atlas textures baked", "0", "✓", theme.Pass),
+                new LedgerEntry("Fallback chains to maintain", "0", "✓", theme.Pass),
+                new LedgerEntry("Scripts the OS covers", "all of them", "✓", theme.Pass),
                 new LedgerEntry("WebGL — no OS fonts", "bundle one", "!", theme.Orange)
             }, new Vector2(stage.Width * 0.246f, stage.ContentCentre), stage.Width * 0.4f, onBrand: true);
 

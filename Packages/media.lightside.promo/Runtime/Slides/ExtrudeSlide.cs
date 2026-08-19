@@ -56,7 +56,7 @@ namespace LightSide.Promo
                 new LedgerEntry("Near face", "brand ramp", "2", theme.Violet),
                 new LedgerEntry("Far face", "into the dark", "3", theme.Violet),
                 new LedgerEntry("Bevelled edge", "on", "4", theme.Violet),
-                new LedgerEntry("Draw calls", "1", "✓", theme.Magenta)
+                new LedgerEntry("Draw calls", "1", "✓", theme.Pass)
             }, new Vector2(stage.Width * 0.3f, stage.ContentCentre), stage.Width * 0.36f, onBrand: true);
 
             for (var i = 0; i < stack.Count; i++) Cue("tick", First + i * Step);
