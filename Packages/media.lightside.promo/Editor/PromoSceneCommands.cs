@@ -316,9 +316,9 @@ namespace LightSide.Promo
         /// </remarks>
         private static readonly VerdictSpec[] Failing =
         {
+            Verdict("PERFECT", VerdictTone.Pass),
             Verdict("BROKEN", VerdictTone.Broken),
-            Verdict("BROKEN", VerdictTone.Broken),
-            Verdict("PERFECT", VerdictTone.Pass)
+            Verdict("BROKEN", VerdictTone.Broken)
         };
 
         /// <summary>
