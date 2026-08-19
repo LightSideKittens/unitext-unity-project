@@ -161,6 +161,7 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         yield return SettleKeyboardState();
 
         var visible = UniTextNativeInput.IsKeyboardVisible;
+        TestScreenshot.CaptureWindow($"{name}-window");
         Record(results, name, start, visible ? null : "Soft keyboard never became visible");
 
         var dwellUntil = Time.realtimeSinceStartup + stateDwell;
