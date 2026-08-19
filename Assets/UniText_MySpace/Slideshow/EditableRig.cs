@@ -30,6 +30,13 @@ internal sealed class EditableRig
     internal UniTextEditable Field => field;
 
     /// <summary>
+    /// Whether opening the field is expected to raise the software keyboard. A read-only field
+    /// declines the text-editor role on every platform, so its keyboard staying down is the
+    /// configured outcome rather than a missed one.
+    /// </summary>
+    internal bool RaisesKeyboard => !field.ReadOnly;
+
+    /// <summary>
     /// Drops every behavior the previous case left — including the ones authored in the scene — and
     /// returns the field to the default shape: wrapping, line breaks accepted, visible replica, no
     /// text, no decorators.

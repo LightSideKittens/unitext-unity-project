@@ -65,13 +65,13 @@ internal static class EditableCaseSlideshow
     }
 
     /// <summary>
-    /// Applies one case from a released session, raises the keyboard, records whether it came up,
-    /// and holds the result. Every case starts with the keyboard down: reconfiguring a focused
-    /// field restarts the input producer asynchronously, so a check that samples during that
-    /// restart reads the previous keyboard leaving rather than the new one arriving, and word
-    /// wrapping — which never reaches an already-open native field — would be lost. A configuration
-    /// failure is recorded and the run continues: one broken case must not cost the remaining
-    /// coverage.
+    /// Applies one case from a released session, opens the field, and records whether the keyboard
+    /// ended where the configuration calls for it — a field that accepts no input is expected to
+    /// leave it down. Every case starts with the keyboard down: reconfiguring a focused field
+    /// restarts the input producer asynchronously, so a check that samples during that restart reads
+    /// the previous keyboard leaving rather than the new one arriving, and word wrapping — which
+    /// never reaches an already-open native field — would be lost. A configuration failure is
+    /// recorded and the run continues: one broken case must not cost the remaining coverage.
     /// </summary>
     private static IEnumerator Play(EditableRig rig, TestResultCollection results, EditableCase state)
     {
@@ -96,12 +96,16 @@ internal static class EditableCaseSlideshow
             yield break;
         }
 
+        var expected = rig.RaisesKeyboard;
         rig.Field.Activate();
-        yield return HoldKeyboard(visible: true);
+        yield return HoldKeyboard(expected);
         yield return rig.RunLive();
 
         Record(results, state.Name, start,
-            UniTextNativeInput.IsKeyboardVisible ? null : "Soft keyboard never became visible");
+            UniTextNativeInput.IsKeyboardVisible == expected ? null
+                : expected
+                    ? "Soft keyboard never became visible"
+                    : "Soft keyboard rose for a field that accepts no input");
 
         var until = Time.realtimeSinceStartup + stateDwell;
         while (Time.realtimeSinceStartup < until) yield return null;

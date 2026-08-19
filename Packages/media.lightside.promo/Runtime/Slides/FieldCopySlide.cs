@@ -66,11 +66,17 @@ namespace LightSide.Promo
 
             into = Build(stage, "Into", offset, column, height, string.Empty);
 
-            var visible = from.VisibleText;
-            sweepStart = Mathf.Max(0, visible.IndexOf(sweepPhrase, StringComparison.Ordinal));
+            var visible = Visible(source);
+            sweepStart = visible.IndexOf(sweepPhrase, StringComparison.Ordinal);
+
+            if (sweepStart < 0)
+                throw new InvalidOperationException(
+                    $"[Promo] '{name}' cannot find \"{sweepPhrase}\" in \"{visible}\". The Sweep Phrase is the " +
+                    "run the pointer selects and copies; it has to occur in the field's own text.");
+
             sweepEnd = sweepStart + sweepPhrase.Length;
-            sweepFrom = from.CaretPoint(sweepStart, stage.Root);
-            sweepTo = from.CaretPoint(sweepEnd, stage.Root);
+            sweepFrom = from.PointAfter(visible.Substring(0, sweepStart), stage.Root);
+            sweepTo = from.PointAfter(visible.Substring(0, sweepEnd), stage.Root);
 
             pointer = stage.Pointer(new Vector2(-stage.Half.x * 0.8f, -stage.Half.y * 0.7f), new[]
             {
@@ -78,7 +84,8 @@ namespace LightSide.Promo
                 Beat.Click("focusFrom"),
                 Beat.Drag(sweepTo, "sweep", from.TextSize),
                 Beat.Key("Ctrl + C", "copy"),
-                Beat.To(into.AimPoint(0, stage.Root), targetWidth: column * 0.6f),
+                Beat.To(into.PointAfter(string.Empty, stage.Root) + new Vector2(into.TextSize * 0.3f, 0f),
+                    targetWidth: column * 0.6f),
                 Beat.Click("focusInto", settles: true),
                 Beat.Key("Ctrl + V", "paste"),
                 Beat.To(stage.At(0.5f, 0.12f))
@@ -117,6 +124,30 @@ namespace LightSide.Promo
             from.Sweep(sweepStart, sweepEnd, fraction);
             from.PoseFocus(local - pointer.Timeline.Mark("focusFrom"));
             into.PoseFocus(local - pointer.Timeline.Mark("focusInto"));
+        }
+
+        /// <summary>
+        /// <paramref name="markup"/> with its tags removed — what a reader sees, and what an index into the content
+        /// means.
+        /// </summary>
+        /// <remarks>
+        /// Derived from the authored string rather than read back from the component. The editable parses on its own
+        /// schedule, and on the frame the slide is built it has not; asking it then returns an empty document, which
+        /// silently resolves every offset to zero and aims the whole shot at the first character.
+        /// </remarks>
+        private static string Visible(string markup)
+        {
+            var text = new System.Text.StringBuilder(markup.Length);
+            var depth = 0;
+
+            foreach (var c in markup)
+            {
+                if (c == '<') depth++;
+                else if (c == '>') { if (depth > 0) depth--; }
+                else if (depth == 0) text.Append(c);
+            }
+
+            return text.ToString();
         }
 
         private EditableField Build(Stage stage, string name, float x, float width, float height, string markup)

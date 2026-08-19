@@ -52,6 +52,25 @@ namespace LightSide.Promo
         public string VisibleText => Editable ? Editable.VisibleText : string.Empty;
 
         /// <summary>
+        /// Where the caret sits after <paramref name="prefix"/>, in <paramref name="space"/>'s own coordinates.
+        /// </summary>
+        /// <remarks>
+        /// The prefix is supplied rather than sliced out of the field, and that is the whole point: this answers
+        /// correctly on the frame the field was built, while <see cref="CaretPoint"/> cannot. The editable has been
+        /// handed its markup but has not parsed it yet, so its visible content is still empty and every index into
+        /// it resolves to the start of the line.
+        /// </remarks>
+        public Vector2 PointAfter(string prefix, RectTransform space)
+        {
+            var rect = Text.rectTransform;
+            var local = new Vector2(
+                -rect.rect.width * 0.5f + Stage.Advance(Text, prefix),
+                rect.rect.height * 0.5f - TextSize * 0.62f);
+
+            return space.InverseTransformPoint(rect.TransformPoint(local));
+        }
+
+        /// <summary>
         /// Where a codepoint sits on the first line, in <paramref name="space"/>'s own coordinates.
         /// </summary>
         /// <remarks>
