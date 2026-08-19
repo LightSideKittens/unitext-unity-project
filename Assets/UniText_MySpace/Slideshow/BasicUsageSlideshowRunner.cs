@@ -59,28 +59,36 @@ public class BasicUsageSlideshowRunner : MonoBehaviour
         var count = demo.ExampleCount;
         Debug.Log($"[BasicUsageSlideshow] Capturing {count} slides");
 
-        for (var i = 0; i < count; i++)
+        // Delivery is the last thing the run does, so anything that escapes the capture phases would
+        // otherwise take every result already collected with it — including the slides, which had
+        // nothing to do with the failure.
+        try
         {
-            if (i > 0) demo.NextExample();
-            for (var f = 0; f < settleFrames; f++) yield return null;
+            for (var i = 0; i < count; i++)
+            {
+                if (i > 0) demo.NextExample();
+                for (var f = 0; f < settleFrames; f++) yield return null;
 
-            var name = $"slide-{i:D2}";
-            var systemFontText = FindSystemFontText();
-            if (systemFontText == null)
-                Capture(results, name);
-            else
-                yield return CaptureTallSlide(results, name, systemFontText);
-        }
+                var name = $"slide-{i:D2}";
+                var systemFontText = FindSystemFontText();
+                if (systemFontText == null)
+                    Capture(results, name);
+                else
+                    yield return CaptureTallSlide(results, name, systemFontText);
+            }
 
 #if !UNITY_WEBGL
-        yield return CaptureAddressablePrefab(results, count);
+            yield return CaptureAddressablePrefab(results, count);
 #endif
-        if (Application.isMobilePlatform)
-            yield return RunEditableCases(results);
-
-        TestScreenshot.Cleanup();
-        Debug.Log($"[BasicUsageSlideshow] Captured {results.Total} screenshots from {count} slides");
-        TestRunReporter.Report(results, "[BasicUsageSlideshow]");
+            if (Application.isMobilePlatform)
+                yield return RunEditableCases(results);
+        }
+        finally
+        {
+            TestScreenshot.Cleanup();
+            Debug.Log($"[BasicUsageSlideshow] Captured {results.Total} screenshots from {count} slides");
+            TestRunReporter.Report(results, "[BasicUsageSlideshow]");
+        }
     }
 
     private UniText FindSystemFontText()
