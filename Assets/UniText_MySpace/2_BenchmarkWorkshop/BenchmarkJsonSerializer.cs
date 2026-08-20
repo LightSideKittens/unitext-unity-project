@@ -22,7 +22,7 @@ public static class BenchmarkJsonSerializer
                          + "\n[Benchmark Power Post-Run] " + power.ToString(Formatting.None);
         var root = new JObject
         {
-            ["version"] = "1.5",
+            ["version"] = "1.8",
             ["timestamp"] = data.timestamp,
             ["meta"] = new JObject
             {
@@ -45,6 +45,7 @@ public static class BenchmarkJsonSerializer
             },
             ["textBenchmarks"] = SerializeTextBenchmarks(data.textBenchmarks),
             ["glyphRasterization"] = SerializeGlyphRasterization(data.glyphRasterization),
+            ["motionBenchmarks"] = SerializeMotionBenchmarks(data.motionBenchmarks),
             ["phaseNotes"] = new JObject
             {
                 ["fullRebuild"] = "Incremental edit of one document — warm caches where an engine has them (UniText reuses unchanged-paragraph shaping).",
@@ -55,7 +56,8 @@ public static class BenchmarkJsonSerializer
                 ["corpus.latin"] = "Plain Latin text — every engine performs comparable work; the apples-to-apples case.",
                 ["memory"] = "Resident is the OS-reported app footprint. Retained is positive post-GC growth between equal live states across warmup and measured work; phase setup net change is reported separately. GC reclaimed is managed garbage at the state-normalized checkpoint. Repeat growth is a leak candidate from an identical state-normalized untimed cycle, not proof of a leak. Deep profiler capture runs separately after these checkpoints.",
                 ["glyphRasterization"] = "Every engine starts with cleared glyph/character tables, retained allocated atlas storage, and a disabled pre-created text component; rasterization is triggered only by enabling that component. CPU trigger/dispatch is reported separately, while every engine uses the same one-texel-per-atlas-layer AsyncGPUReadback boundary for component-to-GPU-atlas-ready latency. The recorded execution samples are authoritative for CPU/GPU raster, atlas write path, CPU mirror residency, GpuUpload use, and completion method.",
-                ["fontIsolation"] = "UI Toolkit uses explicit Panel Text Settings with local/global/default/sprite/emoji/Dynamic OS fallbacks disabled and validated; TMP temporarily disables local/global/default/sprite/emoji fallbacks; UniText disables system-font and emoji fallback sources for the glyph suite."
+                ["fontIsolation"] = "UI Toolkit uses explicit Panel Text Settings with local/global/default/sprite/emoji/Dynamic OS fallbacks disabled and validated; TMP temporarily disables local/global/default/sprite/emoji fallbacks; UniText disables system-font and emoji fallback sources for the glyph suite.",
+                ["motion"] = "Headline frame samples are the complete Internal/Main Thread marker over long finite, non-looping workloads after warmup, post-warmup GC normalization, and fixed sacrificial settling frames. The sequence topology is proven in a separate short context that crosses at least two ordered child boundaries before the measured context is created. Optional exact engine markers run in a separate detail pass on the same warmed measured context, so their recorders cannot affect headline samples; unavailable markers remain explicitly unavailable. A non-empty workload must produce an observable output change before either recorder pass; semantic validation runs between and after passes outside recorder windows. Workloads run adapter-alternating in workload-major order. Creation separates the first adapter-session batch, which is not process-cold, from warm recycled batches; preparation, validation, and cleanup are outside direct create-call time and current-thread allocation measurements."
             },
             ["errors"] = new JArray(data.errors.ToArray())
         };
@@ -356,6 +358,182 @@ public static class BenchmarkJsonSerializer
         };
         if (m.memory.available)
             obj["memory"] = SerializePhaseMemory(m.memory);
+        return obj;
+    }
+
+    static JObject SerializeMotionBenchmarks(MotionBenchmarkData data)
+    {
+        if (data == null) return new JObject();
+
+        var config = data.config;
+        var engines = new JObject();
+        foreach (var pair in data.engines)
+            engines[pair.Key] = SerializeMotionEngine(pair.Value);
+
+        return new JObject
+        {
+            ["config"] = new JObject
+            {
+                ["sharedMotionCount"] = config.sharedMotionCount,
+                ["keyedFloatCount"] = config.keyedFloatCount,
+                ["distinctTransformCount"] = config.distinctTransformCount,
+                ["sequenceCount"] = config.sequenceCount,
+                ["sequenceLength"] = config.sequenceLength,
+                ["steadyMotionDurationSeconds"] = config.steadyMotionDurationSeconds,
+                ["warmupFrames"] = config.warmupFrames,
+                ["measuredFrames"] = config.measuredFrames,
+                ["recorderSettlingFrames"] = config.recorderSettlingFrames,
+                ["creationBatchSize"] = config.creationBatchSize,
+                ["creationWarmupBatches"] = config.creationWarmupBatches,
+                ["creationSamples"] = config.creationSamples,
+                ["executionIsolation"] = config.executionIsolation,
+                ["executionOrder"] = config.executionOrder,
+                ["adapterOrder"] = new JArray(config.adapterOrder ?? Array.Empty<string>()),
+                ["workloadOrder"] = new JArray(config.workloadOrder ?? Array.Empty<string>()),
+                ["measurementPasses"] = config.measurementPasses,
+                ["validationBoundary"] = config.validationBoundary,
+                ["timeScale"] = config.timeScale,
+                ["targetFrameRate"] = config.targetFrameRate,
+                ["vSyncCount"] = config.vSyncCount
+            },
+            ["engines"] = engines
+        };
+    }
+
+    static JObject SerializeMotionEngine(MotionBenchmarkEngineData engine)
+    {
+        var workloads = new JObject();
+        foreach (var pair in engine.workloads)
+            workloads[pair.Key] = SerializeMotionWorkload(pair.Value);
+
+        var obj = new JObject
+        {
+            ["status"] = engine.status,
+            ["adapterType"] = engine.adapterType,
+            ["metadata"] = SerializeMotionMetadata(engine.metadata),
+            ["workloads"] = workloads,
+            ["creation"] = SerializeMotionCreation(engine.creation)
+        };
+        if (!string.IsNullOrEmpty(engine.statusReason))
+            obj["statusReason"] = engine.statusReason;
+        return obj;
+    }
+
+    static JObject SerializeMotionMetadata(in MotionBenchmarkAdapterMetadata metadata) => new()
+    {
+        ["engineVersion"] = metadata.EngineVersion,
+        ["sourceRevision"] = metadata.SourceRevision,
+        ["integration"] = metadata.Integration,
+        ["capacityPolicy"] = metadata.CapacityPolicy,
+        ["handleRetention"] = metadata.HandleRetention
+    };
+
+    static JObject SerializeMotionSpec(in MotionBenchmarkSpec spec) => new()
+    {
+        ["workload"] = spec.Workload.ToString(),
+        ["motionCount"] = spec.MotionCount,
+        ["childMotionCount"] = spec.ChildMotionCount,
+        ["sequenceRootCount"] = spec.SequenceRootCount,
+        ["totalLiveMotionCoreCount"] = spec.TotalLiveCoreCount,
+        ["transformCount"] = spec.TransformCount,
+        ["sequenceCount"] = spec.SequenceCount,
+        ["sequenceLength"] = spec.SequenceLength,
+        ["durationSeconds"] = spec.DurationSeconds,
+        ["from"] = spec.From,
+        ["to"] = spec.To,
+        ["ease"] = spec.Ease.ToString(),
+        ["clock"] = spec.Clock.ToString(),
+        ["updatePhase"] = spec.UpdatePhase.ToString(),
+        ["cycles"] = spec.Cycles,
+        ["cycleMode"] = spec.CycleMode.ToString(),
+        ["topology"] = spec.Topology.ToString(),
+        ["essential"] = spec.Essential
+    };
+
+    static JObject SerializeMotionWorkload(MotionBenchmarkWorkloadData workload)
+    {
+        var markers = new JObject();
+        foreach (var pair in workload.markers)
+            markers[pair.Key] = SerializeMotionSeries(pair.Value);
+
+        var obj = new JObject
+        {
+            ["status"] = workload.status,
+            ["spec"] = SerializeMotionSpec(workload.spec),
+            ["mainThread"] = SerializeMotionSeries(workload.mainThread),
+            ["markers"] = markers
+        };
+        if (!string.IsNullOrEmpty(workload.statusReason))
+            obj["statusReason"] = workload.statusReason;
+        return obj;
+    }
+
+    static JObject SerializeMotionCreation(MotionBenchmarkCreationData creation)
+    {
+        if (creation == null) return new JObject();
+        var obj = new JObject
+        {
+            ["status"] = creation.status,
+            ["spec"] = SerializeMotionSpec(creation.spec),
+            ["firstBatchScope"] = creation.firstBatchScope,
+            ["warmRecycledScope"] = creation.warmRecycledScope,
+            ["firstBatch"] = SerializeMotionCreationPass(creation.firstBatch),
+            ["warmRecycled"] = SerializeMotionCreationPass(creation.warmRecycled)
+        };
+        if (!string.IsNullOrEmpty(creation.statusReason))
+            obj["statusReason"] = creation.statusReason;
+        return obj;
+    }
+
+    static JObject SerializeMotionCreationPass(MotionBenchmarkCreationPassData pass)
+    {
+        var obj = new JObject
+        {
+            ["status"] = pass.status,
+            ["timePerCreation"] = SerializeMotionSeries(pass.timePerCreation),
+            ["gcBytesPerCreation"] = SerializeMotionSeries(pass.gcBytesPerCreation)
+        };
+        if (!string.IsNullOrEmpty(pass.statusReason))
+            obj["statusReason"] = pass.statusReason;
+        return obj;
+    }
+
+    static JObject SerializeMotionSeries(MotionBenchmarkSeriesData series)
+    {
+        var samples = series.samples ?? new List<float>();
+        var sorted = new List<float>(samples);
+        sorted.Sort();
+
+        var obj = new JObject
+        {
+            ["marker"] = series.marker,
+            ["unit"] = series.unit,
+            ["measurementPass"] = series.measurementPass,
+            ["status"] = series.status,
+            ["samples"] = new JArray(samples.ToArray()),
+            ["sampleCount"] = samples.Count
+        };
+        if (!string.IsNullOrEmpty(series.statusReason))
+            obj["statusReason"] = series.statusReason;
+
+        if (sorted.Count == 0)
+        {
+            obj["median"] = JValue.CreateNull();
+            obj["p95"] = JValue.CreateNull();
+            obj["min"] = JValue.CreateNull();
+            obj["max"] = JValue.CreateNull();
+            obj["average"] = JValue.CreateNull();
+            return obj;
+        }
+
+        double sum = 0;
+        for (int i = 0; i < sorted.Count; i++)
+            sum += sorted[i];
+        obj["median"] = BenchmarkStatistics.MedianSorted(sorted);
+        obj["p95"] = BenchmarkStatistics.PercentileSorted(sorted, 0.95f);
+        obj["min"] = sorted[0];
+        obj["max"] = sorted[sorted.Count - 1];
+        obj["average"] = sum / sorted.Count;
         return obj;
     }
 
@@ -721,6 +899,7 @@ public class BenchmarkRunData
     public int memoryProbeRepeats;
     public Dictionary<string, TextBenchmarkBase.TestResults> textBenchmarks = new();
     public Dictionary<string, Dictionary<string, GlyphRasterData>> glyphRasterization = new();
+    internal MotionBenchmarkData motionBenchmarks;
     public List<string> errors = new();
 }
 

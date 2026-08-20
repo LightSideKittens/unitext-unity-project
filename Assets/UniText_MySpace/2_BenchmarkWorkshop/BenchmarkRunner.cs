@@ -13,6 +13,11 @@ public class BenchmarkRunner : MonoBehaviour
 
     BenchmarkRunData data;
     bool suiteRunning;
+    bool watchdogTriggered;
+    bool requestedText;
+    bool requestedGlyph;
+    bool requestedMotion;
+    bool runFailed;
     float suiteStartedAt;
 
 #if UNITEXT_BENCHMARK
@@ -30,30 +35,34 @@ public class BenchmarkRunner : MonoBehaviour
         }
 
 #if UNITY_EDITOR
-        return; 
+        return;
 #else
         runner.StartCoroutine(runner.AutoStart());
 #endif
     }
 #endif
 
-    /// <summary>Starts both suites unless another benchmark suite is already running.</summary>
+    /// <summary>Starts every suite unless another benchmark suite is already running.</summary>
     [ContextMenu("Run All Benchmarks")]
-    public void RunFromMenu() => StartSuite(runText: true, runGlyph: true);
+    public void RunFromMenu() => StartSuite(runText: true, runGlyph: true, runMotion: true);
 
     /// <summary>Starts only the text-pipeline suite unless another benchmark suite is already running.</summary>
     [ContextMenu("Run Text Pipeline Only")]
-    public void RunTextFromMenu() => StartSuite(runText: true, runGlyph: false);
+    public void RunTextFromMenu() => StartSuite(runText: true, runGlyph: false, runMotion: false);
 
     /// <summary>Starts only the glyph suite unless another suite is already running.</summary>
     [ContextMenu("Run Glyph Rasterization Only")]
-    public void RunGlyphFromMenu() => StartSuite(runText: false, runGlyph: true);
+    public void RunGlyphFromMenu() => StartSuite(runText: false, runGlyph: true, runMotion: false);
+
+    /// <summary>Starts only the motion-engine suite unless another suite is already running.</summary>
+    [ContextMenu("Run Motion Only")]
+    public void RunMotionFromMenu() => StartSuite(runText: false, runGlyph: false, runMotion: true);
 
     IEnumerator AutoStart()
     {
         FirebaseTestLabAndroid.Initialize();
         FirebaseTestLabiOS.Initialize();
-        var (runText, runGlyph, explicitSuite) = ResolveLaunchSuite();
+        var (runText, runGlyph, runMotion, explicitSuite) = ResolveLaunchSuite();
         if (!Application.isBatchMode && !explicitSuite)
         {
             Debug.Log($"[BenchmarkRunner] Waiting up to {InteractiveSelectionSeconds:F0} seconds before the unattended start; a Run button starts immediately.");
@@ -62,16 +71,16 @@ public class BenchmarkRunner : MonoBehaviour
                 yield return null;
         }
         if (!suiteRunning)
-            StartSuite(runText, runGlyph);
+            StartSuite(runText, runGlyph, runMotion);
     }
 
     /// <summary>
-    /// Launch-time suite selection: <c>-unitextSuite text|glyph|all</c> (or the <c>=</c> form) and env
+    /// Launch-time suite selection: <c>-unitextSuite text|glyph|motion|all</c> (or the <c>=</c> form) and env
     /// <c>UNITEXT_SUITE</c> on desktop, the Firebase game-loop scenario on devices (1 = all, 2 = text
-    /// pipeline, 3 = glyph rasterization), and the page URL's <c>?suite=</c> query on WebGL. An explicit
-    /// selection skips the interactive wait so CI starts immediately.
+    /// pipeline, 3 = glyph rasterization, 4 = motion), and the page URL's <c>?suite=</c> query on WebGL.
+    /// An explicit selection skips the interactive wait so CI starts immediately.
     /// </summary>
-    static (bool runText, bool runGlyph, bool explicitSuite) ResolveLaunchSuite()
+    static (bool runText, bool runGlyph, bool runMotion, bool explicitSuite) ResolveLaunchSuite()
     {
         string suite = null;
         var args = Environment.GetCommandLineArgs();
@@ -90,6 +99,7 @@ public class BenchmarkRunner : MonoBehaviour
             if (scenario <= 0) scenario = FirebaseTestLabiOS.ScenarioNumber;
             if (scenario == 2) suite = "text";
             else if (scenario == 3) suite = "glyph";
+            else if (scenario == 4) suite = "motion";
             else if (scenario == 1) suite = "all";
         }
 
@@ -112,36 +122,70 @@ public class BenchmarkRunner : MonoBehaviour
             Debug.Log($"[BenchmarkRunner] Launch suite: {suite}");
         return suite switch
         {
-            "text" => (true, false, true),
-            "glyph" => (false, true, true),
-            "all" => (true, true, true),
-            _ => (true, true, false)
+            "text" => (true, false, false, true),
+            "glyph" => (false, true, false, true),
+            "motion" => (false, false, true, true),
+            "all" => (true, true, true, true),
+            _ => (true, true, true, false)
         };
     }
 
-    void StartSuite(bool runText, bool runGlyph)
+    void StartSuite(bool runText, bool runGlyph, bool runMotion)
     {
         if (suiteRunning) return;
         suiteRunning = true;
+        watchdogTriggered = false;
+        requestedText = runText;
+        requestedGlyph = runGlyph;
+        requestedMotion = runMotion;
+        runFailed = false;
         suiteStartedAt = Time.realtimeSinceStartup;
         Debug.Log("[BenchmarkRunner] Starting benchmarks...");
-        StartCoroutine(GuardedRunSuite(runText, runGlyph));
+        StartCoroutine(GuardedRunSuite(runText, runGlyph, runMotion));
     }
 
-    IEnumerator GuardedRunSuite(bool runText, bool runGlyph)
+    IEnumerator GuardedRunSuite(bool runText, bool runGlyph, bool runMotion)
     {
+        var routine = new OwnedEnumerator(RunSuite(runText, runGlyph, runMotion));
+        Exception failure = null;
+        bool cleanupFailure = false;
+        bool completed = false;
         try
         {
-            yield return RunSuite(runText, runGlyph);
+            while (true)
+            {
+                if (!routine.MoveNext(out var current, out failure, out cleanupFailure))
+                    break;
+                yield return current;
+            }
+            completed = failure == null && routine.Completed;
         }
         finally
         {
+            failure = routine.Dispose(failure, ref cleanupFailure);
+            if (!completed && failure == null)
+                failure = new InvalidOperationException("Benchmark suite ended before completion.");
+            if (failure != null)
+            {
+                EnsureRunData();
+                data.errors.Add($"suite: {failure.Message}");
+                Debug.LogError($"[BenchmarkRunner] Suite failed: {failure}");
+            }
+            bool successful = completed && failure == null && !watchdogTriggered && !runFailed && data.errors.Count == 0;
+            if (!RequestedSuitesComplete(out var incompleteReason))
+            {
+                successful = false;
+                EnsureRunData();
+                data.errors.Add(incompleteReason);
+                Debug.LogError($"[BenchmarkRunner] {incompleteReason}");
+            }
             suiteRunning = false;
+            PersistResults(successful);
         }
     }
 
-    /// <summary>One combined result JSON is always written (the CI transport); <see cref="BenchmarkHistory"/> splits it into the per-suite site streams, so a text-only or glyph-only run persists only its own stream.</summary>
-    IEnumerator RunSuite(bool runText, bool runGlyph)
+    /// <summary>One combined result JSON is always written; <see cref="BenchmarkHistory"/> splits it into per-suite site streams, so a single-suite run persists only its selected stream.</summary>
+    IEnumerator RunSuite(bool runText, bool runGlyph, bool runMotion)
     {
         data = new BenchmarkRunData
         {
@@ -165,10 +209,33 @@ public class BenchmarkRunner : MonoBehaviour
             yield return RunGlyphRasterizationBenchmarks();
         }
 
-        var json = BenchmarkJsonSerializer.Serialize(data, out var postRunSummary);
-        Debug.Log("[BenchmarkRunner] === BENCHMARK COMPLETE ===");
-        Debug.Log(postRunSummary);
-        OutputResults(json);
+        if (runMotion && CheckWatchdog())
+        {
+            yield return EngineCooldown();
+            yield return RunMotionBenchmarks();
+        }
+    }
+
+    IEnumerator RunMotionBenchmarks()
+    {
+        var benchmark = ObjectUtils.FindAny<MotionBenchmark>();
+        if (benchmark == null)
+        {
+            data.errors.Add("MotionBenchmark not found on scene");
+            Debug.LogError("[BenchmarkRunner] MotionBenchmark not found on scene");
+            yield break;
+        }
+
+        Debug.Log("[BenchmarkRunner] Running motion engines...");
+        var previousResults = benchmark.Results;
+        yield return SafeRun("motion",
+            benchmark.RunBenchmarkCoroutine,
+            () => data.motionBenchmarks = benchmark.Results,
+            () =>
+            {
+                if (!ReferenceEquals(benchmark.Results, previousResults))
+                    data.motionBenchmarks = benchmark.Results;
+            });
     }
 
     IEnumerator RunTextBenchmarks()
@@ -323,81 +390,170 @@ public class BenchmarkRunner : MonoBehaviour
         byFont[font] = result;
     }
 
-    IEnumerator SafeRun(string name, Func<IEnumerator> coroutineFactory, Action onComplete)
+    IEnumerator SafeRun(string name, Func<IEnumerator> coroutineFactory, Action onComplete,
+        Action onFailure = null)
     {
-        IEnumerator coroutine;
+        IEnumerator coroutine = null;
+        Exception startFailure = null;
         try
         {
             coroutine = coroutineFactory();
         }
         catch (Exception e)
         {
-            data.errors.Add($"{name}: {e.Message}");
-            Debug.LogError($"[BenchmarkRunner] Failed to start {name}: {e}");
+            startFailure = e;
+        }
+        if (startFailure != null)
+        {
+            runFailed = true;
+            data.errors.Add($"{name}: {startFailure.Message}");
+            Debug.LogError($"[BenchmarkRunner] Failed to start {name}: {startFailure}");
+            yield break;
+        }
+        if (coroutine == null)
+        {
+            runFailed = true;
+            var failure = new InvalidOperationException($"{name} returned no coroutine.");
+            RecordRunFailure(name, failure);
             yield break;
         }
 
-        bool done = false;
+        var routine = new OwnedEnumerator(coroutine);
+        bool succeeded = false;
+        bool failureRecorded = false;
         Exception caught = null;
-
-        var running = StartCoroutine(WrapCoroutine(coroutine, () => done = true, ex => { caught = ex; done = true; }));
-
-        while (!done)
-        {
-            if (!CheckWatchdog())
-            {
-                StopCoroutine(running);
-                data.errors.Add($"{name}: watchdog timeout");
-                yield break;
-            }
-            yield return null;
-        }
-
-        if (caught != null)
-        {
-            data.errors.Add($"{name}: {caught.Message}");
-            Debug.LogError($"[BenchmarkRunner] {name} failed: {caught}");
-        }
-        else
-        {
-            try { onComplete(); }
-            catch (Exception e)
-            {
-                data.errors.Add($"{name} result collection: {e.Message}");
-                Debug.LogError($"[BenchmarkRunner] Failed to collect {name} results: {e}");
-            }
-        }
-    }
-
-    static IEnumerator WrapCoroutine(IEnumerator inner, Action onDone, Action<Exception> onError)
-    {
+        bool cleanupFailure = false;
         try
         {
             while (true)
             {
-                bool hasNext;
-                try { hasNext = inner.MoveNext(); }
-                catch (Exception e) { onError(e); yield break; }
-                if (!hasNext) break;
-                yield return inner.Current;
+                if (!CheckWatchdog())
+                {
+                    data.errors.Add($"{name}: watchdog timeout");
+                    runFailed = true;
+                    break;
+                }
+
+                if (!routine.MoveNext(out var current, out caught, out var moveCleanupFailure))
+                {
+                    cleanupFailure |= moveCleanupFailure;
+                    if (caught == null)
+                        succeeded = true;
+                    break;
+                }
+                yield return current;
             }
-            onDone();
         }
         finally
         {
-            (inner as IDisposable)?.Dispose();
+            caught = routine.Dispose(caught, ref cleanupFailure);
+            if (caught != null && !failureRecorded)
+            {
+                RecordRunFailure(name, caught);
+                failureRecorded = true;
+            }
+            if (!succeeded)
+                runFailed = true;
+            var collect = succeeded ? onComplete : onFailure;
+            if (collect != null)
+            {
+                if (!CollectResults(name, collect))
+                    runFailed = true;
+            }
+            if (cleanupFailure && caught != null)
+                throw caught is BenchmarkCleanupException
+                    ? caught
+                    : new BenchmarkCleanupException($"{name} cleanup failed.", caught);
         }
+    }
+
+    bool CollectResults(string name, Action collect)
+    {
+        try
+        {
+            collect();
+            return true;
+        }
+        catch (Exception exception)
+        {
+            data.errors.Add($"{name} result collection: {exception.Message}");
+            Debug.LogError($"[BenchmarkRunner] Failed to collect {name} results: {exception}");
+            return false;
+        }
+    }
+
+    void RecordRunFailure(string name, Exception exception)
+    {
+        data.errors.Add($"{name}: {exception.Message}");
+        Debug.LogError($"[BenchmarkRunner] {name} failed: {exception}");
     }
 
     bool CheckWatchdog()
     {
         if (Time.realtimeSinceStartup - suiteStartedAt > WatchdogTimeout)
         {
-            Debug.LogWarning($"[BenchmarkRunner] Watchdog timeout ({WatchdogTimeout}s), writing partial results");
-            data.errors.Add($"Watchdog timeout at {Time.realtimeSinceStartup:F0}s");
+            if (!watchdogTriggered)
+            {
+                watchdogTriggered = true;
+                Debug.LogWarning($"[BenchmarkRunner] Watchdog timeout ({WatchdogTimeout}s), writing partial results");
+                data.errors.Add($"Watchdog timeout at {Time.realtimeSinceStartup:F0}s");
+            }
             return false;
         }
         return true;
+    }
+
+    bool RequestedSuitesComplete(out string reason)
+    {
+        EnsureRunData();
+        var missing = new List<string>();
+        if (requestedText && data.textBenchmarks.Count == 0)
+            missing.Add("text");
+        if (requestedGlyph)
+        {
+            bool hasMeasuredGlyph = false;
+            foreach (var engine in data.glyphRasterization.Values)
+            {
+                foreach (var result in engine.Values)
+                {
+                    hasMeasuredGlyph |= result.status == "measured";
+                    if (result.status == "failed" || result.status == "partial" ||
+                        result.status == "mismatch" || result.status == "measuring")
+                    {
+                        reason = $"Requested glyph suite ended with result status '{result.status}'.";
+                        return false;
+                    }
+                }
+            }
+            if (!hasMeasuredGlyph)
+                missing.Add("glyph");
+        }
+        if (requestedMotion)
+        {
+            bool hasMeasuredEngine = false;
+            if (data.motionBenchmarks != null)
+            {
+                foreach (var engine in data.motionBenchmarks.engines.Values)
+                {
+                    hasMeasuredEngine |= engine.status == "measured";
+                    if (engine.status == "failed" || engine.status == "partial" || engine.status == "measuring")
+                    {
+                        reason = $"Requested motion suite ended with engine status '{engine.status}'.";
+                        return false;
+                    }
+                }
+            }
+            if (!hasMeasuredEngine)
+                missing.Add("motion");
+        }
+
+        if (missing.Count == 0)
+        {
+            reason = null;
+            return true;
+        }
+        reason = $"Requested benchmark suite data is missing: {string.Join(", ", missing)}.";
+        return false;
     }
 
     void ApplyConfig(TextBenchmarkBase bench)
@@ -584,6 +740,35 @@ public class BenchmarkRunner : MonoBehaviour
         for (var i = 0; i < 10; i++) yield return null;
     }
 
+    void EnsureRunData()
+    {
+        data ??= new BenchmarkRunData
+        {
+            timestamp = DateTime.UtcNow.ToString("o")
+        };
+    }
+
+    void PersistResults(bool completed)
+    {
+        EnsureRunData();
+        try
+        {
+            var json = BenchmarkJsonSerializer.Serialize(data, out var postRunSummary);
+            Debug.Log(completed
+                ? "[BenchmarkRunner] === BENCHMARK COMPLETE ==="
+                : "[BenchmarkRunner] === PARTIAL BENCHMARK RESULTS ===");
+            Debug.Log(postRunSummary);
+            OutputResults(json, completed ? 0 : 1);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError($"[BenchmarkRunner] Failed to persist benchmark results: {exception}");
+#if !UNITY_EDITOR && !UNITY_WEBGL
+            Application.Quit(1);
+#endif
+        }
+    }
+
     #region Output
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -591,7 +776,7 @@ public class BenchmarkRunner : MonoBehaviour
     private static extern void ReportBenchmarkResults(string json);
 #endif
 
-    void OutputResults(string json)
+    void OutputResults(string json, int exitCode)
     {
         var jsonPath = Path.Combine(Application.persistentDataPath, "benchmarkResults.json");
         File.WriteAllText(jsonPath, json);
@@ -618,7 +803,7 @@ public class BenchmarkRunner : MonoBehaviour
 #endif
 
 #if !UNITY_EDITOR && !UNITY_WEBGL
-        Application.Quit(0);
+        Application.Quit(exitCode);
 #endif
     }
 
@@ -701,4 +886,102 @@ public class BenchmarkRunner : MonoBehaviour
     }
 
     #endregion
+}
+
+sealed class OwnedEnumerator
+{
+    readonly Stack<IEnumerator> stack = new();
+
+    internal OwnedEnumerator(IEnumerator root) => stack.Push(root);
+
+    internal bool Completed => stack.Count == 0;
+
+    internal bool MoveNext(out object current, out Exception failure, out bool cleanupFailure)
+    {
+        current = null;
+        failure = null;
+        cleanupFailure = false;
+        while (stack.Count != 0)
+        {
+            var routine = stack.Peek();
+            bool moved;
+            try
+            {
+                moved = routine.MoveNext();
+                if (moved) current = routine.Current;
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+                cleanupFailure = exception is BenchmarkCleanupException;
+                return false;
+            }
+
+            if (!moved)
+            {
+                stack.Pop();
+                try
+                {
+                    (routine as IDisposable)?.Dispose();
+                }
+                catch (Exception exception)
+                {
+                    failure = exception;
+                    cleanupFailure = true;
+                    return false;
+                }
+                continue;
+            }
+            if (current is IEnumerator nested && current is not CustomYieldInstruction)
+            {
+                stack.Push(nested);
+                current = null;
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    internal Exception Dispose(Exception failure, ref bool cleanupFailure)
+    {
+        while (stack.Count != 0)
+        {
+            var routine = stack.Pop();
+            try
+            {
+                (routine as IDisposable)?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                cleanupFailure = true;
+                failure = failure == null ? exception : new AggregateException(failure, exception);
+            }
+        }
+        return failure;
+    }
+}
+
+sealed class BenchmarkCleanupException : Exception
+{
+    internal BenchmarkCleanupException(string message, Exception innerException)
+        : base($"{message} {innerException.Message}", innerException)
+    {
+    }
+}
+
+static class BenchmarkCleanup
+{
+    internal static Exception Capture(Exception failure, Action cleanup)
+    {
+        try
+        {
+            cleanup();
+        }
+        catch (Exception exception)
+        {
+            return failure == null ? exception : new AggregateException(failure, exception);
+        }
+        return failure;
+    }
 }

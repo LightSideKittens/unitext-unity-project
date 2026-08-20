@@ -65,7 +65,7 @@ def get_managed_alloc(bench, test_name):
 
 
 def emit_streams(data, commit, branch, dirpath):
-    """Write the viewer's per-suite site streams (run-text-*.js / run-glyph-*.js) — the Python mirror of
+    """Write the viewer's per-suite site streams (run-text/glyph/motion-*.js) — the Python mirror of
     the runtime BenchmarkStreams.Split, so a CI run's combined JSON becomes drop-in files for Benchmarks/runs.
     Backfills the real commit/branch (which the on-device build could not read) when the JSON lacks them."""
     os.makedirs(dirpath, exist_ok=True)
@@ -80,16 +80,20 @@ def emit_streams(data, commit, branch, dirpath):
     dev = re.sub(r"[^A-Za-z0-9_-]", "-", si.get("deviceName") or "unknown")
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%S") + f"-{plat}-{dev}"
 
+    sections = ("textBenchmarks", "glyphRasterization", "motionBenchmarks")
     suites = [
-        ("text", "textBenchmarks", "glyphRasterization", "__unitextTextRuns"),
-        ("glyph", "glyphRasterization", "textBenchmarks", "__unitextGlyphRuns"),
+        ("text", "textBenchmarks", "__unitextTextRuns"),
+        ("glyph", "glyphRasterization", "__unitextGlyphRuns"),
+        ("motion", "motionBenchmarks", "__unitextMotionRuns"),
     ]
-    for suite, keep, drop, g in suites:
+    for suite, keep, g in suites:
         section = data.get(keep)
         if not isinstance(section, dict) or len(section) == 0:
             continue
         clone = dict(data)
-        clone.pop(drop, None)
+        for section_name in sections:
+            if section_name != keep:
+                clone.pop(section_name, None)
         clone["suite"] = suite
         body = json.dumps(clone, indent=2)
         content = f"window.{g} = window.{g} || [];\nwindow.{g}.push(\n{body}\n);\n"

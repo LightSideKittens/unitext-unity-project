@@ -23,8 +23,6 @@ namespace LightSide.Promo
     [DisallowMultipleComponent]
     public sealed class Reel : MonoBehaviour
     {
-        private const float MaxStep = 0.034f;
-
         [SerializeField] private Vector2Int frameSize = new Vector2Int(1920, 1080);
         [SerializeReference, TypeSelector] private Theme theme = new Theme();
         [SerializeField] private int fps = 60;
@@ -226,7 +224,7 @@ namespace LightSide.Promo
             var total = Total();
             if (total <= 0f) return;
 
-            var next = time + Mathf.Min(CoreLoop.DeltaTime, MaxStep);
+            var next = time + PlaybackTime.Clamp(CoreLoop.DeltaTime);
             if (next >= total && !loop)
             {
                 next = total;

@@ -9,7 +9,7 @@ inputs:
     description: 'test or benchmark'
     required: true
   suite:
-    description: 'Benchmark suite: all, text (pipeline) or glyph (rasterization). Ignored in test mode.'
+    description: 'Benchmark suite: all, text (pipeline), glyph (rasterization), or motion. Ignored in test mode.'
     required: false
     default: 'all'
   unity_version:
@@ -405,12 +405,13 @@ runs:
         [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
         FIREBASE_WAIT_SECONDS=$((APP_TIMEOUT + 600))
 
-        # Game-loop scenario = benchmark suite: 1 = all, 2 = text pipeline, 3 = glyph rasterization.
+        # Game-loop scenario = benchmark suite: 1 = all, 2 = text pipeline, 3 = glyph rasterization, 4 = motion.
         SCENARIO=1
         if [ "$APP_MODE" = "benchmark" ]; then
           case "$APP_SUITE" in
             text) SCENARIO=2 ;;
             glyph) SCENARIO=3 ;;
+            motion) SCENARIO=4 ;;
           esac
         fi
         echo "Scenario: $SCENARIO (mode=$APP_MODE suite=$APP_SUITE)"
@@ -461,12 +462,13 @@ runs:
         [ $TIMEOUT_MINUTES -lt 5 ] && TIMEOUT_MINUTES=10
         FIREBASE_WAIT_SECONDS=$((APP_TIMEOUT + 600))
 
-        # Game-loop scenario = benchmark suite: 1 = all, 2 = text pipeline, 3 = glyph rasterization.
+        # Game-loop scenario = benchmark suite: 1 = all, 2 = text pipeline, 3 = glyph rasterization, 4 = motion.
         SCENARIO=1
         if [ "$APP_MODE" = "benchmark" ]; then
           case "$APP_SUITE" in
             text) SCENARIO=2 ;;
             glyph) SCENARIO=3 ;;
+            motion) SCENARIO=4 ;;
           esac
         fi
         echo "Scenario: $SCENARIO (mode=$APP_MODE suite=$APP_SUITE)"

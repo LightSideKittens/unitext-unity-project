@@ -57,6 +57,7 @@ on:
           - all
           - text
           - glyph
+          - motion
         default: none
       run_tests:
         description: '🧪 Run tests'
