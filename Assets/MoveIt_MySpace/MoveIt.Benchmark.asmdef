@@ -1,0 +1,20 @@
+{
+    "name": "MoveIt.Benchmark",
+    "rootNamespace": "",
+    "references": [
+        "LightSide.Core",
+        "LightSide.Benchmark",
+        "LitMotion",
+        "LitMotion.Extensions",
+        "PrimeTween.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

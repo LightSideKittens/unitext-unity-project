@@ -9,7 +9,7 @@ inputs:
     description: 'test or benchmark'
     required: true
   suite:
-    description: 'Benchmark suite: all, text (pipeline), glyph (rasterization), or motion. Ignored in test mode.'
+    description: 'Benchmark suite: all, text (pipeline), glyph (rasterization) or motion. Ignored in test mode.'
     required: false
     default: 'all'
   unity_version:
@@ -58,7 +58,7 @@ runs:
         $resultFile = if ($mode -eq "benchmark") { "benchmarkResults.json" } else { "testResults.xml" }
         $args = @("-logFile", $logFile)
         if ($mode -eq "test") { $args = @("-batchmode") + $args }
-        if ($mode -eq "benchmark") { $args += @("-unitextSuite", $env:APP_SUITE) }
+        if ($mode -eq "benchmark") { $args += @("-benchmarkSuite", $env:APP_SUITE) }
 
         Write-Host "Running ($mode): $($exe.FullName)"
         $process = Start-Process -FilePath $exe.FullName -ArgumentList $args -PassThru -NoNewWindow
@@ -139,7 +139,7 @@ runs:
         [ -z "$EXE" ] && { echo "ERROR: No executable found"; ls -la "$BUILD_DIR"; exit 1; }
 
         if [ "$MODE" = "benchmark" ]; then
-          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS="-unitextSuite $APP_SUITE"
+          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS="-benchmarkSuite $APP_SUITE"
         else
           LOG_FILE="$PWD/test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
         fi
@@ -238,7 +238,7 @@ runs:
         [ -z "$EXE" ] && { echo "ERROR: No executable found"; exit 1; }
 
         if [ "$MODE" = "benchmark" ]; then
-          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS="-unitextSuite $APP_SUITE"
+          LOG_FILE="$PWD/benchmark.log"; RESULT_FILE="benchmarkResults.json"; EXTRA_ARGS="-benchmarkSuite $APP_SUITE"
         else
           LOG_FILE="$PWD/test.log"; RESULT_FILE="testResults.xml"; EXTRA_ARGS="-batchmode"
         fi

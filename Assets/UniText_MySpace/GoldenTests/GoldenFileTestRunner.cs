@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using LightSide;
 using UnityEngine;
+using LightSide.Benchmark;
 
 public class GoldenFileTestRunner : MonoBehaviour
 {

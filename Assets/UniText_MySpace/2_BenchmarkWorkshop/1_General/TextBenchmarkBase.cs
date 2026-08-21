@@ -7,6 +7,7 @@ using LightSide;
 using Unity.Profiling;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using LightSide.Benchmark;
 
 /// <summary>Stable states from the shared text benchmark flow that can be left alive for editor inspection.</summary>
 public enum BenchmarkInspectionPhase

@@ -1,0 +1,49 @@
+name: MoveIt Benchmark❤️
+run-name: "📊 MoveIt • ${{ inputs.platform }} • ${{ inputs.unity_version }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      unity_version:
+        description: '🎮 Unity version'
+        type: choice
+        options:
+          - 2022.3.62f2
+          - 6000.3.14f1
+          - 6000.5.8f1
+        default: 6000.5.8f1
+      platform:
+        description: '💻 Platform'
+        type: choice
+        options:
+          - StandaloneWindows64
+          - StandaloneOSX
+          - Android
+          - iOS
+          - WebGL
+        default: StandaloneWindows64
+      legacy_android_devices:
+        description: '📟 Affected legacy Android devices (3 instead of standard 6)'
+        type: boolean
+        default: false
+      benchmark_timeout:
+        description: '⏱️ Seconds the run may take'
+        type: number
+        default: 1800
+
+concurrency:
+  group: moveit-benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    uses: ./.github/workflows/build-and-test.yml
+    with:
+      unity_version: ${{ inputs.unity_version }}
+      platform: ${{ inputs.platform }}
+      debug: false
+      benchmark: motion
+      run_tests: false
+      legacy_android_devices: ${{ inputs.legacy_android_devices }}
+      benchmark_timeout: ${{ inputs.benchmark_timeout }}
+    secrets: inherit

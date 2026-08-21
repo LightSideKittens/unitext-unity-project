@@ -10,6 +10,7 @@ public static class CIBuildSettings
 {
     private const string TestScenePath = "Assets/UniText_MySpace/1_TestWorkshop/UniTextTest.unity";
     private const string BenchmarkScenePath = "Assets/UniText_MySpace/2_BenchmarkWorkshop/1_General/General_BenchmarkTest.unity";
+    private const string MotionBenchmarkScenePath = "Assets/MoveIt_MySpace/MoveItBenchmark.unity";
     private const string SlideshowScenePath = "Assets/UniText_MySpace/WebGLDemo/BasicUsageWebGL.unity";
 
     static readonly BuildTargetGroup[] AllTargets =
@@ -78,7 +79,7 @@ public static class CIBuildSettings
 
         if (benchmarkArg == "true")
         {
-            SetBuildScene(BenchmarkScenePath);
+            SetBuildScene(BenchmarkSceneFor(GetCommandLineArg(args, "-ciBenchmarkSuite")));
             EnableBenchmark();
             DisableTests();
             DisableSlideshow();
@@ -143,6 +144,13 @@ public static class CIBuildSettings
     [MenuItem("UniText/CI/Set Build Scene - Benchmark")]
     public static void SetBenchmarkScene() => SetBuildScene(BenchmarkScenePath);
 
+    /// <summary>
+    /// Benchmark suites live in the workshop of the package they measure, one scene each; the build
+    /// carries exactly the scene the requested suite is in.
+    /// </summary>
+    private static string BenchmarkSceneFor(string suite) =>
+        suite == "motion" ? MotionBenchmarkScenePath : BenchmarkScenePath;
+
     [MenuItem("UniText/CI/Set Build Scene - Slideshow")]
     public static void SetSlideshowScene() => SetBuildScene(SlideshowScenePath);
 
@@ -195,11 +203,11 @@ public static class CIBuildSettings
     [MenuItem("UniText/CI/Disable UNITEXT_TESTS Symbol")]
     public static void DisableTests() => SetDefineSymbol("UNITEXT_TESTS", false);
 
-    [MenuItem("UniText/CI/Enable UNITEXT_BENCHMARK Symbol")]
-    public static void EnableBenchmark() => SetDefineSymbol("UNITEXT_BENCHMARK", true);
+    [MenuItem("UniText/CI/Enable LIGHTSIDE_BENCHMARK Symbol")]
+    public static void EnableBenchmark() => SetDefineSymbol("LIGHTSIDE_BENCHMARK", true);
 
-    [MenuItem("UniText/CI/Disable UNITEXT_BENCHMARK Symbol")]
-    public static void DisableBenchmark() => SetDefineSymbol("UNITEXT_BENCHMARK", false);
+    [MenuItem("UniText/CI/Disable LIGHTSIDE_BENCHMARK Symbol")]
+    public static void DisableBenchmark() => SetDefineSymbol("LIGHTSIDE_BENCHMARK", false);
 
     [MenuItem("UniText/CI/Enable UNITEXT_SLIDESHOW Symbol")]
     public static void EnableSlideshow() => SetDefineSymbol("UNITEXT_SLIDESHOW", true);

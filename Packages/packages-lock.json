@@ -1,5 +1,30 @@
 {
   "dependencies": {
+    "com.annulusgames.lit-motion": {
+      "version": "https://github.com/annulusgames/LitMotion.git?path=src/LitMotion/Assets/LitMotion#ab6e92bfe78ff911def2fd3c4e9c79bb5a186946",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.burst": "1.6.0",
+        "com.unity.collections": "1.5.1",
+        "com.unity.mathematics": "1.0.1"
+      },
+      "hash": "ab6e92bfe78ff911def2fd3c4e9c79bb5a186946"
+    },
+    "com.cysharp.unitask": {
+      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.11",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "2e993ff18f28c931602a07292df0b0804eebef99"
+    },
+    "com.kyrylokuzyk.primetween": {
+      "version": "1.4.11",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://registry.npmjs.org"
+    },
     "com.nosuchstudio.rtltmpro": {
       "version": "https://github.com/hk1ll3r/RTLTMPro.git?path=/UPMPackage",
       "depth": 0,
@@ -270,6 +295,7 @@
       "source": "embedded",
       "dependencies": {
         "com.unity.burst": "1.6.0",
+        "com.unity.collections": "1.2.4",
         "com.unity.mathematics": "1.2.6",
         "com.unity.ugui": "1.0.0",
         "com.unity.modules.ui": "1.0.0",
@@ -314,7 +340,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "media.lightside.core": "3.1.0",
+        "media.lightside.core": "3.1.1",
         "com.unity.burst": "1.8.29",
         "com.unity.ugui": "1.0.0",
         "com.unity.modules.ui": "1.0.0"

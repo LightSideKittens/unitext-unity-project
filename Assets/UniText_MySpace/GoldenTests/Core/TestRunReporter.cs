@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using UnityEngine;
+using LightSide.Benchmark;
 
 /// <summary>
 /// Delivers a finished in-player test run to CI: writes the JUnit XML to persistentDataPath,

@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
+using LightSide.Benchmark;
 
 /// <summary>
 /// Honest head-to-head for dynamic texture-atlas upload: the LightSide GPU path

@@ -1,0 +1,19 @@
+{
+    "name": "UniText.Benchmark.Editor",
+    "rootNamespace": "",
+    "references": [
+        "LightSide.Benchmark",
+        "LightSide.Benchmark.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

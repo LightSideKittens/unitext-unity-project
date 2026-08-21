@@ -10,6 +10,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
+using LightSide.Benchmark;
 
 /// <summary>
 /// Shared glyph-rasterization harness: clears the engine's glyph atlas, times the re-fill of one

@@ -84,7 +84,7 @@ def emit_streams(data, commit, branch, dirpath):
     suites = [
         ("text", "textBenchmarks", "__unitextTextRuns"),
         ("glyph", "glyphRasterization", "__unitextGlyphRuns"),
-        ("motion", "motionBenchmarks", "__unitextMotionRuns"),
+        ("motion", "motionBenchmarks", "__moveitMotionRuns"),
     ]
     for suite, keep, g in suites:
         section = data.get(keep)

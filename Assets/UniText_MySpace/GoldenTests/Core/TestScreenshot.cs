@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using LightSide.Benchmark;
 
 /// <summary>
 /// Cross-platform screenshot capture for tests.

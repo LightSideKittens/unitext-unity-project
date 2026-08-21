@@ -2660,6 +2660,8 @@ GameObject:
   - component: {fileID: 2035672427}
   - component: {fileID: 2035672428}
   - component: {fileID: 2035672429}
+  - component: {fileID: 2035672440}
+  - component: {fileID: 2035672441}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -2858,8 +2860,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc4d0091f8d3377408aa7e0a82ea0902, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UniText.Test::BenchmarkRunner
-  runLatinCorpus: 1
+  m_EditorClassIdentifier: LightSide.Benchmark::LightSide.Benchmark.BenchmarkRunner
+  submodulePath: Packages/media.lightside.unitext
 --- !u!114 &2035672429
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3308,148 +3310,34 @@ MonoBehaviour:
     uiToolkitFont: {fileID: 11400000, guid: 3a0f0962a815a2c469d3cac75d6d4af8, type: 2}
   togglePrefab: {fileID: 1827253832}
   content: {fileID: 984426637}
---- !u!1 &2135000000
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2135000001}
-  - component: {fileID: 2135000002}
-  m_Layer: 0
-  m_Name: Motion Benchmark
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2135000001
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2135000000}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2135000004}
-  - {fileID: 2135000006}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2135000002
+--- !u!114 &2035672440
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2135000000}
+  m_GameObject: {fileID: 2035672417}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ad618ae97744cadb31ec93854fdf613, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: UniText.Test::MotionBenchmark
-  sharedTransform: {fileID: 2135000004}
-  distinctTransformPrefab: {fileID: 1000000000000000001, guid: 1e1c54c6f27a4c589b8e867d16e944a7, type: 3}
-  contextRoot: {fileID: 2135000006}
-  adapters:
-  - rid: 2135000007
-  - rid: 2135000008
-  - rid: 2135000009
-  sharedMotionCount: 100000
-  keyedFloatCount: 64000
-  distinctTransformCount: 50000
-  sequenceCount: 4096
-  sequenceLength: 8
-  steadyMotionDuration: 3600
-  warmupFrames: 60
-  measuredFrames: 120
-  creationBatchSize: 4096
-  creationWarmupBatches: 3
-  creationSamples: 32
-  references:
-    version: 2
-    RefIds:
-    - rid: 2135000007
-      type: {class: LightSideMotionBenchmarkAdapter, ns: , asm: UniText.Test}
-      data:
-    - rid: 2135000008
-      type: {class: PrimeTweenMotionBenchmarkAdapter, ns: , asm: UniText.Test}
-      data:
-    - rid: 2135000009
-      type: {class: LitMotionMotionBenchmarkAdapter, ns: , asm: UniText.Test}
-      data:
---- !u!1 &2135000003
-GameObject:
+  m_Script: {fileID: 11500000, guid: d7fac25582404dcfafde4e4202705973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UniText.Test::TextBenchmarkSuite
+  runLatinCorpus: 1
+--- !u!114 &2035672441
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2135000004}
-  m_Layer: 0
-  m_Name: SharedMotionTarget
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2135000004
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2135000003}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2135000001}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2135000005
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2135000006}
-  m_Layer: 0
-  m_Name: MotionContextRoot
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2135000006
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2135000005}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2135000001}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_GameObject: {fileID: 2035672417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8624ec5c22d54c1d83d86e6cd810c490, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UniText.Test::GlyphRasterizationSuite
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 636393885}
   - {fileID: 2035672421}
-  - {fileID: 2135000001}
