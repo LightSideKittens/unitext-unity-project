@@ -62,16 +62,15 @@ namespace LightSide.Promo
         /// </summary>
         /// <remarks>
         /// The frontier runs to <c>count + spread - 1</c> so the last glyph completes exactly at
-        /// <see cref="Fill"/> = 1. Progress reaches the handler as a frontier because the public
-        /// <see cref="RevealGlyphInfo"/> constructor derives it as <c>front - ordinal</c>; the one taking progress
-        /// outright is internal to UniText.
+        /// <see cref="Fill"/> = 1. The restated frontier reaches the handler through
+        /// <see cref="RevealGlyphInfo.WithFront"/>, which re-derives progress as <c>front - ordinal</c>
+        /// and so stretches each glyph's arrival over <see cref="spread"/> ordinals.
         /// </remarks>
         internal void Apply(in RevealGlyphInfo info)
         {
             var front = fill * (info.count + spread - 1f);
 
-            handler.Apply(new RevealGlyphInfo(info.generator, info.cluster, info.ordinal, info.count,
-                info.ordinal + (front - info.ordinal) / spread));
+            handler.Apply(info.WithFront(info.ordinal + (front - info.ordinal) / spread));
         }
     }
 }
