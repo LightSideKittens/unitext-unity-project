@@ -17,6 +17,8 @@ MonoBehaviour:
     - name: test
       size: {x: 1.5200001, y: 3.2299998}
       bearingOffset: {x: -0.04, y: -0.65999997}
+      pivot: {x: 0, y: 0}
+      rotation: 0
       advance: 1.46
       lineHeightAbove: 3.07
       lineHeightBelow: 2.41
@@ -26,6 +28,8 @@ MonoBehaviour:
     - name: test2
       size: {x: 3.47, y: 2.21}
       bearingOffset: {x: -0.17, y: -0.38}
+      pivot: {x: 0, y: 0}
+      rotation: 0
       advance: 1.87
       lineHeightAbove: 0.37
       lineHeightBelow: 1.86

@@ -9,11 +9,13 @@ namespace LightSide.Promo
         private const string Root = "Promo";
 
         internal const string ReelObjectName = "Promo Reel";
+        internal const string ShowreelObjectName = "Promo Showreel";
 
         internal static class Tools
         {
             private const string P = "Tools/" + Root + "/";
             public const string CreateReel = P + "Create Reel";
+            public const string CreateShowreel = P + "Create Showreel";
             public const string Rebuild = P + "Rebuild";
             public const string CaptureFrames = P + "Capture Frames";
             public const string ContactSheet = P + "Contact Sheet";

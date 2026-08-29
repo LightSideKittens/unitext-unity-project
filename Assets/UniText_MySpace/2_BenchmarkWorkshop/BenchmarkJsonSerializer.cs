@@ -335,8 +335,7 @@ public static class BenchmarkJsonSerializer
                 ["warmupIterations"] = d.benchmark.warmupIterations,
                 ["previewFrames"] = d.benchmark.previewFrames,
                 ["captureProfile"] = d.benchmark.captureProfile,
-                ["captureAlloc"] = d.benchmark.captureAlloc,
-                ["captureSample"] = d.benchmark.captureSample
+                ["captureAlloc"] = d.benchmark.captureAlloc
             };
         if (d.executionSamples is { Count: > 0 })
         {
@@ -428,7 +427,6 @@ public sealed class GlyphBenchmarkConfig
     public int previewFrames;
     public bool captureProfile;
     public bool captureAlloc;
-    public bool captureSample;
 }
 
 public sealed class GlyphExecutionSample

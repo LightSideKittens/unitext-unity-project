@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR && UNITEXT_DEBUG
+﻿#if UNITY_EDITOR
 using System;
 using System.Diagnostics;
 using System.IO;

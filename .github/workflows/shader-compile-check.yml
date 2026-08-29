@@ -57,6 +57,14 @@ jobs:
             project: urp17-latest
             unity: 6000.5.8f1
             pipeline: urp
+          - name: HDRP 14 - Unity 2022.3
+            project: hdrp14-2022
+            unity: 2022.3.62f2
+            pipeline: hdrp
+          - name: HDRP 17.5 - Unity 6000.5
+            project: hdrp17-latest
+            unity: 6000.5.8f1
+            pipeline: hdrp
 
     steps:
       - name: Checkout project and packages

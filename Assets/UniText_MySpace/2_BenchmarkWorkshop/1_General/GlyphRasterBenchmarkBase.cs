@@ -7,7 +7,6 @@ using LightSide;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 using LightSide.Benchmark;
@@ -26,14 +25,11 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
     public int previewFrames = 8;
 
     [Header("Profiling")]
-    [Tooltip("After the timed runs, do one extra rasterization recorded through Prof. Deep call tree only when the engine assembly is IL-woven (Window/LightSide/Profiler Weaver).")]
+    [Tooltip("After the timed runs, do one extra rasterization recorded through Prof. Tree depth follows the engine's manual zones (UniText: UNITEXT_PROFILE).")]
     public bool captureProfile;
 
-    [Tooltip("Also record per-method allocation. Costs a native probe on every woven call — very slow on million-call hot paths. Leave off for a fast time-only tree.")]
+    [Tooltip("Also record per-zone allocation. Costs an allocation probe on every zone — leave off for a fast time-only tree.")]
     public bool captureAlloc;
-
-    [Tooltip("Also take a native statistical sample profile of this pass — zero per-call overhead, works without weaving. Needs the native sampler plugin; managed frame names resolve in a standalone IL2CPP build. Exports a Chrome trace for Perfetto/speedscope.")]
-    public bool captureSample;
 
     [Header("Status")]
     [SerializeField] protected bool isRunning;
@@ -318,7 +314,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
                     $"glyph-{EngineName}{(CurrentFontLabel != null ? $"-{CurrentFontLabel}" : "")}{(mode != null ? $"-{mode}" : "")}-{tag}");
             }
 
-            if (captureProfile || captureSample) yield return CaptureProfilePass();
+            if (captureProfile) yield return CaptureProfilePass();
 
             CompleteResults(frameTimes, e2eTimes, glyphCounts, executionSamples,
                 totalManagedAlloc, mode);
@@ -383,8 +379,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
                 warmupIterations = warmupIterations,
                 previewFrames = previewFrames,
                 captureProfile = captureProfile,
-                captureAlloc = captureAlloc,
-                captureSample = captureSample
+                captureAlloc = captureAlloc
             },
             executionSamples = executionSamples
         };
@@ -396,7 +391,7 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         Debug.Log(lastResult);
     }
 
-    /// <summary>One extra rasterization, off the timing stats, recorded through the instrumentation sink (<see cref="Prof"/>) and/or the native statistical sampler (<see cref="ProfSampler"/>). Instrumentation gives a deep tree only when the engine assembly is IL-woven; sampling needs no weaving and costs nothing per call. Outputs are saved beside the results.</summary>
+    /// <summary>One extra rasterization, off the timing stats, recorded through the instrumentation sink (<see cref="Prof"/>). Tree depth follows the engine's manual zones. The capture is saved beside the results.</summary>
     private IEnumerator CaptureProfilePass()
     {
         Deactivate();
@@ -405,40 +400,23 @@ public abstract class GlyphRasterBenchmarkBase : MonoBehaviour
         yield return null;
         ResetExecutionDiagnostics();
 
-        bool sampling = captureSample && ProfSampler.Available;
-        if (sampling) { ProfSampler.Clear(); ProfSampler.Arm(); }
-
-        if (captureProfile)
-        {
-            Prof.SampleAlloc = captureAlloc;
-            if (captureAlloc) ProfExactAlloc.Begin();
-            Prof.BeginCapture();
-        }
+        Prof.SampleAlloc = captureAlloc;
+        if (captureAlloc) ProfExactAlloc.Begin();
+        Prof.BeginCapture();
 
         try
         {
             Rasterize();
             if (HasE2E) yield return AwaitAsyncCompletion(0f);
 
-            if (captureProfile)
-            {
-                var capture = Prof.EndCapture();
-                ProfExactAlloc.End();
-                ProfTransport.Ship(capture.ToJson(), $"prof/{BenchmarkRun.Id}/profile_{EngineName}.json");
-            }
-
-            if (sampling)
-            {
-                ProfSampler.Disarm();
-                ProfSampler.Drain();
-                ProfTransport.Ship(ProfSampler.BuildSampledCapture().ToChromeTrace(), $"prof/{BenchmarkRun.Id}/profile_{EngineName}_sampled.trace.json");
-            }
+            var capture = Prof.EndCapture();
+            ProfExactAlloc.End();
+            ProfTransport.Ship(capture.ToJson(), $"prof/{BenchmarkRun.Id}/profile_{EngineName}.json");
         }
         finally
         {
             if (Prof.Capturing) Prof.EndCapture();
             ProfExactAlloc.End();
-            if (ProfSampler.Sampling) ProfSampler.Disarm();
         }
     }
 

@@ -534,7 +534,7 @@ public abstract class TextBenchmarkBase : MonoBehaviour
             }
             if (captureProfile)
             {
-                if (Prof.Capturing) Prof.EndCapture(false);
+                if (Prof.Capturing) Prof.EndCapture();
                 ProfCounters.Release();
                 Prof.ReleaseCaptureBuffers();
             }
@@ -1314,7 +1314,7 @@ public abstract class TextBenchmarkBase<TInstance> : TextBenchmarkBase where TIn
         }
         finally
         {
-            capture = Prof.Capturing ? Prof.EndCapture(false) : null;
+            capture = Prof.Capturing ? Prof.EndCapture() : null;
             if (ProfCounters.Armed)
             {
                 ProfCounters.Disarm();

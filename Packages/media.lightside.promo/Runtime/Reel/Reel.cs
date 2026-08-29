@@ -177,23 +177,18 @@ namespace LightSide.Promo
             Seek(time);
         }
 
+        private Action advanceCallback;
+        private TickHandle advanceHandle;
+
         private void OnEnable()
         {
             ApplyFrame();
-            CoreLoop.Updating += Advance;
-#if UNITY_EDITOR
-            CoreLoop.EditorUpdating += Advance;
-#endif
+            CoreLoop.Updating.Toggle(ref advanceHandle, advanceCallback ??= Advance, true);
             Seek(time);
         }
 
-        private void OnDisable()
-        {
-            CoreLoop.Updating -= Advance;
-#if UNITY_EDITOR
-            CoreLoop.EditorUpdating -= Advance;
-#endif
-        }
+        private void OnDisable() =>
+            CoreLoop.Updating.Toggle(ref advanceHandle, advanceCallback, false);
 
         /// <summary>
         /// Advances the playhead from <see cref="CoreLoop"/>, which is the only clock that ticks in edit mode as
