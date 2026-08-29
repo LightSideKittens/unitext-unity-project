@@ -10,18 +10,31 @@ namespace LightSide.Promo
         /// A labelled bar. <paramref name="fraction"/> is how full it settles, and
         /// <paramref name="highlight"/> marks the row the shot is arguing for.
         /// </summary>
-        public MeterEntry(string label, string value, float fraction, bool highlight = false)
+        public MeterEntry(string label, string value, float fraction, bool highlight = false,
+            Color fill = default)
         {
             Label = label;
             Value = value;
             Fraction = fraction;
             Highlight = highlight;
+            Fill = fill;
         }
 
         public string Label { get; }
         public string Value { get; }
         public float Fraction { get; }
         public bool Highlight { get; }
+
+        /// <summary>
+        /// The bar's own colour, or a default one to take the brand ramp instead.
+        /// </summary>
+        /// <remarks>
+        /// For the rare row whose colour carries meaning of its own — a cost against a saving — rather than simply
+        /// marking which row the shot argues for.
+        /// </remarks>
+        public Color Fill { get; }
+
+        internal bool HasFill => Fill.a > 0f;
     }
 
     /// <summary>
@@ -168,8 +181,11 @@ namespace LightSide.Promo
                 new Vector2(0f, -caption - size * 0.28f), new Vector2(0f, barHeight));
 
             var fill = Bar(track);
-            if (!entry.Highlight && fill.TryGetComponent<UniShape>(out var shape))
-                Solid(FillOf(shape), Theme.TextSoft);
+            if (fill.TryGetComponent<UniShape>(out var shape))
+            {
+                if (entry.HasFill) Solid(FillOf(shape), entry.Fill);
+                else if (!entry.Highlight) Solid(FillOf(shape), Theme.TextSoft);
+            }
 
             return new Meters.Row(rect, label, value, fill, Mathf.Clamp01(entry.Fraction));
         }

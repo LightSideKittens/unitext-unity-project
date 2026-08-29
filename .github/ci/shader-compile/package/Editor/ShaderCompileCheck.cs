@@ -30,25 +30,30 @@ namespace LightSide.CI
         [Test, Timeout(3600000)]
         public void AllShadersCompileWithoutWarningsOrErrors()
         {
-            var expectedPipeline = GetCommandLineValue("-expectedRenderPipeline");
-            Assert.IsNotEmpty(expectedPipeline, "-expectedRenderPipeline is required.");
+            var expectedPipeline = RequireExpectedPipeline();
+            HdrpFixture.EnsureImported(expectedPipeline);
 
             var compiler = new ShaderCompiler();
-            var shaderPaths = FindShaderPaths();
+            var shaderPaths = FindShaderPaths(expectedPipeline);
             var diagnostics = new HashSet<string>(StringComparer.Ordinal);
             var urp = UrpContext.Create(expectedPipeline);
             var previousColorSpace = PlayerSettings.colorSpace;
 
+            // HDRP is Linear-only; a Gamma sweep there would compile a configuration the pipeline forbids.
+            var colorSpaces = IsHdrp(expectedPipeline)
+                ? new[] { ColorSpace.Linear }
+                : new[] { ColorSpace.Gamma, ColorSpace.Linear };
+
             try
             {
-                var renderingModes = urp == null ? new[] { "Built-in" } : urp.RenderingModes;
+                var renderingModes = urp == null ? new[] { expectedPipeline } : urp.RenderingModes;
                 Debug.Log("Shader compiler matrix: Unity " + Application.unityVersion
                     + ", pipeline modes: " + string.Join(", ", renderingModes)
-                    + ", color spaces: Gamma, Linear"
+                    + ", color spaces: " + string.Join(", ", colorSpaces)
                     + ", compiler platforms: " + string.Join(", ", compiler.Platforms)
                     + ", shaders: " + shaderPaths.Length + ".");
 
-                foreach (var colorSpace in new[] { ColorSpace.Gamma, ColorSpace.Linear })
+                foreach (var colorSpace in colorSpaces)
                 {
                     PlayerSettings.colorSpace = colorSpace;
                     foreach (var renderingMode in renderingModes)
@@ -77,7 +82,103 @@ namespace LightSide.CI
                 diagnostics.Count + " shader compiler warning(s) or error(s) were found. The complete list is printed above.");
         }
 
-        private static string[] FindShaderPaths()
+        /// <summary>
+        /// A shader can compile cleanly and still render magenta: when no SubShader matches the active
+        /// pipeline, or the matched one only carries legacy LightMode passes an SRP draws with the error
+        /// shader, the failure produces zero compiler messages. This asserts, per shader, that the
+        /// SubShader the fixture's pipeline would select exists and every one of its passes is drawable there.
+        /// </summary>
+        [Test, Timeout(600000)]
+        public void ActivePipelineSelectsDrawableSubShaders()
+        {
+            var expectedPipeline = RequireExpectedPipeline();
+            HdrpFixture.EnsureImported(expectedPipeline);
+
+            var pipelineTag = ExpectedPipelineTag(expectedPipeline);
+            var builtin = pipelineTag.Length == 0;
+            var renderPipelineTag = new ShaderTagId("RenderPipeline");
+            var lightModeTag = new ShaderTagId("LightMode");
+            var failures = new List<string>();
+
+            foreach (var shaderPath in FindShaderPaths(expectedPipeline))
+            {
+                var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
+                if (shader == null)
+                {
+                    failures.Add(shaderPath + " | failed to load.");
+                    continue;
+                }
+
+                var selected = -1;
+                for (var index = 0; index < shader.subshaderCount; index++)
+                {
+                    var tag = shader.FindSubshaderTagValue(index, renderPipelineTag).name;
+                    if (!string.IsNullOrEmpty(tag) && !string.Equals(tag, pipelineTag, StringComparison.Ordinal))
+                        continue;
+                    selected = index;
+                    break;
+                }
+
+                if (selected < 0)
+                {
+                    failures.Add(shaderPath + " | no SubShader is selectable for '" + expectedPipeline
+                        + "' (every SubShader is tagged for another pipeline) — it renders magenta there.");
+                    continue;
+                }
+
+                if (builtin)
+                    continue;
+
+                var passCount = shader.GetPassCountInSubshader(selected);
+                for (var pass = 0; pass < passCount; pass++)
+                {
+                    var lightMode = shader.FindPassTagValue(selected, pass, lightModeTag).name;
+                    if (Array.IndexOf(legacyOnlyLightModes, lightMode) < 0)
+                        continue;
+                    failures.Add(shaderPath + " | SubShader " + selected + " pass " + pass
+                        + " has legacy LightMode '" + lightMode + "', which '" + expectedPipeline
+                        + "' draws with the error shader — it renders magenta there.");
+                }
+            }
+
+            foreach (var failure in failures)
+                Debug.Log("[SubShader selection] " + failure);
+
+            Assert.IsEmpty(failures,
+                failures.Count + " shader(s) are not drawable under the '" + expectedPipeline
+                + "' pipeline. The complete list is printed above.");
+        }
+
+        /// <summary>LightMode tags only the Built-in pipeline draws; SRPs render such passes with the magenta error shader.</summary>
+        private static readonly string[] legacyOnlyLightModes =
+        {
+            "Always", "ForwardBase", "ForwardAdd", "PrepassBase", "PrepassFinal",
+            "Vertex", "VertexLMRGBM", "VertexLM"
+        };
+
+        private static string RequireExpectedPipeline()
+        {
+            var expectedPipeline = GetCommandLineValue("-expectedRenderPipeline");
+            Assert.IsNotEmpty(expectedPipeline, "-expectedRenderPipeline is required.");
+            return expectedPipeline;
+        }
+
+        private static bool IsHdrp(string expectedPipeline)
+            => string.Equals(expectedPipeline, "hdrp", StringComparison.OrdinalIgnoreCase);
+
+        private static string ExpectedPipelineTag(string expectedPipeline)
+        {
+            if (string.Equals(expectedPipeline, "builtin", StringComparison.OrdinalIgnoreCase))
+                return "";
+            if (string.Equals(expectedPipeline, "urp", StringComparison.OrdinalIgnoreCase))
+                return "UniversalPipeline";
+            if (IsHdrp(expectedPipeline))
+                return "HDRenderPipeline";
+            Assert.Fail("Unknown expected render pipeline: " + expectedPipeline);
+            return null;
+        }
+
+        private static string[] FindShaderPaths(string expectedPipeline)
         {
             var shaderPaths = new List<string>();
 
@@ -91,6 +192,13 @@ namespace LightSide.CI
             foreach (var packageRoot in optionalShaderRoots)
                 shaderPaths.AddRange(FindShadersUnder(packageRoot));
 
+            if (IsHdrp(expectedPipeline))
+            {
+                var hdrpShaders = FindShadersUnder(HdrpFixture.TargetFolder);
+                Assert.IsNotEmpty(hdrpShaders, "No HDRP shader assets were found under " + HdrpFixture.TargetFolder + ".");
+                shaderPaths.AddRange(hdrpShaders);
+            }
+
             return shaderPaths
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
@@ -100,9 +208,44 @@ namespace LightSide.CI
         private static string[] FindShadersUnder(string packageRoot)
             => AssetDatabase.FindAssets("t:Shader", new[] { packageRoot })
                 .Select(AssetDatabase.GUIDToAssetPath)
-                .Where(path => path.EndsWith(".shader", StringComparison.OrdinalIgnoreCase))
+                .Where(path => path.EndsWith(".shader", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".shadergraph", StringComparison.OrdinalIgnoreCase))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
+
+        /// <summary>
+        /// Mirrors the package's own HDRP delivery: the graphs live in Core's hidden Samples~ folder
+        /// (a .shadergraph in the always-imported tree breaks Built-in-only imports) and are copied
+        /// into Assets before use — here explicitly, because the fixture has no active HDRP asset
+        /// to trigger the editor's automatic copy.
+        /// </summary>
+        private static class HdrpFixture
+        {
+            internal const string TargetFolder = "Assets/LightSide/HDRP";
+            private const string SourceFolder = "Packages/media.lightside.core/Samples~/HDRP";
+
+            internal static void EnsureImported(string expectedPipeline)
+            {
+                if (!IsHdrp(expectedPipeline)) return;
+
+                var source = FileUtil.GetPhysicalPath(SourceFolder);
+                Assert.IsTrue(System.IO.Directory.Exists(source),
+                    "HDRP shader sources are missing from the package: " + SourceFolder);
+
+                System.IO.Directory.CreateDirectory(TargetFolder);
+                var copied = false;
+                foreach (var file in System.IO.Directory.GetFiles(source))
+                {
+                    var target = System.IO.Path.Combine(TargetFolder, System.IO.Path.GetFileName(file));
+                    if (System.IO.File.Exists(target)) continue;
+                    System.IO.File.Copy(file, target);
+                    copied = true;
+                }
+
+                if (copied)
+                    AssetDatabase.ImportAsset(TargetFolder, ImportAssetOptions.ImportRecursive);
+            }
+        }
 
         private static string GetCommandLineValue(string argument)
         {
@@ -246,6 +389,16 @@ namespace LightSide.CI
                 {
                     Assert.IsNull(rendererDataType, "The Built-in fixture unexpectedly contains URP.");
                     Assert.IsNull(pipelineAssetType, "The Built-in fixture unexpectedly contains URP.");
+                    return null;
+                }
+
+                if (IsHdrp(expectedPipeline))
+                {
+                    Assert.IsNull(rendererDataType, "The HDRP fixture unexpectedly contains URP.");
+                    var hdrpAssetType = Type.GetType(
+                        "UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset, "
+                        + "Unity.RenderPipelines.HighDefinition.Runtime", false);
+                    Assert.NotNull(hdrpAssetType, "The HDRP fixture does not contain HDRenderPipelineAsset.");
                     return null;
                 }
 

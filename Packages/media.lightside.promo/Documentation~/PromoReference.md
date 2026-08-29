@@ -662,6 +662,32 @@ ten digits. Roll a number; a word of letters sits perfectly still under the
 default wheel, and swapping in an alphabet buys a split-flap board rather than
 the odometer the effect is named for.
 
+### The showreel is one scene
+
+`Tools / Promo / Create Showreel` builds the second film: a single
+`ShowreelScene` slide (~21 s), not a slide list. Its phases hand off inside one
+timeline — the card grows out of the pressed button, the wall pours beside the
+card, the word slams in where the wall was — and every element that leaves is
+**thrown** (`Motion.Whip`) off-frame by position, never faded in place.
+
+Rules it lives by:
+
+- **The card lands once and never leaves.** It is the film's causal spine: each
+  effect a specimen takes has a row that drops into the card's Styles list on
+  the same beat, so the viewer sees a modifier being added rather than a video
+  effect. A row that runs ahead of, or behind, the layer it names breaks the
+  only claim the reel is making. Rows leave with the specimen they described.
+
+- Every phase time derives from `press = Aim + timeline.Mark("press")` in
+  `Schedule()`; the scene sets its own `Seconds`. Never type a phase time.
+- `Motion` (Showreel folder) is its curve vocabulary — `Back`, `Punch`, `Whip`,
+  `Snap`, `Meter`. Every curve overshoots or anticipates; the argument reel's
+  Material tokens are deliberately not used here.
+- The `world` node under Content is the camera: strike knocks scale it ±1.2 %.
+  The backdrop stays on `stage.Root`, outside the shake.
+- Clusters park off-frame when inactive (`payload` at −0.55 W) and their pose
+  writes run every frame, so any frame scrubs correctly in isolation.
+
 ### Writing the lines on screen
 
 A headline names what the viewer **gets**, in the plainest words available.
@@ -778,6 +804,19 @@ changes still use `SetText`, which does not dirty the scene.
 - **A Screen Space – Camera canvas sizes itself from the camera's current render
   target.** Bind the RenderTexture *before* `Canvas.ForceUpdateCanvases`, or the
   frame is laid out for the Game View and photographed at another size.
+- **A stray graphic over the reel is a leftover scene object, never a label this
+  package made.** `Stage.Label` assigns `Text` and `color` on every label it
+  builds, so nothing it creates can carry content or a colour from anywhere
+  else — and the shipped `Text (UniText)` template a new component seeds itself
+  from is plain white with an empty `styles` list, so the seeding cannot supply
+  one either. Both build commands replace only their own root object and clear
+  nothing else, and a Screen Space – Overlay canvas elsewhere in the scene draws
+  over the reel's camera regardless of its culling mask. Look outside the rig
+  first; nothing inside it can produce a graphic no phase drives.
+
+Available reveal handlers are `Fade`, `Scale`, `Slide`, `Spin`, `Tint`, `Pop`,
+`Drop`, `Domino`, `Flip`, `Stretch`, `Swing`, `Spiral` and `Composite`. There is
+no burst and no glitch.
 
 A slide is posed by **two** transitions over its life — its own (which brings it
 in) and the next slide's (which takes it out) — so the reel restores every slide
