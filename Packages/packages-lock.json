@@ -298,8 +298,18 @@
         "com.unity.collections": "1.2.4",
         "com.unity.mathematics": "1.2.6",
         "com.unity.ugui": "1.0.0",
-        "com.unity.modules.ui": "1.0.0",
-        "com.unity.nuget.newtonsoft-json": "3.2.2"
+        "com.unity.modules.ui": "1.0.0"
+      }
+    },
+    "media.lightside.moveit": {
+      "version": "file:media.lightside.moveit",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "media.lightside.core": "3.2.1",
+        "com.unity.burst": "1.6.0",
+        "com.unity.collections": "1.2.4",
+        "com.unity.mathematics": "1.2.6"
       }
     },
     "media.lightside.promo": {

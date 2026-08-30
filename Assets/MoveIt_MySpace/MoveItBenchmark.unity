@@ -509,7 +509,7 @@ MonoBehaviour:
       m_Calls: []
   text: 95
   font: {fileID: 11400000, guid: 4556b65ca5e2daf439a561b425787f34, type: 2}
-  fontStack: {fileID: 11400000, guid: edef3c3dbb909476aa21f353635399ae, type: 2}
+  fontStack: {fileID: 0}
   fontSize: 36
   wordWrap: 1
   padding: {x: 0, y: 0, z: 0, w: 0}
@@ -667,6 +667,7 @@ RectTransform:
   - {fileID: 1322233833}
   - {fileID: 952162112}
   - {fileID: 1114190951}
+  - {fileID: 1317916132}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -947,6 +948,179 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1114190950}
+  m_CullTransparentMesh: 1
+--- !u!1 &1317916131
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1317916132}
+  - component: {fileID: 1317916136}
+  - component: {fileID: 1317916135}
+  - component: {fileID: 1317916134}
+  - component: {fileID: 1317916133}
+  m_Layer: 5
+  m_Name: Editable Text (UniText)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1317916132
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1317916131}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 838490247}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 220, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1317916133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1317916131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc1333b5b590af44b4c869dab470954, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextEditable
+  caretRenderer: {fileID: 0}
+  readOnly: 0
+  behaviors:
+    items: []
+  behaviorPresets:
+    items: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &1317916134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1317916131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22327851aa2916949b07f9d7a33d0f72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextSelectable
+  selectionHighlight:
+    provider:
+      rid: -2
+    paint:
+      kind: 1
+      color:
+        serializedVersion: 2
+        rgba: 1728020531
+      swatch: 
+    geometryMapping: 2
+    paintMapping: 0
+    shape: -1
+    fit: -1
+    angle: NaN
+    scale: NaN
+    paintOffset: {x: NaN, y: NaN}
+    height: 0
+    padding:
+      value: {x: 0, y: 0}
+      unit: 2
+    cornerRadius:
+      value: 0
+      unit: 2
+    mergeThreshold:
+      value: 0
+      unit: 2
+    order: 0
+    tint:
+      serializedVersion: 2
+      rgba: 4294967295
+    blend: -1
+    spread: -1
+  selectionHandles:
+    rid: 9100000000000000001
+  magnifier:
+    rid: -2
+  contextMenu:
+    rid: 9100000000000000002
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 9100000000000000001
+      type: {class: PrefabSelectionHandles, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 169224010249758145, guid: 950131bcf4d81a14f85e2ed9ae38ee42, type: 3}
+    - rid: 9100000000000000002
+      type: {class: PrefabTextContextMenu, ns: LightSide, asm: LightSide.UniText}
+      data:
+        prefab: {fileID: 5908307679084167090, guid: 0a611fc55084c6049a7bf7794b596adf, type: 3}
+--- !u!114 &1317916135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1317916131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: beaa34cb0e58d624bb3a264b28600785, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.UniText
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  text: Editable text
+  font: {fileID: 0}
+  fontStack: {fileID: 0}
+  fontSize: 36
+  wordWrap: 1
+  padding: {x: 0, y: 0, z: 0, w: 0}
+  horizontalAlignment: 0
+  verticalAlignment: 0
+  autoSize: 0
+  minFontSize: 10
+  maxFontSize: 72
+  fitSteps:
+    items: []
+  styles:
+    items: []
+  stylePresets:
+    items: []
+  useGlobalStylePreset: 1
+  renderMode: 0
+  references:
+    version: 2
+    RefIds: []
+--- !u!222 &1317916136
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1317916131}
   m_CullTransparentMesh: 1
 --- !u!1 &1322233832
 GameObject:
@@ -1234,32 +1408,33 @@ MonoBehaviour:
   contextRoot: {fileID: 2135000006}
   adapters:
   - rid: 2135000007
-  - rid: 2135000008
-  - rid: 2135000009
-  sharedMotionCount: 160000
-  keyedFloatCount: 200000
-  distinctTransformCount: 100000
-  sequenceCount: 7000
+  - rid: 2064119347236831456
+  - rid: 2064119347236831457
+  sharedMotionCount: 320000
+  keyedFloatCount: 400000
+  distinctTransformCount: 200000
+  sequenceCount: 14000
   sequenceLength: 16
   steadyMotionDuration: 72000
   warmupFrames: 60
-  measuredFrames: 60
-  creationBatchSize: 32000
+  measuredFrames: 120
+  creationBatchSize: 64000
   creationWarmupBatches: 3
   creationSamples: 32
   settleGarbage: 0
-  measurePhaseDetail: 0
+  measurePhaseDetail: 1
+  workloadFilter: 
   references:
     version: 2
     RefIds:
     - rid: 2135000007
       type: {class: LightSideMotionBenchmarkAdapter, ns: , asm: MoveIt.Benchmark}
       data: 
-    - rid: 2135000008
-      type: {class: PrimeTweenMotionBenchmarkAdapter, ns: , asm: MoveIt.Benchmark}
-      data: 
-    - rid: 2135000009
+    - rid: 2064119347236831456
       type: {class: LitMotionMotionBenchmarkAdapter, ns: , asm: MoveIt.Benchmark}
+      data: 
+    - rid: 2064119347236831457
+      type: {class: PrimeTweenMotionBenchmarkAdapter, ns: , asm: MoveIt.Benchmark}
       data: 
 --- !u!1 &2135000003
 GameObject:

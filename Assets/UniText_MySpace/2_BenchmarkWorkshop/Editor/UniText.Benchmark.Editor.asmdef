@@ -2,7 +2,6 @@
     "name": "UniText.Benchmark.Editor",
     "rootNamespace": "",
     "references": [
-        "LightSide.Benchmark",
         "LightSide.Benchmark.Editor"
     ],
     "includePlatforms": [

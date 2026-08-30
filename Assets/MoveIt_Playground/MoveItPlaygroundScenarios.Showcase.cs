@@ -2,7 +2,7 @@ using System;
 using LightSide;
 using UnityEngine;
 using static LightSide.EasingType;
-using static LightSide.MoveItCycle;
+using static LightSide.MotionCycle;
 using Random = UnityEngine.Random;
 
 /// <summary>Every channel of one transform driven at once, each on its own curve and cycle.</summary>
@@ -51,6 +51,7 @@ public sealed class EaseGalleryScenario : MoveItPlaygroundScenario
                 eases[i].ToString());
             sphere.localScale = Vector3.one * 0.7f;
             sphere.MoveXTo(origin.x + 0.8f, eases[i].Over(1.6f)).Loop();
+            stage.Label(origin + new Vector3(0.4f, -0.52f, 0f), eases[i].ToString(), 0.1f);
         }
 
         stage.Say($"{eases.Length} easing curves running in lock-step");
@@ -76,6 +77,8 @@ public sealed class CycleModeScenario : MoveItPlaygroundScenario
             cube.localScale = Vector3.one * 0.6f;
             cube.MoveXTo(origin.x + 2f, QuadraticInOut.Over(1.2f))
                 .Loop(modes[i]);
+            stage.Label(new Vector3(origin.x - 0.8f, origin.y, 0f), modes[i].ToString(), 0.22f,
+                TextAnchor.MiddleRight);
         }
 
         stage.Say("four repeat modes on identical motions");
@@ -149,6 +152,9 @@ public sealed class SequenceTheatreScenario : MoveItPlaygroundScenario
         var a = stage.Spawn(PrimitiveType.Cube, new Vector3(-3f, 0f, 0f), new Color(1f, 0.4f, 0.4f), "Chain");
         var b = stage.Spawn(PrimitiveType.Sphere, new Vector3(0f, 0f, 0f), new Color(0.4f, 1f, 0.4f), "Group");
         var c = stage.Spawn(PrimitiveType.Capsule, new Vector3(3f, 0f, 0f), new Color(0.4f, 0.6f, 1f), "Insert");
+        stage.Label(new Vector3(-3f, -0.9f, 0f), "Chain + Prepend", 0.18f);
+        stage.Label(new Vector3(0f, -0.9f, 0f), "Group + Insert", 0.18f);
+        stage.Label(new Vector3(3f, -0.9f, 0f), "Chain after delay", 0.18f);
 
         sequence = MoveItSequence.Create()
             .Chain(a.MoveYTo(2.5f, BackOut.Over(0.8f)))
@@ -268,6 +274,8 @@ public sealed class ClockAndPhaseScenario : MoveItPlaygroundScenario
                 clocks[i].ToString());
             cube.localScale = Vector3.one * 0.6f;
             cube.MoveXTo(origin.x + 3f, 1.5f).On(clocks[i]).Loop();
+            stage.Label(new Vector3(origin.x - 0.8f, origin.y, 0f), clocks[i].ToString(), 0.2f,
+                TextAnchor.MiddleRight);
         }
 
         var phases = new[] { MoveItUpdatePhase.Update, MoveItUpdatePhase.FixedUpdate, MoveItUpdatePhase.LateUpdate };
@@ -279,6 +287,7 @@ public sealed class ClockAndPhaseScenario : MoveItPlaygroundScenario
             sphere.localScale = Vector3.one * 0.6f;
             sphere.MoveYTo(-0.3f, SineInOut.Over(0.9f))
                 .On(phases[i]).Loop();
+            stage.Label(new Vector3(origin.x, -2.35f, 0f), phases[i].ToString(), 0.16f);
         }
 
         stage.Say("two clocks and all three update phases running together");
@@ -362,6 +371,7 @@ public sealed class PriorityDuelScenario : MoveItPlaygroundScenario
     public override void Enter(MoveItStage stage)
     {
         contested = stage.Spawn(PrimitiveType.Cube, Vector3.zero, new Color(1f, 0.35f, 0.6f), "Contested");
+        stage.Label(new Vector3(0f, 1.6f, 0f), "one axis, two Replace claims — the newest wins", 0.2f);
         contested.MoveXTo(-3f, SineInOut.Over(2f)).Loop();
         nextChallenger = 1.5f;
         stage.Say("incumbent claims position.x forever");
@@ -375,5 +385,208 @@ public sealed class PriorityDuelScenario : MoveItPlaygroundScenario
         contested.MoveXTo(3f, BackOut.Over(0.8f));
         stage.Check(MoveIt.Count(contested) >= 2, "both claims coexist on the contested channel");
         stage.Say($"round {rounds}: a challenger joined the same channel");
+    }
+}
+
+/// <summary>
+/// Composition modes on every batched sink: an Add bob riding a Replace base, a Multiply pulse on scale,
+/// and an additive colour flash on a property block — with the Add claim removed live to prove the base
+/// comes back untouched.
+/// </summary>
+[Serializable]
+public sealed class CompositionScenario : MoveItPlaygroundScenario
+{
+    private Transform reference;
+    private Transform composed;
+    private MoveIt bob;
+    private float phaseStart;
+    private bool comparing;
+
+    public override string Title => "Composition modes";
+
+    public override string Watch =>
+        "The two left cubes share one base motion; the second also carries an Add bob that comes and goes. " +
+        "Right: a Multiply pulse on scale and an additive colour flash.";
+
+    public override void Enter(MoveItStage stage)
+    {
+        reference = stage.Spawn(PrimitiveType.Cube, new Vector3(-4.2f, 0f, 0f),
+            new Color(0.45f, 0.7f, 1f), "ReplaceOnly");
+        composed = stage.Spawn(PrimitiveType.Cube, new Vector3(-2.4f, 0f, 0f),
+            new Color(0.45f, 1f, 0.7f), "BasePlusAdd");
+        stage.Label(new Vector3(-4.2f, -0.9f, 0f), "Replace only", 0.17f);
+        stage.Label(new Vector3(-2.4f, -0.9f, 0f), "base + Add bob", 0.17f);
+
+        reference.MoveYTo(2f, SineInOut.Over(1.8f)).Loop();
+        composed.MoveYTo(2f, SineInOut.Over(1.8f)).Loop();
+        StartBob(stage);
+        phaseStart = 0f;
+
+        var pulse = stage.Spawn(PrimitiveType.Sphere, new Vector3(0.6f, 0.6f, 0f),
+            new Color(1f, 0.75f, 0.35f), "MultiplyPulse");
+        stage.Label(new Vector3(0.6f, -0.9f, 0f), "scale × Multiply", 0.17f);
+        pulse.ScaleTo(1.7f, QuadraticInOut.Over(1.6f)).Loop();
+        stage.CheckSurvives(() => pulse.ScaleTo(1.3f, SineInOut.Over(0.35f)).Loop()
+                .Compose(MoveItComposition.Multiply),
+            "multiplying a scale on top of a Replace base");
+
+        var glow = stage.Spawn(PrimitiveType.Sphere, new Vector3(3f, 0.6f, 0f), Color.black, "AddGlow");
+        stage.Label(new Vector3(3f, -0.9f, 0f), "colour + Add flash", 0.17f);
+        var renderer = glow.GetComponent<Renderer>();
+        renderer.ColorTo(new Color(0.15f, 0.35f, 0.9f), QuadraticInOut.Over(2.4f)).Loop();
+        stage.CheckSurvives(() => renderer.ColorTo(new Color(0.55f, 0.35f, 0.05f), SineInOut.Over(0.5f))
+                .Loop().Compose(MoveItComposition.Add),
+            "adding a colour flash on top of a property-block base");
+
+        stage.Say("relative claims stack instead of fighting for the channel");
+    }
+
+    private void StartBob(MoveItStage stage)
+    {
+        stage.CheckSurvives(() => bob = composed.MoveYTo(0.45f, SineInOut.Over(0.27f)).Loop()
+                .Compose(MoveItComposition.Add),
+            "adding a position bob on top of a Replace base");
+        stage.Check(MoveIt.Count(composed) == 2, "the base and the Add bob coexist on one channel");
+    }
+
+    public override void Tick(MoveItStage stage)
+    {
+        if (reference == null || composed == null) return;
+        var phase = stage.Elapsed - phaseStart;
+
+        if (!comparing && phase >= 4f)
+        {
+            comparing = true;
+            bob.Stop();
+            stage.Say("Add bob removed — the composed cube must fall back to the base");
+        }
+
+        if (comparing && phase >= 4.5f)
+            stage.Check(Mathf.Abs(composed.position.y - reference.position.y) < 0.05f,
+                "removing the Add claim returns the target to the pure base value");
+
+        if (phase < 6f) return;
+        phaseStart = stage.Elapsed;
+        comparing = false;
+        StartBob(stage);
+        stage.Say("Add bob re-attached");
+    }
+
+    public override void Exit()
+    {
+        reference = null;
+        composed = null;
+        bob = default;
+    }
+}
+
+/// <summary>
+/// Endless motions living inside sequences: a finite timeline that holds forever while its endless child
+/// keeps looping, against a looping timeline that cuts and restarts its endless child every pass.
+/// </summary>
+[Serializable]
+public sealed class EndlessChildrenScenario : MoveItPlaygroundScenario
+{
+    private MoveItSequence coda;
+    private MoveItSequence cutter;
+    private Transform slider;
+    private Transform spinner;
+    private Transform dropper;
+    private Quaternion previousSpin;
+    private float spunInCoda;
+    private float phaseStart;
+    private bool completed;
+
+    public override string Title => "Endless children";
+
+    public override string Watch =>
+        "Top: the intro ends, the timeline holds, the spinner never stops — until Complete lands it. " +
+        "Bottom: a looping timeline restarts its endless child every pass.";
+
+    public override void Enter(MoveItStage stage)
+    {
+        slider = stage.Spawn(PrimitiveType.Cube, new Vector3(-4.5f, 1.3f, 0f),
+            new Color(1f, 0.55f, 0.4f), "Intro");
+        spinner = stage.Spawn(PrimitiveType.Cube, new Vector3(0f, 1.3f, 0f),
+            new Color(0.4f, 0.9f, 1f), "EndlessSpin");
+        dropper = stage.Spawn(PrimitiveType.Sphere, new Vector3(3f, 0.2f, 0f),
+            new Color(0.7f, 1f, 0.5f), "Outro");
+        stage.Label(new Vector3(-4.5f, 0.4f, 0f), "intro", 0.16f);
+        stage.Label(new Vector3(0f, 0.4f, 0f), "endless spinner", 0.16f);
+        stage.Label(new Vector3(3f, -0.6f, 0f), "outro", 0.16f);
+
+        var bobHost = stage.Spawn(PrimitiveType.Cube, new Vector3(-4.5f, -2f, 0f),
+            new Color(1f, 0.85f, 0.4f), "LoopIntro");
+        var bobber = stage.Spawn(PrimitiveType.Sphere, new Vector3(0f, -2f, 0f),
+            new Color(1f, 0.5f, 0.8f), "CutBobber");
+        stage.Label(new Vector3(3.4f, -2f, 0f), "looping timeline\nrestarts its endless child", 0.15f);
+
+        Build(stage);
+        cutter = MoveItSequence.Create()
+            .Chain(bobHost.MoveXTo(-2.5f, QuadraticInOut.Over(1.2f)))
+            .Group(bobber.MoveYTo(-1.2f, SineInOut.Over(0.3f)).Loop())
+            .Loop(MotionCycle.Restart);
+    }
+
+    private void Build(MoveItStage stage)
+    {
+        slider.position = new Vector3(-4.5f, 1.3f, 0f);
+        spinner.localRotation = Quaternion.identity;
+        dropper.position = new Vector3(3f, 0.2f, 0f);
+        phaseStart = stage.Elapsed;
+        completed = false;
+        spunInCoda = 0f;
+        previousSpin = spinner.localRotation;
+
+        stage.CheckSurvives(() => coda = MoveItSequence.Create()
+                .Chain(slider.MoveXTo(-2.5f, BackOut.Over(0.8f)))
+                .Chain(spinner.RotateLocalTo(new Vector3(0f, 0f, 360f), 0.9f).Loop(Incremental))
+                .Chain(dropper.MoveYTo(2.2f, BounceOut.Over(0.7f))),
+            "adopting a motion that never ends");
+        stage.Check(!float.IsInfinity(coda.ContentDuration),
+            "an endless child occupies one cycle of content, not infinity");
+        stage.Check(float.IsInfinity(coda.Duration), "a timeline holding an endless child never ends on its own");
+        stage.Say($"content {coda.ContentDuration:0.00}s, duration infinite");
+    }
+
+    public override void Tick(MoveItStage stage)
+    {
+        if (coda == null || spinner == null) return;
+        var phase = stage.Elapsed - phaseStart;
+        var content = coda.ContentDuration;
+
+        if (coda.IsAlive && phase > content + 0.5f && phase < 8f)
+        {
+            spunInCoda += Quaternion.Angle(previousSpin, spinner.localRotation);
+            stage.Check(coda.CyclesDone == 0, "the held timeline never reports a finished cycle");
+            stage.Check(Mathf.Abs(coda.Playhead - content) < 0.02f, "the playhead holds at the content end");
+        }
+        previousSpin = spinner.localRotation;
+
+        if (!completed && phase >= 8f)
+        {
+            completed = true;
+            stage.Check(spunInCoda > 90f, "the endless child keeps spinning after the content ends");
+            stage.CheckSurvives(() => coda.Complete(), "completing a timeline that never ends on its own");
+        }
+
+        if (completed && phase >= 8.5f)
+        {
+            stage.Check(!coda.IsAlive, "Complete lands and ends the held timeline");
+            stage.Say("completed at the content-end pose; rebuilding");
+            Build(stage);
+        }
+
+        if (cutter != null && stage.Elapsed > 3f)
+            stage.Check(cutter.CyclesDone >= 1, "a looping timeline keeps cycling despite its endless child");
+    }
+
+    public override void Exit()
+    {
+        coda = null;
+        cutter = null;
+        slider = null;
+        spinner = null;
+        dropper = null;
     }
 }

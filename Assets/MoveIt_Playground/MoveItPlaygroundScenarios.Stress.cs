@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using LightSide;
 using UnityEngine;
 using static LightSide.EasingType;
-using static LightSide.MoveItCycle;
+using static LightSide.MotionCycle;
 using Random = UnityEngine.Random;
 
 /// <summary>Targets destroyed while motions are still driving them, by both destruction paths.</summary>
@@ -448,6 +448,7 @@ public sealed class DeadHandleScenario : MoveItPlaygroundScenario
 [Serializable]
 public sealed class IllegalOperationScenario : MoveItPlaygroundScenario
 {
+    private Transform target;
     private float nextRound;
     private int rounds;
 
@@ -460,13 +461,14 @@ public sealed class IllegalOperationScenario : MoveItPlaygroundScenario
 
     public override void Enter(MoveItStage stage)
     {
+        target = stage.Spawn(PrimitiveType.Cube, Vector3.zero, new Color(0.9f, 0.4f, 0.3f), "Refused");
         nextRound = 0f;
         rounds = 0;
     }
 
     public override void Tick(MoveItStage stage)
     {
-        if (stage.Elapsed < nextRound) return;
+        if (target == null || stage.Elapsed < nextRound) return;
         nextRound = stage.Elapsed + 1f;
         rounds++;
 
@@ -475,7 +477,7 @@ public sealed class IllegalOperationScenario : MoveItPlaygroundScenario
             "moving a null transform");
 
         var endlessZero = MoveItTiming.Of(0f);
-        endlessZero.Cycles = MoveItCycles.Infinite;
+        endlessZero.Cycles = MotionCycles.Infinite;
         stage.CheckThrows<ArgumentException>(
             () => MoveIt.Value(0f, 1f, endlessZero),
             "creating a zero-duration motion that repeats without end");
@@ -487,14 +489,20 @@ public sealed class IllegalOperationScenario : MoveItPlaygroundScenario
             () => rejected.Chain(owned),
             "adopting one motion into a second sequence");
 
-        var endlessTiming = MoveItTiming.Of(0.5f);
-        endlessTiming.Cycles = MoveItCycles.Infinite;
-        var endless = MoveIt.Value(0f, 1f, endlessTiming);
-        var rejectedEndless = MoveItSequence.Create();
+        var spin = target.RotateLocalTo(new Vector3(0f, 180f, 0f), 0.5f);
         stage.CheckThrows<ArgumentException>(
-            () => rejectedEndless.Chain(endless),
-            "adopting a motion that never ends");
-        endless.Stop();
+            () => spin.Compose(MoveItComposition.Multiply),
+            "multiplying a rotation, which has no multiplication");
+        spin.Stop();
+
+        var callbackValue = MoveIt.Value(0f, 1f, 0.5f);
+        stage.CheckThrows<InvalidOperationException>(
+            () => callbackValue.Compose(MoveItComposition.Add),
+            "composing a callback value, which owns no shared value");
+        stage.CheckThrows<ArgumentOutOfRangeException>(
+            () => callbackValue.Compose((MoveItComposition)9),
+            "an undefined composition mode");
+        callbackValue.Stop();
 
         var nested = MoveItSequence.Create().Chain(MoveIt.Value(0f, 1f, 0.4f));
         var parent = MoveItSequence.Create().Chain(nested);
@@ -505,9 +513,10 @@ public sealed class IllegalOperationScenario : MoveItPlaygroundScenario
         first.Stop();
         parent.Stop();
         rejected.Stop();
-        rejectedEndless.Stop();
         stage.Say($"round {rounds}: every documented refusal held");
     }
+
+    public override void Exit() => target = null;
 }
 
 /// <summary>Reduced-motion preference flipped underneath running motions.</summary>
@@ -538,6 +547,7 @@ public sealed class ReducedMotionScenario : MoveItPlaygroundScenario
             cube.localScale = Vector3.one * 0.6f;
             cube.MoveYTo(origin.y - 3f, SineInOut.Over(1.2f)).Loop();
         }
+        stage.Label(new Vector3(-4.2f, 1.5f, 0f), "ordinary — settles", 0.18f, TextAnchor.MiddleRight);
 
         for (var i = 0; i < 5; i++)
         {
@@ -547,6 +557,7 @@ public sealed class ReducedMotionScenario : MoveItPlaygroundScenario
             sphere.MoveYTo(origin.y + 1.5f, SineInOut.Over(1.2f))
                 .Essential().Loop();
         }
+        stage.Label(new Vector3(-4.2f, -2.5f, 0f), "Essential — keeps playing", 0.18f, TextAnchor.MiddleRight);
 
         stage.Say("top row is ordinary, bottom row is marked essential");
     }

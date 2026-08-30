@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "LightSide.Core",
-        "Unity.Collections"
+        "Unity.Collections",
+        "LightSide.MoveIt",
+        "LightSide.Motion"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

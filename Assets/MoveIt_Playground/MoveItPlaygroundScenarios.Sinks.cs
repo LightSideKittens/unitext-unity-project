@@ -3,7 +3,7 @@ using LightSide;
 using Unity.Collections;
 using UnityEngine;
 using static LightSide.EasingType;
-using static LightSide.MoveItCycle;
+using static LightSide.MotionCycle;
 using Random = UnityEngine.Random;
 
 /// <summary>
@@ -39,6 +39,11 @@ public sealed class SinkGamutScenario : MoveItPlaygroundScenario
             new Color(0.8f, 0.5f, 1f), "Relative");
         paced = stage.Spawn(PrimitiveType.Cube, new Vector3(4.5f, 0f, 0f),
             new Color(0.6f, 1f, 0.6f), "AtSpeed");
+
+        stage.Label(new Vector3(-4.5f, -2f, 0f), "native lane buffer", 0.16f);
+        stage.Label(new Vector3(-1.5f, -2f, 0f), "Animated<T> spring", 0.16f);
+        stage.Label(new Vector3(1.5f, -2f, 0f), "Relative offset", 0.16f);
+        stage.Label(new Vector3(4.5f, -2f, 0f), "AtSpeed pacing", 0.16f);
 
         settling = new Animated<Vector3>(animated.position, new Spring(140f, 14f));
         nextAim = 0f;

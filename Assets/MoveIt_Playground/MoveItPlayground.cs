@@ -16,7 +16,9 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class MoveItPlayground : MonoBehaviour
 {
-    [SerializeReference] private MoveItPlaygroundScenario[] scenarios =
+    [SerializeReference] private MoveItPlaygroundScenario[] scenarios = Defaults();
+
+    private static MoveItPlaygroundScenario[] Defaults() => new MoveItPlaygroundScenario[]
     {
         new ChannelChoirScenario(),
         new EaseGalleryScenario(),
@@ -24,10 +26,12 @@ public sealed class MoveItPlayground : MonoBehaviour
         new PhysicalDriverScenario(),
         new SequenceTheatreScenario(),
         new NestedSequenceScenario(),
+        new EndlessChildrenScenario(),
         new ScrubbingScenario(),
         new ClockAndPhaseScenario(),
         new GroupAndLabelScenario(),
         new PriorityDuelScenario(),
+        new CompositionScenario(),
         new SinkGamutScenario(),
         new ComponentGamutScenario(),
         new DestroyUnderFootScenario(),
@@ -40,6 +44,26 @@ public sealed class MoveItPlayground : MonoBehaviour
         new IllegalOperationScenario(),
         new ReducedMotionScenario(),
     };
+
+    /// <summary>A scene serialized before a scenario existed gains it at the end of its authored list.</summary>
+    private static MoveItPlaygroundScenario[] WithMissingDefaults(MoveItPlaygroundScenario[] configured)
+    {
+        var defaults = Defaults();
+        if (configured == null || configured.Length == 0) return defaults;
+
+        var merged = new List<MoveItPlaygroundScenario>(configured.Length + defaults.Length);
+        for (var i = 0; i < configured.Length; i++)
+            if (configured[i] != null)
+                merged.Add(configured[i]);
+        foreach (var candidate in defaults)
+        {
+            var present = false;
+            for (var i = 0; i < merged.Count && !present; i++)
+                present = merged[i].GetType() == candidate.GetType();
+            if (!present) merged.Add(candidate);
+        }
+        return merged.ToArray();
+    }
 
     [SerializeField] private bool buildEnvironment = true;
 
@@ -60,6 +84,7 @@ public sealed class MoveItPlayground : MonoBehaviour
 
     private void Awake()
     {
+        scenarios = WithMissingDefaults(scenarios);
         stageRoot = new GameObject("MoveIt Playground Stage").transform;
         stageRoot.SetParent(transform, false);
         stage = new MoveItStage(stageRoot);
@@ -96,6 +121,7 @@ public sealed class MoveItPlayground : MonoBehaviour
         for (var key = 0; key < 9 && key < scenarios.Length; key++)
             if (Input.GetKeyDown(KeyCode.Alpha1 + key))
                 Activate(key, false);
+        if (scenarios.Length > 9 && Input.GetKeyDown(KeyCode.Alpha0)) Activate(9, false);
     }
 
     private void Activate(int next, bool asGauntlet)
@@ -187,7 +213,7 @@ public sealed class MoveItPlayground : MonoBehaviour
         foreach (var entry in stage.Log) GUILayout.Label(entry);
 
         GUILayout.FlexibleSpace();
-        GUILayout.Label("← → switch    1-9 jump    R restart    G gauntlet");
+        GUILayout.Label("← → switch    1-0 jump    R restart    G gauntlet");
         GUILayout.EndArea();
     }
 

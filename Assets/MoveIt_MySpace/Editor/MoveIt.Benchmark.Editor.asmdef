@@ -1,16 +1,14 @@
 {
-    "name": "MoveIt.Benchmark",
+    "name": "MoveIt.Benchmark.Editor",
     "rootNamespace": "",
     "references": [
+        "MoveIt.Benchmark",
         "LightSide.Core",
-        "LightSide.Benchmark",
-        "LitMotion",
-        "LitMotion.Extensions",
-        "PrimeTween.Runtime",
-        "LightSide.MoveIt",
-        "LightSide.Motion"
+        "LightSide.Core.Editor"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

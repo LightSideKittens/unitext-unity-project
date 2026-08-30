@@ -7,9 +7,9 @@
         "GUID:6572381e8157783499bf6ce8f56b9292",
         "GUID:73cc5dcc6b489ad468aac1072fe578b4",
         "GUID:2665a8d13d1b3f18800f46e256720795",
-        "GUID:68e9f28a67e647deb8fc94f719c5ea5a",
         "GUID:80ecb87cae9c44d19824e70ea7229748",
         "GUID:3b570a5146f9d4f0fa107ed4559471a3",
+        "LightSide.Benchmark",
         "Unity.Addressables",
         "Unity.ResourceManager"
     ],

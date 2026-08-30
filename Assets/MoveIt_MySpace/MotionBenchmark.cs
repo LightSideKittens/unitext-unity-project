@@ -46,7 +46,7 @@ public sealed partial class MotionBenchmark : MonoBehaviour
     [SerializeField] Transform sharedTransform;
     [SerializeField] Transform distinctTransformPrefab;
     [SerializeField] Transform contextRoot;
-    [SerializeReference] MotionBenchmarkAdapter[] adapters =
+    [SerializeReference, TypeSelector] MotionBenchmarkAdapter[] adapters =
     {
         new LightSideMotionBenchmarkAdapter(),
         new PrimeTweenMotionBenchmarkAdapter(),
@@ -80,6 +80,9 @@ public sealed partial class MotionBenchmark : MonoBehaviour
     /// </summary>
     [SerializeField] bool measurePhaseDetail = true;
 
+    [SerializeField, Tooltip("Workloads to run, in suite order; empty runs every workload.")]
+    MotionBenchmarkWorkload[] workloadFilter = { };
+
     internal MotionBenchmarkData Results { get; private set; }
 
     MotionBenchmarkAdapter[] measured;
@@ -107,11 +110,25 @@ public sealed partial class MotionBenchmark : MonoBehaviour
         measured = kept.ToArray();
     }
 
+    MotionBenchmarkWorkload[] SelectWorkloads()
+    {
+        if (workloadFilter == null || workloadFilter.Length == 0) return workloads;
+        var kept = new List<MotionBenchmarkWorkload>(workloads.Length);
+        foreach (var workload in workloads)
+            if (Array.IndexOf(workloadFilter, workload) >= 0)
+                kept.Add(workload);
+        if (kept.Count == 0)
+            throw new InvalidOperationException(
+                "MotionBenchmark workload filter selects none of the suite's workloads.");
+        return kept.ToArray();
+    }
+
     /// <summary>Runs every configured adapter against the same targets, workloads, warmup, and sample counts.</summary>
     public IEnumerator RunBenchmarkCoroutine()
     {
         BenchmarkFrameProbe.Install();
         SelectMeasuredAdapters();
+        var selected = SelectWorkloads();
         Results = new MotionBenchmarkData
         {
             config = new MotionBenchmarkConfigData
@@ -142,9 +159,9 @@ public sealed partial class MotionBenchmark : MonoBehaviour
 
         ValidateConfiguration(out var adapterNames, out var markerNamesByAdapter);
         Results.config.adapterOrder = adapterNames;
-        Results.config.workloadOrder = new string[workloads.Length];
-        for (int workloadIndex = 0; workloadIndex < workloads.Length; workloadIndex++)
-            Results.config.workloadOrder[workloadIndex] = WorkloadKey(workloads[workloadIndex]);
+        Results.config.workloadOrder = new string[selected.Length];
+        for (int workloadIndex = 0; workloadIndex < selected.Length; workloadIndex++)
+            Results.config.workloadOrder[workloadIndex] = WorkloadKey(selected[workloadIndex]);
         for (int adapterIndex = 0; adapterIndex < measured.Length; adapterIndex++)
         {
             var adapter = measured[adapterIndex];
@@ -167,14 +184,14 @@ public sealed partial class MotionBenchmark : MonoBehaviour
         }
 
         int combination = 0;
-        int total = workloads.Length * measured.Length;
+        int total = selected.Length * measured.Length;
         float started = Time.realtimeSinceStartup;
         bool completed = false;
         try
         {
-            for (int workloadIndex = 0; workloadIndex < workloads.Length; workloadIndex++)
+            for (int workloadIndex = 0; workloadIndex < selected.Length; workloadIndex++)
             {
-                var workload = workloads[workloadIndex];
+                var workload = selected[workloadIndex];
                 for (int position = 0; position < measured.Length; position++)
                 {
                     int adapterIndex = (workloadIndex & 1) == 0
@@ -218,7 +235,7 @@ public sealed partial class MotionBenchmark : MonoBehaviour
             {
                 var engine = Results.engines[adapterNames[adapterIndex]];
                 if (engine.status != "measuring") continue;
-                FailPending(engine, markerNamesByAdapter[adapterIndex], interrupted, !completed);
+                FailPending(engine, selected, markerNamesByAdapter[adapterIndex], interrupted, !completed);
                 FinalizeStatus(engine);
             }
             DestroyTargets(targetPool);
@@ -972,15 +989,18 @@ public sealed partial class MotionBenchmark : MonoBehaviour
         Fail(result, exception, markerNames);
     }
 
-    void FailPending(MotionBenchmarkEngineData engine, IReadOnlyList<string> markerNames, string reason,
-        bool includeMissing)
+    void FailPending(MotionBenchmarkEngineData engine, IReadOnlyList<MotionBenchmarkWorkload> selected,
+        IReadOnlyList<string> markerNames, string reason, bool includeMissing)
     {
-        if (includeMissing && engine.creation == null)
+        bool creationSelected = false;
+        foreach (var workload in selected)
+            creationSelected |= workload == MotionBenchmarkWorkload.Creation;
+        if (includeMissing && creationSelected && engine.creation == null)
             engine.creation = MotionBenchmarkCreationData.Create(CreateSpec(MotionBenchmarkWorkload.Creation),
                 creationSamples);
         if (engine.creation != null && engine.creation.status == "measuring")
             Fail(engine.creation, reason);
-        foreach (var workload in workloads)
+        foreach (var workload in selected)
         {
             if (workload == MotionBenchmarkWorkload.Creation) continue;
             string key = WorkloadKey(workload);
@@ -1952,7 +1972,7 @@ public sealed class LightSideMotionBenchmarkAdapter : MotionBenchmarkAdapter
         typeof(MoveIt).Assembly.GetName().Version?.ToString() ?? "unknown",
         "run.meta.commit",
         "directPublicApi",
-        "engineDefault",
+        "creationBatchScope",
         "preallocatedMotionHandleArray");
 
     /// <inheritdoc/>
@@ -2003,7 +2023,7 @@ public sealed class LightSideMotionBenchmarkAdapter : MotionBenchmarkAdapter
         timing.Clock = PlaybackClock.Scaled;
         timing.UpdatePhase = MoveItUpdatePhase.Update;
         timing.Cycles = spec.Cycles;
-        timing.CycleMode = MoveItCycle.Restart;
+        timing.CycleMode = MotionCycle.Restart;
         timing.Essential = spec.Essential;
         return timing;
     }
@@ -2015,9 +2035,10 @@ public sealed class LightSideMotionBenchmarkAdapter : MotionBenchmarkAdapter
         var to = Vector3.one * request.Spec.To;
         try
         {
-            for (int i = 0; i < request.Spec.MotionCount; i++)
-                context.Add(MoveIt.Drive(request.SharedTransform, MoveItChannel.Position,
-                    from, to, timing));
+            using (MoveIt.Batch(request.Spec.MotionCount, 1))
+                for (int i = 0; i < request.Spec.MotionCount; i++)
+                    context.Add(MoveIt.Drive(request.SharedTransform, MoveItChannel.Position,
+                        from, to, timing));
             return context;
         }
         catch (Exception exception)
@@ -2032,9 +2053,10 @@ public sealed class LightSideMotionBenchmarkAdapter : MotionBenchmarkAdapter
         var context = LightSideContext.ForMotions(request);
         try
         {
-            for (int i = 0; i < request.Spec.MotionCount; i++)
-                context.Add(MoveIt.To(request.ManagedValues, i, request.Spec.From, request.Spec.To, timing,
-                    static (values, key, value) => values[key] = value));
+            using (MoveIt.Batch(request.Spec.MotionCount))
+                for (int i = 0; i < request.Spec.MotionCount; i++)
+                    context.Add(MoveIt.To(request.ManagedValues, i, request.Spec.From, request.Spec.To,
+                        timing));
             return context;
         }
         catch (Exception exception)
@@ -2051,9 +2073,10 @@ public sealed class LightSideMotionBenchmarkAdapter : MotionBenchmarkAdapter
         var to = Vector3.one * request.Spec.To;
         try
         {
-            for (int i = 0; i < request.Spec.MotionCount; i++)
-                context.Add(MoveIt.Drive(request.DistinctTransforms[i], MoveItChannel.Position,
-                    from, to, timing));
+            using (MoveIt.Batch(request.Spec.MotionCount, request.Spec.MotionCount))
+                for (int i = 0; i < request.Spec.MotionCount; i++)
+                    context.Add(MoveIt.Drive(request.DistinctTransforms[i], MoveItChannel.Position,
+                        from, to, timing));
             return context;
         }
         catch (Exception exception)
@@ -2069,18 +2092,19 @@ public sealed class LightSideMotionBenchmarkAdapter : MotionBenchmarkAdapter
         try
         {
             int key = 0;
-            for (int i = 0; i < request.Spec.SequenceCount; i++)
-            {
-                var sequence = MoveItSequence.Create();
-                context.Add(sequence);
-                for (int child = 0; child < request.Spec.SequenceLength; child++, key++)
+            using (MoveIt.Batch(request.Spec.MotionCount + request.Spec.SequenceCount))
+                for (int i = 0; i < request.Spec.SequenceCount; i++)
                 {
-                    var motion = MoveIt.To(request.ManagedValues, key, request.Spec.From, request.Spec.To, timing,
-                        static (values, index, value) => values[index] = value);
-                    context.Add(motion);
-                    sequence.Chain(motion);
+                    var sequence = MoveItSequence.Create();
+                    context.Add(sequence);
+                    for (int child = 0; child < request.Spec.SequenceLength; child++, key++)
+                    {
+                        var motion = MoveIt.To(request.ManagedValues, key, request.Spec.From,
+                            request.Spec.To, timing);
+                        context.Add(motion);
+                        sequence.Chain(motion);
+                    }
                 }
-            }
             return context;
         }
         catch (Exception exception)
@@ -2281,9 +2305,10 @@ public sealed class LightSideMotionBenchmarkAdapter : MotionBenchmarkAdapter
                 throw new InvalidOperationException("The previous creation batch is still live.");
             try
             {
-                for (; count < motions.Length; count++)
-                    motions[count] = MoveIt.Drive(target, MoveItChannel.Position,
-                        Vector3.one * spec.From, Vector3.one * spec.To, timing);
+                using (MoveIt.Batch(motions.Length, 1))
+                    for (; count < motions.Length; count++)
+                        motions[count] = MoveIt.Drive(target, MoveItChannel.Position,
+                            Vector3.one * spec.From, Vector3.one * spec.To, timing);
             }
             catch (Exception primary)
             {
@@ -2414,8 +2439,9 @@ internal sealed class MotionBenchmarkWorkloadData
     internal MotionBenchmarkSeriesData mainThread;
 
     /// <summary>
-    /// The frame's main-thread work between the player loop's Initialization and PostLateUpdate ends —
-    /// present and target-fps waits excluded — so participants stay comparable under vsync.
+    /// The frame's main-thread work from the end of the player loop's Initialization to the end of
+    /// PreLateUpdate — rendering, present and target-fps waits excluded — so participants stay
+    /// comparable under vsync.
     /// </summary>
     internal MotionBenchmarkSeriesData mainThreadCpu;
     internal readonly Dictionary<string, MotionBenchmarkSeriesData> markers = new();

@@ -57,6 +57,28 @@ public sealed class MoveItStage
     public Transform Spawn(PrimitiveType shape, Vector3 position, float hue, string name = null) =>
         Spawn(shape, position, Color.HSVToRGB(Mathf.Repeat(hue, 1f), 0.7f, 1f), name);
 
+    /// <summary>A floating caption parented to the stage, for naming what an object or a row shows.</summary>
+    public Transform Label(Vector3 position, string text, float height = 0.24f,
+        TextAnchor anchor = TextAnchor.MiddleCenter)
+    {
+        var instance = new GameObject($"Label {text}");
+        var mesh = instance.AddComponent<TextMesh>();
+        mesh.text = text;
+        mesh.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        mesh.fontSize = 64;
+        mesh.characterSize = height * 10f / 64f;
+        mesh.anchor = anchor;
+        mesh.alignment = anchor == TextAnchor.MiddleRight ? TextAlignment.Right : TextAlignment.Center;
+        mesh.color = new Color(1f, 1f, 1f, 0.8f);
+        instance.GetComponent<MeshRenderer>().sharedMaterial = mesh.font.material;
+
+        var transform = instance.transform;
+        transform.SetParent(root, false);
+        transform.position = position;
+        spawned.Add(instance);
+        return transform;
+    }
+
     /// <summary>Removes one object early, which is how a scenario pulls a target out from under a live motion.</summary>
     public void Despawn(Transform target, bool immediate = false)
     {

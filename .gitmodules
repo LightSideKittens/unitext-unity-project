@@ -13,3 +13,6 @@
 [submodule "Assets/UniShapes"]
 	path = Packages/media.lightside.unishapes
 	url = https://github.com/LightSideMeowshop/unishapes.git
+[submodule "Packages/media.lightside.moveit"]
+	path = Packages/media.lightside.moveit
+	url = https://github.com/LightSideMeowshop/moveit.git

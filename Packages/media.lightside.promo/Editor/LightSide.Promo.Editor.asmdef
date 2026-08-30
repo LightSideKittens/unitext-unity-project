@@ -6,7 +6,6 @@
         "UnityEditor.UI",
         "LightSide.Core",
         "LightSide.Core.Editor",
-        "LightSide.UniShapes",
         "LightSide.UniText",
         "LightSide.Promo",
         "Unity.TextMeshPro"
