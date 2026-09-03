@@ -49,27 +49,13 @@ namespace LightSide.Promo
                     new Vector2(stage.Width * 0.86f, step));
                 lines[i].WordWrap = false;
 
-                Stage.StyleWord(lines[i], Figure(claims[i]), stage.BrandFill(15f));
+                Stage.StyleWord(lines[i], Stage.LeadingFigure(claims[i]), stage.BrandFill(15f));
             }
 
             Cue("intro", First);
             for (var i = 0; i < lines.Length; i++) Cue("claim", Claims + i * Beat);
 
             Seconds = Mathf.Max(Seconds, Claims + (claims.Length - 1) * Beat + Fade + Hold);
-        }
-
-        /// <summary>
-        /// The leading figure of <paramref name="claim"/>, which is the part the brand ramp paints.
-        /// </summary>
-        /// <remarks>
-        /// Taken from the string rather than authored beside it, so editing a line cannot leave the paint on a word
-        /// that is no longer a number.
-        /// </remarks>
-        private static string Figure(string claim)
-        {
-            var end = 0;
-            while (end < claim.Length && char.IsDigit(claim[end])) end++;
-            return end == 0 ? claim : claim.Substring(0, end);
         }
 
         protected override void OnRender(float local)

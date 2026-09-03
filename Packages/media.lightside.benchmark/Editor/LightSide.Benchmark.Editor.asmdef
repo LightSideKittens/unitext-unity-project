@@ -1,0 +1,20 @@
+{
+    "name": "LightSide.Benchmark.Editor",
+    "rootNamespace": "LightSide.Benchmark",
+    "references": [
+        "LightSide.Benchmark",
+        "LightSide.Core",
+        "LightSide.Core.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

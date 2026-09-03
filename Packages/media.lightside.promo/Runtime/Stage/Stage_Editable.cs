@@ -36,7 +36,7 @@ namespace LightSide.Promo
             if (onPaper)
             {
                 Solid(FillOf(well.Shape), Color.clear);
-                Solid(ring.Color, Theme.Accent);
+                Solid(ring.Paint, Theme.Accent);
             }
 
             var text = Label(well.Rect, string.Empty, size, onPaper ? Theme.Ink : Theme.Text, HAlign.Left, VAlign.Top);

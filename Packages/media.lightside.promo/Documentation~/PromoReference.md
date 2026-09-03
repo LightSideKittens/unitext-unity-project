@@ -69,26 +69,56 @@ s.Shape = new InlineShapeProvider { Kind = ShapeKind.RoundedRect, Radius = 36f, 
 
 **`ShapeKind`** — `RoundedRect 0, Circle 1, Ellipse 2, Capsule 3, Triangle 4,
 Pentagon 5, Hexagon 6, Octagon 7, Star 8, Pie 9, Arc 10, Ring 11, CutDisk 12,
-Polygon 13`. `Polygon` is produced only by the vector providers and is not
-selectable on `InlineShapeProvider`. Every analytic kind sizes itself from the
-`RectTransform`, so switching kind never resizes anything.
+Parallelogram 13, Trapezoid 14, Rhombus 15, Cross 16, Heart 17`, plus three the
+providers produce and `InlineShapeProvider` refuses: `Polygon 18` (a closed
+vector path), `Polyline 19` (an open one, stroked) and `Composite 20`. Every
+analytic kind sizes itself from the `RectTransform`, so switching kind never
+resizes anything.
 
 **`InlineShapeProvider`** — `Kind`, `UniformRadius` (default `true`; while true
 `Radius` drives all four corners and `CornerRadii` is ignored), `Radius`,
 `CornerRadii` (`x`=TL, `y`=TR, `z`=BR, `w`=BL), `Smoothing` (0 circular →
-1 squircle), `StarPoints`, `StarSharpness`, `Aperture` (degrees, Pie/Arc),
-`Thickness` (fraction of radius, Arc/Ring), `Chord` (CutDisk).
+1 squircle), `CornerStyle` (`Round | Bevel | Scoop`), `Rounding` (local units,
+on the cornered kinds), `StarPoints` (≥ 3), `StarSharpness`, `Start` / `End`
+(degrees CCW from +x, Pie/Arc — hold `Start` and drive `End` for a progress arc;
+there is no `Aperture`), `Cap` (`Round | Flat | Square`, Arc), `Thickness`
+(fraction of the half-size, Arc/Ring/Cross), `Chord` (CutDisk), `Skew`
+(Parallelogram), `Taper` (Trapezoid), `Fit` (`ShapeFitMode`).
 
-**Layers** — `FillLayer.Fill`; `StrokeLayer.Color/.Width/.Alignment` (−1 inside,
-0 centred, +1 outside); `ShadowLayer.Color/.Offset/.Blur/.Spread`;
-`InnerShadowLayer.Color/.Offset/.Blur`;
-`BevelLayer.Color/.LightAngle/.Width/.Strength/.ShadowSide`;
-`NoiseLayer.Color/.Frequency/.Seed/.Contrast`. Every layer also has `Enabled` and
-`Padding` (`x`=left, `y`=bottom, `z`=right, `w`=top; positive shrinks inward, and
-it insets corner radii **concentrically**).
+**`CompositeShapeProvider`** — `Elements`, up to eight `CompositeElement`s folded
+in list order: `Shape` (any provider but another composite), `Operation`
+(`Union | Subtract | Intersect | Exclude | Morph`), `Progress` (Morph only: how
+far this outline has replaced everything before it), `Blend` (seam fillet
+radius), `Seam`, `Padding`, `Offset`, `Rotation`. **A chain of `Morph` elements
+is a seekable morph sequence**: drive each `Progress` 0 → 1 in turn and a
+rounded rectangle becomes a circle, a star, a hand-drawn path — one shape, one
+layer stack, no cut. An element at `Progress` 0 is skipped entirely, so a chain
+costs only its active members.
 
-**Order matters.** Shadows go under the fill: `InsertLayer(0, shadow)`.
-Everything else appends.
+**`VectorShapeProvider`** — `Path` (a `BezierPath`, rendered at its authored
+position: path space is the rect's local space with the origin on its pivot),
+`FlattenTolerance`, `Rounding` (closed only). An **open** path is stroked to a
+band: `Width`, `Cap`, and `Profile` (an `Ease` — thickness along the path as a
+multiple of `Width`). Move a knot with `path[i] = knot` and carry both handles
+with the anchor, or a corner turns into a curve. `Stage.Contour` builds one from
+authored points at a tolerance solved against the atlas budget.
+
+**Layers** — every layer carries a `ShapePaint` named `Paint` (its colour is
+`Paint.Color`; there is no `.Color` on the layer). `StrokeLayer.Width/.Align`
+(−1 inside, 0 centred, +1 outside); `ShadowLayer.Offset/.Blur/.Spread`;
+`InnerShadowLayer.Offset/.Blur`;
+`BevelLayer.LightAngle/.Width/.Strength/.ShadowSide`;
+`NoiseLayer.Frequency/.Seed/.Contrast`; `FilterLayer.Filter/.Strength` recolours
+every layer below it and emits nothing. Every layer also has `Enabled`, `Shift`,
+`Rotation` and `Padding` (`x`=left, `y`=bottom, `z`=right, `w`=top; positive
+shrinks inward, and it insets corner radii **concentrically**).
+
+**The stack is `UniShape.Layers`, a `StateList`** — `Add`, `Insert(0, shadow)`,
+`Remove`, `Clear`; there is no `AddLayer<T>` (the package README is behind the
+code). Shadows go under the fill: insert at 0. Everything else appends. A layer
+at zero magnitude — stroke `Width` 0, shadow `Blur` 0 at alpha 0 — draws
+nothing, which is how a reel keeps every layer alive from its first frame and
+grows it in when its beat comes.
 
 ### Traps
 
@@ -107,9 +137,24 @@ Everything else appends.
   factory constructs fresh instances.
 - One draw call per shape as long as every layer is `LayerBlend.Normal` and
   untextured. A bevel pair needs Multiply + Additive and costs two more — fine
-  when deliberate.
+  when deliberate, and never on a frame with a draw-call counter pinned to it.
 - `UniShape.defaultMaterial` is `Resources.Load<Material>("LightSide/Defaults/UniShape")`
   and **throws** if absent.
+- **A `UniShape` under a scaled or rotated `RectTransform` renders wrong — and that
+  includes an animated `localScale` and the slide's own push-in.** uGUI transforms
+  the NORMAL and TANGENT streams by the element's local-to-canvas matrix when it
+  batches — undocumented, reported on the Unity forum since 2015, and reproduced
+  in this reel twice — and `ShapeMesh.AddSdfQuad` carries the shape's parameters
+  in TANGENT (`geo.Params`). Under a scale `s`: a star's point count becomes `n · s` and its
+  angular fold no longer closes (a forked bottom spike on an even count, a stray
+  spike in the bottom notch on an odd one); a polygon's or composite's atlas row
+  becomes `row · s` and the field reads a neighbouring row — another frame's
+  outline, or another shape; corner radii are scaled a second time. UV channels are
+  never transformed. Until the contract moves the parameters off TANGENT, a shot
+  **resizes** a shape's rect and path instead of scaling it, and the shapes rig runs
+  with push-in off. The symptom hides behind everything that scales gently — a pop
+  from 0.86, a 0.93 rest, a 3.5 % push-in — and shows only where a parameter must be
+  exact.
 
 ---
 
@@ -122,8 +167,12 @@ Oklab and is the right default for a brand ramp on camera.**
 It reaches a shape through `ShapePaint`: `Kind` (`Solid|Gradient|Texture`),
 `Color` (solid colour, or a tint over the sampled ramp), `Gradient`, `Texture`,
 `Blend`, `ProjectionKind` (`Linear|Radial|Angular`), `Fit`, `Angle`, `Scale`,
-`Offset`, `Distance` (maps the ramp inward from the SDF outline; overrides
-`ProjectionKind`).
+`Offset`, and `FollowShape` — the distance projection. With it on, the ramp runs
+inward from the outline: `t = -d / (min(halfWidth, halfHeight) · Scale)`, so
+`Scale` 1 reaches the centre of a square and `Scale` 0.2 is an edge band a fifth
+of the half-size deep. Spread lives on the `Paint` struct, not on a property —
+`var p = paint.Paint; p.projection.spread = PaintSpread.Repeat; paint.Paint = p;`
+— and with `Repeat`, a short distance ramp is concentric neon rings.
 
 Two conversions are not guessable and will read as bugs — they are lifted
 verbatim from `CalorieUIBuilder.cs:1009-1031`:
@@ -474,7 +523,11 @@ sheet has been rendered and read.
 | `Ease` | core, `Runtime/Math/Ease.cs` | `Of`, `Cubic`, `Evaluate`, **`Window(local, start, seconds)`**, `Lerp`, and the M3 presets. |
 | `Spring` | core, `Runtime/Math/Spring.cs` | `Evaluate(seconds)`, `Lerp`, `Ratio`, `SettleTime()`, `Critical()`, seven presets. |
 | `Stage` | `Runtime/Stage/Stage*.cs` | Context (`Root`, `Theme`, `Frame`, `For`, `Fit`, anchors); layout (`Node`, `Stretch`, `Anchor`, `Box`, `Row`, `Column`, `Size`, `Pad`); paint (`FillOf`, `Solid`, `Linear`, `Radial`, `Angular`, `Ramped`, `Textured`, `AddStroke/Shadow/InnerShadow/Bevel`); widgets (`Shape`, `Backdrop`, `Panel`, `Card`, `Field`, `Button`, `Bar`, `Label`, `Headline`, `Caption`, `BrandFill`); pose (`Alpha`, `Progress`, `Scale`). |
-| `Theme` | `Runtime/Stage/Theme.cs` | Palette, `Brand` ramp, radius / padding / type scales, `Inner(outer, gap)`, and the derivation statics `Mix` / `Lift` / `Sink` / `Fade`. Subclass it for a livery. |
+| `Theme` | `Runtime/Stage/Theme.cs` | Palette, `Brand` ramp, radius / padding / type scales, `Inner(outer, gap)`, and the derivation statics `Mix` / `Lift` / `Sink` / `Fade`. Subclass it for a livery; `Brand` is its one virtual. |
+| `ShapesTheme` | `Runtime/Stage/ShapesTheme.cs` | The UniShapes livery: warm charcoal, `Brand` overridden to the mark's yellow → pink ramp. |
+| `Slider` | `Runtime/Shapes/Stage_Slider.cs` | `stage.Slider(well, size, min, max, format)`; `Pose(t)`, `At(t)`, `KnobAt(t, space)` for aiming a pointer, `KnobSize`. |
+| `Stage.Picker` | `Runtime/Showreel/StyleStack.cs` | A dropdown chip with a rewritable label; the caller anchors it. |
+| `Stage.Contour` | `Runtime/Stage/Stage_Vector.cs` | A `VectorShapeProvider` through authored points, open or closed, at a tolerance solved against the atlas budget. |
 | `Widget` | `Runtime/Stage/Widget.cs` | `Shape`, `Rect`, `Fill`, `Outline`; converts implicitly to `RectTransform`. |
 | `Beat` / `PointerTimeline` / `Pointer` | `Runtime/Pointer/` | `Beat.To/Wait/Click/Drag/Key`; the timeline compiles them into a path, presses, keystrokes and named spans; `Pointer.Pose(seconds)` draws it. Build with `stage.Pointer(start, beats)` — **last**, so it is above what it operates. |
 | `PointerTiming` | `Runtime/Pointer/PointerTiming.cs` | Fitts constants, travel clamp, peak-speed floor, bow, dwells, press and ripple floors. |
@@ -687,6 +740,73 @@ Rules it lives by:
   The backdrop stays on `stage.Root`, outside the shake.
 - Clusters park off-frame when inactive (`payload` at −0.55 W) and their pose
   writes run every frame, so any frame scrubs correctly in isolation.
+
+### The shapes reel is one scene
+
+`Tools / Promo / Create Shapes Reel` builds the UniShapes film: a single
+`ShapesReelScene` (~28 s) in the `ShapesTheme` livery. One big shape in the
+middle of the frame, a headline above it, and under it exactly the one control
+the beat is about — no cursor, no component card, no cuts. Every phase time is
+derived from the one before it in `Schedule()`.
+
+| Beat | What happens | The one control under the shape |
+|---|---|---|
+| Cold open | A rounded rectangle pops in and runs through circle, star, heart, hexagon and back — one shape, morphing | A pill naming the outline it is becoming |
+| Dial | The corners round out to a circle, then square off into a squircle | `Radius`, then `Smoothing`: a slider plate each, knob and figure moving |
+| Layers | Shadow, Stroke, Inner Shadow land one strike at a time | `+ Shadow`, `+ Stroke`, `+ Inner Shadow`, one pill per strike |
+| Paint | Radial, Angular, Distance — neon rings from the outline inward — one beat each | `Fill · Radial ▾`, the picker reading each name |
+| Combine | One pulse of a circle per boolean op: it grows out of the shape, drifts while the op works — union with a liquid seam, subtract, exclude — and shrinks away before the op switches; intersect runs the pulse the other way, from a circle larger than the shape in to the lens and back, so the picture never changes on a switch | `Operation · Union ▾` |
+| Vector | The shape morphs into a bolt, its anchors appear, one anchor travels and the outline follows | `Shape · Bézier ▾` |
+| Zoom | The whole world scales 5× about the bolt's tip and back; the edge stays crisp | — |
+| Motion | The bolt morphs into a star that grows a point at a time | `star.StarPointsTo(12, 0.4f)` |
+| Screen | The hero is thrown off; a dashboard assembles from 25 shapes in a 1.2 s cascade, its rings, bars, toggle, slider and segments then coming alive; `1 draw call · 0 sprites` arrive last, above it | — |
+| End | The shipped mark on a plate, the wordmark revealed, the site | — |
+
+Rules it lives by, beyond the showreel's:
+
+- **A composite is a transition, never a resting state.** The hero wears a
+  `CompositeShapeProvider` only while a morph runs — the cold open's chain of
+  six outlines, then a two-element composite for rectangle → bolt and another
+  for bolt → star — or while the combine beat is folding a second outline into
+  it, and every steady phase puts the plain provider on the shape
+  (`ProviderAt`). The combine beat's circle lives on its element's `Padding`:
+  at half the hero's size the element's rect is a point, a zero circle folds in
+  nothing, and the hand-over to the plain rectangle draws the same pixels. Each composite ends at exactly the outline the plain provider
+  starts from (same radius, same smoothing, the bolt with its dragged anchor),
+  so the swap draws the same pixels on both sides of it. Eight elements is
+  `MaxElements`; a ninth is silently ignored.
+- **Nothing recoils.** No squash on a morph, no knock on a strike: a shape that
+  jerks on every beat reads as broken, not as struck. The blow is in the layer's
+  own spring overshoot.
+- **Every layer exists from the first frame at magnitude zero** (stroke `Width`
+  0, shadow `Blur` 0 at alpha 0) and grows in on its strike — the `KitStackSlide`
+  rule, for the same reason.
+- **The counters may only claim what the stack can prove.** Bevel needs Multiply
+  and Additive and starts new sub-meshes, so no bevel appears on a counted
+  frame; the dashboard is all-Normal and untextured for the same reason. The
+  screen's "one draw call" also counts its labels, on the package's own claim
+  that shapes and text share one material — confirm it in the Frame Debugger
+  before the frame ships.
+- **Knot positions are path coordinates.** A vector outline renders at its
+  authored position with the path origin on the rect pivot, so an anchor's
+  marker is a child of the hero at `point * scale` and needs no measuring. A
+  drag moves the anchor *and both handles*; a corner whose handles stay behind
+  becomes a curve.
+- **A conic sweep of a multi-stop ramp needs the ramp folded onto itself**
+  (`Seamless`): the brand ramp does not end where it starts, and an `Angular`
+  projection shows the seam at the wrap.
+- **Distance rings are `FollowShape` + `PaintSpread.Repeat`** on a ramp that is
+  dark at both ends, with `Scale` as the ring pitch.
+- **Nothing on the hero is ever scaled through a transform.** The pop is a rect
+  resize, the zoom rebuilds the bolt five times larger — the path's knots, the
+  markers on them and every layer's magnitude multiplied by the same factor — and
+  the frame is held on the tip by moving the hero, not the world. See the TANGENT
+  trap in §3: a scaled shape reads wrong parameters, and the two symptoms this
+  reel produced before the rule existed were a star with a forked spike under the
+  push-in and a composite flipping to a neighbouring atlas row at a 0.93 rest.
+- **The mark is the shipped editor icon**, wired with `FindAsset(…, editorToo:
+  true)`: it exists nowhere but under an `Editor` folder, and a reel is captured
+  in the editor.
 
 ### Writing the lines on screen
 

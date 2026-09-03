@@ -103,7 +103,11 @@ public sealed class MoveItPlayground : MonoBehaviour
         frameMilliseconds = Mathf.Lerp(frameMilliseconds, Time.unscaledDeltaTime * 1000f, smoothing);
         stage.Elapsed += Time.unscaledDeltaTime;
 
-        for (var i = 0; i < running.Count; i++) running[i].Tick(stage);
+        for (var i = 0; i < running.Count; i++)
+        {
+            var scenario = running[i];
+            stage.CheckSurvives(() => scenario.Tick(stage), $"{scenario.Title} ticked without throwing");
+        }
 
         if (autoAdvanceSeconds > 0f && !gauntletActive && stage.Elapsed >= autoAdvanceSeconds)
             Activate((index + 1) % scenarios.Length, false);

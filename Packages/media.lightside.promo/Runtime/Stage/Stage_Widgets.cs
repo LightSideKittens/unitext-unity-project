@@ -408,6 +408,21 @@ namespace LightSide.Promo
         /// <summary>Pill width for <paramref name="text"/> at <see cref="Promo.Theme.Small"/>.</summary>
         public float ChipWidth(string text) => Theme.PadXl * 2f + Estimate(text, Theme.Small);
 
+        /// <summary>
+        /// The digits <paramref name="text"/> opens with, or the whole text when it opens with none — the part of a
+        /// figure-led line a brand paint goes on.
+        /// </summary>
+        /// <remarks>
+        /// Taken from the string rather than authored beside it, so editing a line cannot leave the paint on a word
+        /// that is no longer a number.
+        /// </remarks>
+        public static string LeadingFigure(string text)
+        {
+            var end = 0;
+            while (end < text.Length && char.IsDigit(text[end])) end++;
+            return end == 0 ? text : text.Substring(0, end);
+        }
+
         public float ChipHeight => Theme.Small * 2.1f;
 
         /// <summary>The dominant line of a frame: one phrase, at <see cref="Promo.Theme.Hero"/>.</summary>

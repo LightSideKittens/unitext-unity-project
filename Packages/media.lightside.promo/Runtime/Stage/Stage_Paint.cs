@@ -21,11 +21,11 @@ namespace LightSide.Promo
             var layers = shape.Layers;
             for (var i = 0; i < layers.Count; i++)
                 if (layers[i] is FillLayer fill)
-                    return fill.Fill;
+                    return fill.Paint;
 
             var added = new FillLayer();
-            shape.InsertLayer(0, added);
-            return added.Fill;
+            shape.Layers.Insert(0, added);
+            return added.Paint;
         }
 
         public static void Solid(ShapePaint paint, Color color)
@@ -97,11 +97,11 @@ namespace LightSide.Promo
             paint.Offset = Vector2.zero;
         }
 
-        public static StrokeLayer AddStroke(UniShape shape, Color color, float width, float alignment = 0f)
+        public static StrokeLayer AddStroke(UniShape shape, Color color, float width, float align = 0f)
         {
-            var layer = new StrokeLayer { Width = width, Alignment = alignment };
-            Solid(layer.Color, color);
-            shape.AddLayer(layer);
+            var layer = new StrokeLayer { Width = width, Align = align };
+            Solid(layer.Paint, color);
+            shape.Layers.Add(layer);
             return layer;
         }
 
@@ -109,16 +109,16 @@ namespace LightSide.Promo
         public static ShadowLayer AddShadow(UniShape shape, Color color, Vector2 offset, float blur, float spread = 0f)
         {
             var layer = new ShadowLayer { Offset = offset, Blur = blur, Spread = spread };
-            Solid(layer.Color, color);
-            shape.InsertLayer(0, layer);
+            Solid(layer.Paint, color);
+            shape.Layers.Insert(0, layer);
             return layer;
         }
 
         public static InnerShadowLayer AddInnerShadow(UniShape shape, Color color, Vector2 offset, float blur)
         {
             var layer = new InnerShadowLayer { Offset = offset, Blur = blur };
-            Solid(layer.Color, color);
-            shape.AddLayer(layer);
+            Solid(layer.Paint, color);
+            shape.Layers.Add(layer);
             return layer;
         }
 
@@ -137,9 +137,9 @@ namespace LightSide.Promo
                 Strength = strength,
                 ShadowSide = shadowSide
             };
-            layer.Color.Blend = shadowSide ? LayerBlend.Multiply : LayerBlend.Additive;
-            Solid(layer.Color, shadowSide ? Color.black : Color.white);
-            shape.AddLayer(layer);
+            layer.Paint.Blend = shadowSide ? LayerBlend.Multiply : LayerBlend.Additive;
+            Solid(layer.Paint, shadowSide ? Color.black : Color.white);
+            shape.Layers.Add(layer);
             return layer;
         }
 
@@ -147,7 +147,7 @@ namespace LightSide.Promo
         {
             paint.Kind = PaintSourceKind.Gradient;
             paint.Color = Color.white;
-            paint.Distance = false;
+            paint.FollowShape = false;
             paint.ProjectionKind = kind;
             paint.Angle = angleDeg;
             paint.Scale = scale;

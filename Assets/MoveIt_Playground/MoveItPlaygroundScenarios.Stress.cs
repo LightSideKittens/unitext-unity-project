@@ -215,7 +215,8 @@ public sealed class SequenceSelfSabotageScenario : MoveItPlaygroundScenario
                 .Chain(a.MoveYTo(2f, 0.5f)
                     .OnUpdate(self, static (s, motion) =>
                     {
-                        if (motion.Progress < 0.6f || s.sequence == null || !s.sequence.IsAlive) return;
+                        if (motion.Progress < 0.6f || s.sequence == null || !s.sequence.IsAlive ||
+                            s.sequence.IsEnding) return;
                         s.sabotages++;
                         var target = s.sequence;
                         switch (s.generation % 3)

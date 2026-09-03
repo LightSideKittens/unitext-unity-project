@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace LightSide.Promo
@@ -201,7 +199,7 @@ namespace LightSide.Promo
         private static void Carve(Stage stage, Widget widget, Vector2[] outline, Color tint,
             Vector2 pivot, Vector2 size, bool smooth = false, int[] corners = null)
         {
-            widget.Shape.Shape = Contour(outline, smooth, corners);
+            widget.Shape.Shape = Stage.Contour(outline, Scale, true, smooth, corners);
             Stage.Solid(widget.Fill, tint);
             Stage.AddStroke(widget.Shape, Color.white, 5f, 1f);
             Stage.AddShadow(widget.Shape, Drop, new Vector2(0f, -6f), 14f);
@@ -365,90 +363,5 @@ namespace LightSide.Promo
             Stage.Solid(ring.Fill, tint);
             return ring;
         }
-
-        /// <summary>
-        /// A closed contour through <paramref name="points"/>, scaled to cursor size.
-        /// </summary>
-        /// <remarks>
-        /// <paramref name="smooth"/> puts every knot in <see cref="TangentMode.Auto"/>, which derives its handles
-        /// from its neighbours — the anatomy of a hand is curves, and drawing them as segments only fakes a curve
-        /// with more points. Left off, every knot is a corner, which is what an arrow and an I-beam actually are.
-        /// <para>
-        /// <paramref name="corners"/> exempts the knots that must stay sharp. Auto takes its direction from the two
-        /// neighbouring anchors and from nothing else, so a knot with a close neighbour on one side and a distant
-        /// one on the other tilts toward the near one — which is how a straight edge ends up leaning. Where an edge
-        /// has to be straight, both its ends are corners.
-        /// </para>
-        /// <para>
-        /// Modes are applied after <see cref="BezierPath.Replace"/>: Auto reads the neighbouring anchors, and on a
-        /// path that does not yet hold them it has nothing to derive from.
-        /// </para>
-        /// </remarks>
-        private static VectorShapeProvider Contour(Vector2[] points, bool smooth = false, int[] corners = null)
-        {
-            var path = new BezierPath();
-            var knots = new BezierKnot[points.Length];
-            for (var i = 0; i < points.Length; i++) knots[i] = new BezierKnot(points[i] * Scale);
-
-            path.Replace(knots, true);
-            if (smooth)
-            {
-                for (var i = 0; i < points.Length; i++) path.SetMode(i, TangentMode.Auto);
-                if (corners != null)
-                    for (var i = 0; i < corners.Length; i++) path.SetMode(corners[i], TangentMode.Vector);
-            }
-
-            return new VectorShapeProvider { Path = path, FlattenTolerance = Budget(path) };
-        }
-
-        /// <summary>
-        /// The coarsest-but-one tolerance at which <paramref name="path"/> flattens inside the shape atlas's vertex
-        /// budget.
-        /// </summary>
-        /// <remarks>
-        /// A polygon shape is baked into a shared vertex atlas whose rows hold <see cref="AtlasVertices"/> points,
-        /// and a flattened contour longer than that is <em>truncated</em> — silently, by a <c>Min</c>, with the
-        /// surviving head closed back to its start by a straight chord. The tail of the path is what disappears, so
-        /// the damage lands wherever the author happened to stop authoring, and it looks like a modelling mistake
-        /// rather than a budget.
-        /// <para>
-        /// Tolerance is in path units, and the path is already scaled, so it is not comparable between contours —
-        /// which is why it is solved for rather than typed. Adding anchors to chase a rounder outline spends the
-        /// same budget twice over: once on the anchors, again on the curve between them.
-        /// </para>
-        /// </remarks>
-        private static float Budget(BezierPath path)
-        {
-            var flat = new List<Vector2>();
-            var tolerance = FinestFlatten;
-
-            for (var i = 0; i < BudgetSteps; i++)
-            {
-                path.Flatten(flat, tolerance);
-                if (flat.Count <= AtlasVertices) return tolerance;
-                tolerance *= 1.6f;
-            }
-
-            throw new InvalidOperationException(
-                $"[Promo] A cursor contour of {path.Count} knots flattens to {flat.Count} points at tolerance " +
-                $"{tolerance:0.###}, past the {AtlasVertices} a shape atlas row holds. It would be truncated and " +
-                "closed with a straight chord across whatever was left. Author it with fewer anchors.");
-        }
-
-        /// <summary>
-        /// Points one row of the shape vertex atlas holds.
-        /// </summary>
-        /// <remarks>
-        /// Mirrors <c>ShapeVertexAtlas.MaxVerts</c>, which is internal to UniShapes and cannot be read from here.
-        /// A copy of someone else's limit is a liability, so it is used only to refuse: too low merely costs a
-        /// coarser contour, and if the real budget ever shrinks below this the shape is truncated again — which is
-        /// what the throw is for.
-        /// </remarks>
-        private const int AtlasVertices = 64;
-
-        /// <summary>Where the search for a tolerance starts: fine enough that a simple contour keeps every curve.</summary>
-        private const float FinestFlatten = 0.25f;
-
-        private const int BudgetSteps = 12;
     }
 }

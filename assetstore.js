@@ -1,5 +1,4 @@
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
@@ -13,7 +12,7 @@ if (mode !== 'prepare' && mode !== 'restore') {
 const unitext = path.join(__dirname, 'Packages', 'media.lightside.unitext');
 const core = path.join(__dirname, 'Packages', 'media.lightside.core');
 const myspace = path.join(__dirname, 'Assets', 'UniText_MySpace');
-const metaStash = path.join(os.tmpdir(), 'lightside-assetstore-meta');
+const stash = path.join(__dirname, 'Library', 'LightSide', 'AssetStoreStash');
 const packed = ['WebGLDemo', 'Slideshow'];
 const coreLicense = path.join(core, 'LICENSE-LightSide.Core.md');
 
@@ -49,10 +48,10 @@ function samples(action) {
 if (mode === 'prepare') {
     samples('hide');
 
-    fs.mkdirSync(metaStash, { recursive: true });
+    fs.mkdirSync(stash, { recursive: true });
     for (const name of packed) {
-        moveDir(path.join(myspace, name), path.join(myspace, name + '~'));
-        moveFile(path.join(myspace, name + '.meta'), path.join(metaStash, name + '.meta'));
+        moveDir(path.join(myspace, name), path.join(stash, name));
+        moveFile(path.join(myspace, name + '.meta'), path.join(stash, name + '.meta'));
     }
 
     fs.rmSync(path.join(unitext, 'LICENSE.md'), { force: true });
@@ -74,8 +73,8 @@ if (mode === 'prepare') {
     samples('show');
 
     for (const name of packed) {
-        moveDir(path.join(myspace, name + '~'), path.join(myspace, name));
-        moveFile(path.join(metaStash, name + '.meta'), path.join(myspace, name + '.meta'));
+        moveDir(path.join(stash, name), path.join(myspace, name));
+        moveFile(path.join(stash, name + '.meta'), path.join(myspace, name + '.meta'));
     }
 
     fs.rmSync(coreLicense, { force: true });

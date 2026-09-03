@@ -174,7 +174,7 @@ namespace LightSide.Promo
         public float Small { get => small; set => small = value; }
 
         /// <summary>The brand ramp, in Oklab so the sweep through magenta stays saturated instead of greying out.</summary>
-        public Ramp Brand => new Ramp(
+        public virtual Ramp Brand => new Ramp(
             new[]
             {
                 new Stop(0f, Orange),

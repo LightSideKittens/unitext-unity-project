@@ -1,0 +1,19 @@
+{
+    "name": "LightSide.Benchmark",
+    "rootNamespace": "LightSide.Benchmark",
+    "references": [
+        "LightSide.Core",
+        "Unity.Burst"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,16 @@
+{
+    "name": "media.lightside.benchmark",
+    "version": "1.0.0",
+    "displayName": "LightSide Benchmark",
+    "description": "Internal benchmarking harness for LightSide package development. Not distributed.",
+    "unity": "2022.3",
+    "dependencies": {
+        "com.unity.burst": "1.6.0",
+        "com.unity.nuget.newtonsoft-json": "3.2.2",
+        "media.lightside.core": "3.3.1"
+    },
+    "author": {
+        "name": "LightSide",
+        "url": "https://unity.lightside.media"
+    }
+}

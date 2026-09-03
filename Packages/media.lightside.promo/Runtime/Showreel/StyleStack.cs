@@ -119,23 +119,33 @@ namespace LightSide.Promo
             float textSize, string pick)
         {
             var width = textSize * 6.4f;
-            var chip = Shape("Picker", rect, ShapeKind.RoundedRect, Theme.RadiusXs);
+            var chip = Picker(rect, pick, textSize, out var text);
             Anchor(chip.Rect, new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(1f, 0.5f),
                 new Vector2(-Theme.PadMd, 0f), new Vector2(width, -Theme.PadXs * 2f));
+
+            label.rectTransform.sizeDelta = new Vector2(-(Theme.PadMd * 2f + width + Theme.PadMd), 0f);
+            return new StyleStack.Entry(rect, plate, label, chip, text);
+        }
+
+        /// <summary>
+        /// A dropdown-shaped chip reading <paramref name="pick"/>, left for the caller to anchor.
+        /// <paramref name="label"/> is the current choice, for a shot that rewrites it as it cycles.
+        /// </summary>
+        public Widget Picker(Transform parent, string pick, float textSize, out UniText label)
+        {
+            var chip = Shape("Picker", parent, ShapeKind.RoundedRect, Theme.RadiusXs);
             Solid(chip.Fill, Theme.Sink(Theme.Surface, 0.35f));
             AddStroke(chip.Shape, Theme.Violet, 2f, -1f);
 
-            var text = Label(chip.Rect, pick, textSize * 0.92f, Theme.Text, HAlign.Left, VAlign.Middle);
-            Stretch(text.rectTransform, Theme.PadSm, 0f, textSize, 0f);
-            text.WordWrap = false;
+            label = Label(chip.Rect, pick, textSize * 0.92f, Theme.Text, HAlign.Left, VAlign.Middle);
+            Stretch(label.rectTransform, Theme.PadSm, 0f, textSize, 0f);
+            label.WordWrap = false;
 
             var caret = Label(chip.Rect, "▾", textSize * 0.92f, Theme.TextSoft,
                 HAlign.Right, VAlign.Middle);
             Stretch(caret.rectTransform, 0f, 0f, Theme.PadSm, 0f);
             caret.WordWrap = false;
-
-            label.rectTransform.sizeDelta = new Vector2(-(Theme.PadMd * 2f + width + Theme.PadMd), 0f);
-            return new StyleStack.Entry(rect, plate, label, chip, text);
+            return chip;
         }
     }
 }

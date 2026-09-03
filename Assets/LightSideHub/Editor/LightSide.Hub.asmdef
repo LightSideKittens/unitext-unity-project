@@ -1,6 +1,6 @@
 {
-    "name": "LightSide.UniTextSetup.Editor",
-    "rootNamespace": "LightSide",
+    "name": "LightSide.Hub",
+    "rootNamespace": "LightSide.Hub",
     "references": [],
     "includePlatforms": [
         "Editor"

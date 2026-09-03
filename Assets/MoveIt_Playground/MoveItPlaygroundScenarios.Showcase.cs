@@ -39,13 +39,16 @@ public sealed class EaseGalleryScenario : MoveItPlaygroundScenario
 
     public override void Enter(MoveItStage stage)
     {
+        const float pitch = 1.54f;
         var eases = (EasingType[])Enum.GetValues(typeof(EasingType));
         var columns = Mathf.CeilToInt(Mathf.Sqrt(eases.Length));
+        var rows = Mathf.CeilToInt(eases.Length / (float)columns);
+        var top = (rows - 1) * pitch * 0.5f;
         for (var i = 0; i < eases.Length; i++)
         {
             var column = i % columns;
             var row = i / columns;
-            var origin = new Vector3(column * 1.1f - columns * 0.55f, -row * 1.1f + 2f, 0f);
+            var origin = new Vector3(column * pitch - columns * (pitch * 0.5f), top - row * pitch, 0f);
             var hue = i / (float)eases.Length;
             var sphere = stage.Spawn(PrimitiveType.Sphere, origin, hue,
                 eases[i].ToString());
@@ -118,7 +121,7 @@ public sealed class PhysicalDriverScenario : MoveItPlaygroundScenario
             var aim = Random.Range(0.5f, 3.5f);
             if (springMotion.IsAlive)
             {
-                springMotion.RetargetTo(new Vector3(spring.position.x, aim, spring.position.z));
+                springMotion.RetargetTo(aim);
                 stage.Say($"spring re-aimed to y={aim:0.00} without losing velocity");
             }
             else
