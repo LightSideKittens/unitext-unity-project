@@ -37,7 +37,6 @@ namespace LightSide.Promo
 
         /// <summary>How wide the covered phrase is, taken while the body could still be measured.</summary>
         private float coverWidth;
-        private readonly System.Collections.Generic.List<ModifierRange> covered = new();
 
         protected override void OnBuild(Stage stage)
         {
@@ -116,8 +115,8 @@ namespace LightSide.Promo
 
         private void Uncover()
         {
-            spoiler.GetRanges(covered);
-            if (covered.Count > 0) spoiler.SetRevealed(covered[0], true);
+            var ranges = spoiler.InteractiveRanges;
+            if (ranges.Length > 0) spoiler.SetRevealed(ranges[0], true);
         }
 
         protected override void OnRender(float local)
