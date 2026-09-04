@@ -383,7 +383,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 5346787764359659711
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: ..
@@ -391,16 +391,210 @@ MonoBehaviour:
     - rid: 5346787764359659712
       type: {class: LinkModifier, ns: LightSide, asm: LightSide.UniText}
       data:
-        styler:
-          rid: 5346787764359659713
+        rules:
+        - rid: 9223372036853775801
+        - rid: 9223372036853775796
+        - rid: 9223372036853775792
         linkColor:
           serializedVersion: 2
           rgba: 4294214978
         enableUnderline: 1
         autoOpenUrl: 1
-    - rid: 5346787764359659713
-      type: {class: StateHighlightStyler, ns: LightSide, asm: LightSide.UniText}
+    - rid: 9223372036853775807
+      type: {class: InteractionRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
       data:
+        required: 1
+        excluded: 0
+    - rid: 9223372036853775806
+      type: {class: InteractionRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
+      data:
+        required: 2
+        excluded: 0
+    - rid: 9223372036853775805
+      type: {class: AnyRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
+      data:
+        selectors:
+        - rid: 9223372036853775807
+        - rid: 9223372036853775806
+    - rid: 9223372036853775804
+      type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
+      data:
+        enterDuration: 0.18
+        exitDuration: 0.1
+        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
+        clock: 1
+        animateInitialMatch: 0
+    - rid: 9223372036853775803
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 9223372036853775802
+      type: {class: HighlightModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        priority: -10
+        presentation:
+          provider:
+            rid: 9223372036853775803
+          paint:
+            kind: 1
+            color:
+              serializedVersion: 2
+              rgba: 452952115
+            swatch: 
+          geometryMapping: 2
+          paintMapping: 0
+          shape: -1
+          fit: -1
+          angle: NaN
+          scale: NaN
+          paintOffset: {x: NaN, y: NaN}
+          height: 1
+          padding:
+            value: {x: 0.1, y: 0.06}
+            unit: 2
+          cornerRadius:
+            value: 0.15
+            unit: 2
+          mergeThreshold:
+            value: -1
+            unit: 2
+          order: 0
+          tint:
+            serializedVersion: 2
+            rgba: 4294967295
+    - rid: 9223372036853775801
+      type: {class: ModifierRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        selector:
+          rid: 9223372036853775805
+        playback:
+          rid: 9223372036853775804
+        scope: 1
+        trigger: 0
+        priority: 0
+        modifierTemplate:
+          rid: 9223372036853775802
+        dirtyStage: 1
+    - rid: 9223372036853775800
+      type: {class: InteractionRangeStateSelector, ns: LightSide, asm: LightSide.UniText}
+      data:
+        required: 2
+        excluded: 0
+    - rid: 9223372036853775799
+      type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
+      data:
+        enterDuration: 0
+        exitDuration: 0.15
+        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
+        clock: 1
+        animateInitialMatch: 0
+    - rid: 9223372036853775798
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 9223372036853775797
+      type: {class: HighlightModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        priority: -10
+        presentation:
+          provider:
+            rid: 9223372036853775798
+          paint:
+            kind: 1
+            color:
+              serializedVersion: 2
+              rgba: 1308590131
+            swatch: 
+          geometryMapping: 2
+          paintMapping: 0
+          shape: -1
+          fit: -1
+          angle: NaN
+          scale: NaN
+          paintOffset: {x: NaN, y: NaN}
+          height: 1
+          padding:
+            value: {x: 0.1, y: 0.06}
+            unit: 2
+          cornerRadius:
+            value: 0.15
+            unit: 2
+          mergeThreshold:
+            value: -1
+            unit: 2
+          order: 0
+          tint:
+            serializedVersion: 2
+            rgba: 4294967295
+    - rid: 9223372036853775796
+      type: {class: ModifierRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        selector:
+          rid: 9223372036853775800
+        playback:
+          rid: 9223372036853775799
+        scope: 1
+        trigger: 0
+        priority: 0
+        modifierTemplate:
+          rid: 9223372036853775797
+        dirtyStage: 1
+    - rid: 9223372036853775795
+      type: {class: TransitionPlayback, ns: LightSide, asm: LightSide.UniText}
+      data:
+        enterDuration: 0
+        exitDuration: 0.25
+        easing: {kind: 0, type: 1, controls: {x: 0, y: 0, z: 0, w: 0}, keys: []}
+        clock: 1
+        animateInitialMatch: 0
+    - rid: 9223372036853775794
+      type: {class: GlobalSettingsPaintProvider, ns: LightSide, asm: LightSide.UniText}
+      data: 
+    - rid: 9223372036853775793
+      type: {class: HighlightModifier, ns: LightSide, asm: LightSide.UniText}
+      data:
+        priority: -10
+        presentation:
+          provider:
+            rid: 9223372036853775794
+          paint:
+            kind: 1
+            color:
+              serializedVersion: 2
+              rgba: 1308590131
+            swatch: 
+          geometryMapping: 2
+          paintMapping: 0
+          shape: -1
+          fit: -1
+          angle: NaN
+          scale: NaN
+          paintOffset: {x: NaN, y: NaN}
+          height: 1
+          padding:
+            value: {x: 0.1, y: 0.06}
+            unit: 2
+          cornerRadius:
+            value: 0.15
+            unit: 2
+          mergeThreshold:
+            value: -1
+            unit: 2
+          order: 0
+          tint:
+            serializedVersion: 2
+            rgba: 4294967295
+    - rid: 9223372036853775792
+      type: {class: ModifierRule, ns: LightSide, asm: LightSide.UniText}
+      data:
+        selector:
+          rid: -2
+        playback:
+          rid: 9223372036853775795
+        scope: 1
+        trigger: 1
+        priority: 0
+        modifierTemplate:
+          rid: 9223372036853775793
+        dirtyStage: 1
 --- !u!222 &286914895
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1157,7 +1351,7 @@ MonoBehaviour:
       data:
         fixedPixelSize: 0
     - rid: 5346787789491404801
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: ..
@@ -1167,13 +1361,13 @@ MonoBehaviour:
       data:
         fixedPixelSize: 0
     - rid: 5346787794514608375
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: ..
           parameter: 0.07,#FF0000FF,miter
     - rid: 5346787794514608379
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: ..
@@ -1758,7 +1952,7 @@ MonoBehaviour:
         quadPaddingOverride: -1
         cloneMaterial: 1
     - rid: 5346788256457424966
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: 
@@ -2589,11 +2783,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: 'managedReferences[5346787691565416487]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: 'managedReferences[5346787691565416488]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: 'managedReferences[5346787691565416489]'
@@ -2605,7 +2799,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: 'managedReferences[5346787764359659853]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: managedReferences[5346787691565416486].tagName
@@ -2833,11 +3027,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: 'managedReferences[5346787691565416487]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: 'managedReferences[5346787691565416488]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: 'managedReferences[5346787691565416489]'
@@ -2849,7 +3043,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: 'managedReferences[5346787764359659855]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 7946966876017591449, guid: 1751e1c5c1ebedf4eb889b43cc4bd600, type: 3}
       propertyPath: managedReferences[5346787691565416486].tagName
@@ -2965,7 +3159,7 @@ MonoBehaviour:
       type: {class: VariationModifier, ns: LightSide, asm: LightSide.UniText}
       data: 
     - rid: 5346787647322062849
-      type: {class: RangeRule, ns: LightSide, asm: LightSide.UniText}
+      type: {class: FixedRangeSource, ns: LightSide, asm: LightSide.UniText}
       data:
         data:
         - range: ..

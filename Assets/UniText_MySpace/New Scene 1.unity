@@ -261,11 +261,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139328]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139329]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139330]'
@@ -273,7 +273,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139331]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139332]'
@@ -281,7 +281,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139333]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139334]'
@@ -289,7 +289,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139335]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139336]'
@@ -297,7 +297,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139337]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139338]'
@@ -305,7 +305,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139339]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139340]'
@@ -313,7 +313,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139341]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139342]'
@@ -321,7 +321,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139343]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139344]'
@@ -329,15 +329,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139345]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139346]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139347]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139348]'
@@ -345,7 +345,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139349]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139350]'
@@ -353,7 +353,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139351]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139352]'
@@ -361,7 +361,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139353]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139354]'
@@ -369,7 +369,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139355]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139356]'
@@ -377,7 +377,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139357]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139358]'
@@ -385,7 +385,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139359]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139360]'
@@ -393,7 +393,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139361]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139362]'
@@ -401,7 +401,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139363]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139364]'
@@ -409,7 +409,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139365]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139366]'
@@ -417,7 +417,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139367]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139368]'
@@ -425,7 +425,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139369]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139370]'
@@ -433,7 +433,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139371]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139372]'
@@ -441,7 +441,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139373]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139374]'
@@ -449,7 +449,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139375]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139376]'
@@ -457,7 +457,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139377]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139378]'
@@ -465,7 +465,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139379]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139380]'
@@ -473,7 +473,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139381]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139382]'
@@ -481,7 +481,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139383]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139384]'
@@ -489,7 +489,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139385]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139386]'
@@ -497,7 +497,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139387]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139388]'
@@ -505,7 +505,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139389]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139390]'
@@ -513,7 +513,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139391]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139392]'
@@ -521,7 +521,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139393]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139394]'
@@ -529,15 +529,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139395]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139396]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139397]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139398]'
@@ -545,7 +545,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139399]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139400]'
@@ -553,7 +553,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139401]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139402]'
@@ -561,7 +561,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139403]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139404]'
@@ -569,7 +569,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139405]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139406]'
@@ -577,7 +577,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139407]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139408]'
@@ -585,7 +585,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139409]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139410]'
@@ -593,55 +593,55 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139411]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139412]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139413]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139414]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139415]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139436]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139437]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139438]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139439]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139492]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139493]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139495]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139496]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139497]'
@@ -649,15 +649,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139498]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139499]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139500]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139501]'
@@ -665,7 +665,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139502]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139503]'
@@ -673,15 +673,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139504]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139506]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139507]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139508]'
@@ -689,7 +689,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139509]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139510]'
@@ -697,31 +697,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139511]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139512]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139513]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139514]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139515]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139516]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139517]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139518]'
@@ -745,7 +745,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139523]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139524]'
@@ -753,7 +753,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139525]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139526]'
@@ -761,15 +761,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139527]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139528]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139529]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139530]'
@@ -777,7 +777,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139531]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139532]'
@@ -785,7 +785,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139533]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139534]'
@@ -793,7 +793,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139535]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139536]'
@@ -801,7 +801,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139537]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139538]'
@@ -821,7 +821,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139542]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139543]'
@@ -829,7 +829,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139544]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139545]'
@@ -837,7 +837,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139546]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139547]'
@@ -845,7 +845,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139548]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139549]'
@@ -853,7 +853,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139550]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139551]'
@@ -861,7 +861,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139552]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139553]'
@@ -869,7 +869,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139554]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139555]'
@@ -877,7 +877,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139556]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139557]'
@@ -885,7 +885,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139558]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139559]'
@@ -893,7 +893,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139560]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139561]'
@@ -901,7 +901,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139562]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139563]'
@@ -909,7 +909,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139564]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139565]'
@@ -917,23 +917,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139566]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139567]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139568]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139569]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139570]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139571]'
@@ -941,7 +941,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139572]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139573]'
@@ -949,31 +949,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139574]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176576]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176577]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176631]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176632]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176637]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176638]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176639]'
@@ -989,7 +989,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176642]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176645]'
@@ -997,7 +997,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176646]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176649]'
@@ -1005,7 +1005,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176650]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176653]'
@@ -1013,7 +1013,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176654]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176657]'
@@ -1021,7 +1021,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176658]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176661]'
@@ -1029,11 +1029,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176662]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176674]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176675]'
@@ -1049,11 +1049,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176678]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176679]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176680]'
@@ -1069,11 +1069,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176683]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176684]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176685]'
@@ -1089,7 +1089,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176688]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: managedReferences[4507959519815139518].tagName
@@ -3146,11 +3146,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139328]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139329]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139330]'
@@ -3158,7 +3158,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139331]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139332]'
@@ -3166,7 +3166,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139333]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139334]'
@@ -3174,7 +3174,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139335]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139336]'
@@ -3182,7 +3182,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139337]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139338]'
@@ -3190,7 +3190,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139339]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139340]'
@@ -3198,7 +3198,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139341]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139342]'
@@ -3206,7 +3206,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139343]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139344]'
@@ -3214,15 +3214,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139345]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139346]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139347]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139348]'
@@ -3230,7 +3230,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139349]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139350]'
@@ -3238,7 +3238,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139351]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139352]'
@@ -3246,7 +3246,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139353]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139354]'
@@ -3254,7 +3254,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139355]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139356]'
@@ -3262,7 +3262,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139357]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139358]'
@@ -3270,7 +3270,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139359]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139360]'
@@ -3278,7 +3278,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139361]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139362]'
@@ -3286,7 +3286,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139363]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139364]'
@@ -3294,7 +3294,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139365]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139366]'
@@ -3302,7 +3302,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139367]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139368]'
@@ -3310,7 +3310,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139369]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139370]'
@@ -3318,7 +3318,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139371]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139372]'
@@ -3326,7 +3326,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139373]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139374]'
@@ -3334,7 +3334,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139375]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139376]'
@@ -3342,7 +3342,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139377]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139378]'
@@ -3350,7 +3350,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139379]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139380]'
@@ -3358,7 +3358,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139381]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139382]'
@@ -3366,7 +3366,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139383]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139384]'
@@ -3374,7 +3374,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139385]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139386]'
@@ -3382,7 +3382,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139387]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139388]'
@@ -3390,7 +3390,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139389]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139390]'
@@ -3398,7 +3398,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139391]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139392]'
@@ -3406,7 +3406,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139393]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139394]'
@@ -3414,15 +3414,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139395]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139396]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139397]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139398]'
@@ -3430,7 +3430,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139399]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139400]'
@@ -3438,7 +3438,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139401]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139402]'
@@ -3446,7 +3446,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139403]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139404]'
@@ -3454,7 +3454,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139405]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139406]'
@@ -3462,7 +3462,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139407]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139408]'
@@ -3470,7 +3470,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139409]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139410]'
@@ -3478,55 +3478,55 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139411]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139412]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139413]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139414]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139415]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139436]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139437]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139438]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139439]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139492]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139493]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139495]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139496]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139497]'
@@ -3534,15 +3534,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139498]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139499]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139500]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139501]'
@@ -3550,7 +3550,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139502]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139503]'
@@ -3558,15 +3558,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139504]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139506]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139507]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139508]'
@@ -3574,7 +3574,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139509]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139510]'
@@ -3582,31 +3582,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139511]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139512]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139513]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139514]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139515]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139516]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139517]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139518]'
@@ -3630,7 +3630,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139523]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139524]'
@@ -3638,7 +3638,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139525]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139526]'
@@ -3646,15 +3646,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139527]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139528]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139529]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139530]'
@@ -3662,7 +3662,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139531]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139532]'
@@ -3670,7 +3670,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139533]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139534]'
@@ -3678,7 +3678,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139535]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139536]'
@@ -3686,7 +3686,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139537]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139538]'
@@ -3706,7 +3706,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139542]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139543]'
@@ -3714,7 +3714,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139544]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139545]'
@@ -3722,7 +3722,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139546]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139547]'
@@ -3730,7 +3730,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139548]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139549]'
@@ -3738,7 +3738,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139550]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139551]'
@@ -3746,7 +3746,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139552]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139553]'
@@ -3754,7 +3754,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139554]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139555]'
@@ -3762,7 +3762,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139556]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139557]'
@@ -3770,7 +3770,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139558]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139559]'
@@ -3778,7 +3778,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139560]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139561]'
@@ -3786,7 +3786,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139562]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139563]'
@@ -3794,7 +3794,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139564]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139565]'
@@ -3802,23 +3802,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139566]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139567]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139568]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139569]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139570]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139571]'
@@ -3826,7 +3826,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139572]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139573]'
@@ -3834,31 +3834,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959519815139574]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176576]'
-      value: LightSide.UniText LightSide.WobbleAnimationModifier
+      value: LightSide.UniText LightSide.WaveModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176577]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176631]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176632]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176637]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176638]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176639]'
@@ -3874,7 +3874,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176642]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176643]'
@@ -3882,7 +3882,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176644]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176647]'
@@ -3890,7 +3890,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176648]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176651]'
@@ -3898,7 +3898,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176652]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176655]'
@@ -3906,7 +3906,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176656]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176659]'
@@ -3914,11 +3914,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176660]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176711]'
-      value: LightSide.UniText LightSide.OutlineModifier
+      value: LightSide.UniText LightSide.StrokeModifier
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176712]'
@@ -3934,7 +3934,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: 'managedReferences[4507959521969176715]'
-      value: LightSide.UniText LightSide.RangeRule
+      value: LightSide.UniText LightSide.FixedRangeSource
       objectReference: {fileID: 0}
     - target: {fileID: 6152091150242388760, guid: af7b825e8f1c79449a3193230b53883b, type: 3}
       propertyPath: managedReferences[4507959519815139518].tagName

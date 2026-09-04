@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f98884f63101cdb43a545305c46a5ba2, type: 3}
+  m_Name: SF-Pro Medium
+  m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFontVariant
+  fontDataHash: 0
+  italicStyle: 30
+  spacingOffset: 0
+  spaceAdvance: -100
+  fakeBoldWeight: 0
+  faceInfo:
+    faceIndex: 0
+    familyName: SF Pro
+    styleName: Regular
+    weightClass: 400
+    isItalic: 0
+    unitsPerEm: 2048
+    lineHeight: 2444
+    ascentLine: 1950
+    capLine: 1443
+    meanLine: 1040
+    descentLine: -494
+    typoAscent: 1950
+    typoDescent: -494
+    typoLineGap: 0
+    winAscent: 1950
+    winDescent: -494
+    useTypoMetrics: 0
+    superscriptOffset: 350
+    superscriptSize: 600
+    subscriptOffset: 75
+    subscriptSize: 600
+    underlineOffset: -370
+    underlineThickness: 120
+    strikethroughOffset: 620
+    strikethroughThickness: 120
+    tabWidth: 420
+  unitsPerEm: 2048
+  fontScale: 1
+  participatesInNormalization: 1
+  sdfDetailMultiplier: 1
+  tileSizeOffset: 0
+  glyphOverrides: []
+  axisDefaults:
+  - tag: 2003265652
+    value: 510
+  - tag: 1869640570
+    value: 17
+  sourceFont: {fileID: 0}
+  source: {fileID: 11400000, guid: b4818aac390f9564f80a8612836b2cb9, type: 2}
+  faceIndex: 0

@@ -17,4 +17,8 @@ MonoBehaviour:
     primary: {fileID: 11400000, guid: 80bb7da55075166419945d1cb8d4ff0f, type: 2}
     faces: []
     preferredLanguage: 
+  - name: test
+    primary: {fileID: 11400000, guid: 458ce7104bbc238479cdf31dd48b03b9, type: 2}
+    faces: []
+    preferredLanguage: 
   fallbackStack: {fileID: 0}

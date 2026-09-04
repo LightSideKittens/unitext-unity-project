@@ -123,3 +123,6 @@ Assets/TempBugsIssues
 __pycache__/
 *.pyc
 Benchmarks
+Data
+UIElementsSchema
+TestResults

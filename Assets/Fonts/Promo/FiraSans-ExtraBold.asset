@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: FiraSans-ExtraBold
   m_EditorClassIdentifier: LightSide.UniText::LightSide.UniTextFont
   payload: {fileID: 12310428348}
+  fontDataHash: -584538948
   payloadSourceHash: 880d19919cd532c641a14ff2931e527555f43b60b5f666a8e5181acb6ed9c14f
   payloadRawLength: 497028
-  fontDataHash: -584538948
   italicStyle: 30
   spacingOffset: 0
   spaceAdvance: 228
@@ -50,10 +50,12 @@ MonoBehaviour:
   unitsPerEm: 1000
   fontScale: 1
   participatesInNormalization: 1
-  sdfDetailMultiplier: 1
-  tileSizeOffset: 0
+  sdfDetailMultiplier: 2.24
+  tileSizeOffset: 2
   glyphOverrides: []
   axisDefaults: []
+  variableAxes: []
+  faceCount: 0
   sourceFont: {fileID: 12800000, guid: a099bafa136fe144cb0306dd37665bbe, type: 3}
 --- !u!114 &12310428348
 MonoBehaviour:

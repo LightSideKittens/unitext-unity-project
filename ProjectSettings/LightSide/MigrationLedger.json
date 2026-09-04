@@ -1,15 +1,21 @@
 {
+    "format": 1,
     "packages": [
         {
             "name": "media.lightside.unitext",
-            "version": "3.0.0"
+            "version": "3.5.6"
         },
         {
             "name": "media.lightside.core",
+            "version": "3.5.4"
+        },
+        {
+            "name": "media.lightside.unishapes",
             "version": "1.0.0"
         }
     ],
     "completedMigrations": [
-        "value/BoldModifier.weight/700->auto"
+        "value/BoldModifier.weight/700->auto",
+        "value/LightSide.UniText/PaintOverrideInherit->-1"
     ]
 }
