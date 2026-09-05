@@ -33,22 +33,17 @@ namespace LightSide.CI
             var expectedPipeline = RequireExpectedPipeline();
             HdrpFixture.EnsureImported(expectedPipeline);
 
-            var compiler = new ShaderCompiler();
+            var compiler = new ShaderCompiler(SplitCommandLineList("-shaderPlatforms"));
             var shaderPaths = FindShaderPaths(expectedPipeline);
             var diagnostics = new HashSet<string>(StringComparer.Ordinal);
             var urp = UrpContext.Create(expectedPipeline);
             var previousColorSpace = PlayerSettings.colorSpace;
-
-            // HDRP is Linear-only; a Gamma sweep there would compile a configuration the pipeline forbids.
-            var colorSpaces = IsHdrp(expectedPipeline)
-                ? new[] { ColorSpace.Linear }
-                : new[] { ColorSpace.Gamma, ColorSpace.Linear };
+            var colorSpaces = RequestedColorSpaces(expectedPipeline);
 
             try
             {
-                var renderingModes = urp == null ? new[] { expectedPipeline } : urp.RenderingModes;
                 Debug.Log("Shader compiler matrix: Unity " + Application.unityVersion
-                    + ", pipeline modes: " + string.Join(", ", renderingModes)
+                    + ", pipeline: " + expectedPipeline
                     + ", color spaces: " + string.Join(", ", colorSpaces)
                     + ", compiler platforms: " + string.Join(", ", compiler.Platforms)
                     + ", shaders: " + shaderPaths.Length + ".");
@@ -56,16 +51,10 @@ namespace LightSide.CI
                 foreach (var colorSpace in colorSpaces)
                 {
                     PlayerSettings.colorSpace = colorSpace;
-                    foreach (var renderingMode in renderingModes)
-                    {
-                        if (urp != null)
-                            urp.SetRenderingMode(renderingMode);
-
-                        var configuration = renderingMode + ", " + colorSpace;
-                        Debug.Log("Compiling LightSide shaders for " + configuration + ".");
-                        foreach (var shaderPath in shaderPaths)
-                            compiler.Compile(shaderPath, configuration, diagnostics);
-                    }
+                    var configuration = expectedPipeline + ", " + colorSpace;
+                    Debug.Log("Compiling LightSide shaders for " + configuration + ".");
+                    foreach (var shaderPath in shaderPaths)
+                        compiler.Compile(shaderPath, configuration, diagnostics);
                 }
             }
             finally
@@ -214,7 +203,7 @@ namespace LightSide.CI
                 .ToArray();
 
         /// <summary>
-        /// Mirrors the package's own HDRP delivery: the graphs live in Core's hidden Samples~ folder
+        /// Mirrors the package's own HDRP delivery: the graphs live in Core's hidden HdrpAssets~ folder
         /// (a .shadergraph in the always-imported tree breaks Built-in-only imports) and are copied
         /// into Assets before use — here explicitly, because the fixture has no active HDRP asset
         /// to trigger the editor's automatic copy.
@@ -222,7 +211,7 @@ namespace LightSide.CI
         private static class HdrpFixture
         {
             internal const string TargetFolder = "Assets/LightSide/HDRP";
-            private const string SourceFolder = "Packages/media.lightside.core/Samples~/HDRP";
+            private const string SourceFolder = "Packages/media.lightside.core/HdrpAssets~";
 
             internal static void EnsureImported(string expectedPipeline)
             {
@@ -259,6 +248,42 @@ namespace LightSide.CI
             return null;
         }
 
+        private static string[] SplitCommandLineList(string argument)
+        {
+            var value = GetCommandLineValue(argument);
+            return string.IsNullOrEmpty(value)
+                ? Array.Empty<string>()
+                : value.Split(',').Select(entry => entry.Trim()).Where(entry => entry.Length > 0).ToArray();
+        }
+
+        /// <summary>
+        /// The color spaces to sweep, from <c>-shaderColorSpaces</c>; Gamma and Linear when it is absent,
+        /// Linear alone under HDRP. Gamma and Linear compile different variants, so a run that names only
+        /// one leaves the other unchecked — the caller decides which legs carry that cost.
+        /// </summary>
+        private static ColorSpace[] RequestedColorSpaces(string expectedPipeline)
+        {
+            // HDRP is Linear-only; a Gamma sweep there would compile a configuration the pipeline forbids.
+            var hdrp = IsHdrp(expectedPipeline);
+            var requested = SplitCommandLineList("-shaderColorSpaces");
+            if (requested.Length == 0)
+                return hdrp ? new[] { ColorSpace.Linear } : new[] { ColorSpace.Gamma, ColorSpace.Linear };
+
+            var colorSpaces = new List<ColorSpace>();
+            foreach (var name in requested)
+            {
+                ColorSpace colorSpace;
+                Assert.IsTrue(Enum.TryParse(name, true, out colorSpace)
+                    && (colorSpace == ColorSpace.Gamma || colorSpace == ColorSpace.Linear),
+                    "-shaderColorSpaces names an unknown color space: " + name + ".");
+                Assert.IsFalse(hdrp && colorSpace == ColorSpace.Gamma,
+                    "HDRP is Linear-only; -shaderColorSpaces must not ask an HDRP fixture for Gamma.");
+                colorSpaces.Add(colorSpace);
+            }
+
+            return colorSpaces.Distinct().ToArray();
+        }
+
         private sealed class ShaderCompiler
         {
             private const BindingFlags staticFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
@@ -266,7 +291,7 @@ namespace LightSide.CI
             private readonly MethodInfo fetchMessages;
             private readonly int platformMask;
 
-            internal ShaderCompiler()
+            internal ShaderCompiler(string[] requestedPlatforms)
             {
                 var shaderUtil = typeof(ShaderUtil);
                 var availablePlatforms = shaderUtil.GetMethod(
@@ -281,19 +306,49 @@ namespace LightSide.CI
                 Assert.NotNull(compile, "Unity's full-variant shader compiler API is unavailable.");
                 Assert.NotNull(fetchMessages, "Unity's shader message cache API is unavailable.");
 
-                platformMask = (int)availablePlatforms.Invoke(null, null);
-                Assert.AreNotEqual(0, platformMask, "Unity reported no available shader compiler platforms.");
+                var available = (int)availablePlatforms.Invoke(null, null);
+                Assert.AreNotEqual(0, available, "Unity reported no available shader compiler platforms.");
+                platformMask = Restrict(available, requestedPlatforms);
                 Platforms = GetPlatformNames(platformMask);
+            }
+
+            /// <summary>
+            /// Narrows the editor's available platforms to the requested names; an empty list or the single
+            /// name <c>all</c> keeps every one. A name this editor cannot compile fails the run — quietly
+            /// compiling fewer platforms would report a green check for coverage that never ran.
+            /// </summary>
+            private static int Restrict(int available, string[] requested)
+            {
+                if (requested.Length == 0
+                    || requested.Length == 1 && string.Equals(requested[0], "all", StringComparison.OrdinalIgnoreCase))
+                    return available;
+
+                var mask = 0;
+                foreach (var name in requested)
+                {
+                    ShaderCompilerPlatform platform;
+                    Assert.IsTrue(Enum.TryParse(name, true, out platform)
+                        && Enum.IsDefined(typeof(ShaderCompilerPlatform), platform),
+                        "-shaderPlatforms names an unknown shader compiler platform: " + name + ".");
+
+                    var bit = 1 << (int)platform;
+                    Assert.AreNotEqual(0, available & bit,
+                        "This editor cannot compile for " + platform + "; it offers "
+                        + string.Join(", ", GetPlatformNames(available)) + ".");
+                    mask |= bit;
+                }
+
+                return mask;
             }
 
             internal string[] Platforms { get; private set; }
 
-            internal void Compile(string shaderPath, string renderingMode, ISet<string> diagnostics)
+            internal void Compile(string shaderPath, string configuration, ISet<string> diagnostics)
             {
                 var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
                 if (shader == null)
                 {
-                    diagnostics.Add("[Error] [" + renderingMode + "] Failed to load shader: " + shaderPath);
+                    diagnostics.Add("[Error] [" + configuration + "] Failed to load shader: " + shaderPath);
                     return;
                 }
 
@@ -303,11 +358,11 @@ namespace LightSide.CI
                     compile.Invoke(null, new object[] { shader, 2, platformMask, true, false, true });
                     fetchMessages.Invoke(null, new object[] { shader });
                     foreach (var message in ShaderUtil.GetShaderMessages(shader))
-                        diagnostics.Add(Format(shaderPath, renderingMode, message));
+                        diagnostics.Add(Format(shaderPath, configuration, message));
                 }
                 catch (Exception exception)
                 {
-                    diagnostics.Add("[Error] [" + renderingMode + "] " + shaderPath + " | "
+                    diagnostics.Add("[Error] [" + configuration + "] " + shaderPath + " | "
                         + exception.GetBaseException());
                 }
             }
@@ -324,10 +379,10 @@ namespace LightSide.CI
                 return names.ToArray();
             }
 
-            private static string Format(string shaderPath, string renderingMode, ShaderMessage message)
+            private static string Format(string shaderPath, string configuration, ShaderMessage message)
             {
                 var builder = new StringBuilder();
-                builder.Append('[').Append(message.severity).Append("] [").Append(renderingMode).Append("] [")
+                builder.Append('[').Append(message.severity).Append("] [").Append(configuration).Append("] [")
                     .Append(message.platform).Append("] ").Append(shaderPath);
                 if (!string.IsNullOrEmpty(message.file))
                     builder.Append(" | ").Append(message.file);
@@ -345,10 +400,8 @@ namespace LightSide.CI
             private const string universalAssembly = "Unity.RenderPipelines.Universal.Runtime";
             private readonly ScriptableObject rendererData;
             private readonly RenderPipelineAsset pipelineAsset;
-            private readonly PropertyInfo renderingMode;
             private readonly RenderPipelineAsset previousDefaultPipeline;
             private readonly RenderPipelineAsset previousQualityPipeline;
-            private readonly IDictionary<string, object> modeValues;
             private readonly ShaderStrippingContext shaderStripping;
 
             private UrpContext(Type rendererDataType, Type pipelineAssetType)
@@ -356,14 +409,6 @@ namespace LightSide.CI
                 previousDefaultPipeline = GraphicsSettings.defaultRenderPipeline;
                 previousQualityPipeline = QualitySettings.renderPipeline;
                 rendererData = ScriptableObject.CreateInstance(rendererDataType);
-                renderingMode = rendererDataType.GetProperty("renderingMode", BindingFlags.Instance | BindingFlags.Public);
-                Assert.NotNull(renderingMode, "UniversalRendererData.renderingMode is unavailable.");
-
-                modeValues = Enum.GetValues(renderingMode.PropertyType)
-                    .Cast<object>()
-                    .OrderBy(Convert.ToInt32)
-                    .ToDictionary(value => value.ToString(), value => value, StringComparer.Ordinal);
-                Assert.IsNotEmpty(modeValues, "URP reported no rendering modes.");
 
                 var create = pipelineAssetType.GetMethods(BindingFlags.Static | BindingFlags.Public)
                     .SingleOrDefault(method => method.Name == "Create" && method.GetParameters().Length == 1);
@@ -373,10 +418,7 @@ namespace LightSide.CI
                 GraphicsSettings.defaultRenderPipeline = pipelineAsset;
                 QualitySettings.renderPipeline = pipelineAsset;
                 shaderStripping = ShaderStrippingContext.Create();
-                RenderingModes = modeValues.Keys.ToArray();
             }
-
-            internal string[] RenderingModes { get; private set; }
 
             internal static UrpContext Create(string expectedPipeline)
             {
@@ -408,36 +450,8 @@ namespace LightSide.CI
                 return new UrpContext(rendererDataType, pipelineAssetType);
             }
 
-            internal void SetRenderingMode(string mode)
-            {
-                renderingMode.SetValue(rendererData, modeValues[mode], null);
-                EditorUtility.SetDirty(rendererData);
-
-                GraphicsSettings.defaultRenderPipeline = null;
-                QualitySettings.renderPipeline = null;
-                GraphicsSettings.defaultRenderPipeline = pipelineAsset;
-                QualitySettings.renderPipeline = pipelineAsset;
-
-                Shader.DisableKeyword("_FORWARD_PLUS");
-                Shader.DisableKeyword("_CLUSTER_LIGHT_LOOP");
-                if (mode.EndsWith("Plus", StringComparison.Ordinal))
-                    Shader.EnableKeyword(GetForwardPlusKeyword());
-            }
-
-            private static string GetForwardPlusKeyword()
-            {
-                var version = Application.unityVersion.Split('.');
-                var major = int.Parse(version[0]);
-                var minor = int.Parse(version[1]);
-                return major > 6000 || major == 6000 && minor >= 1
-                    ? "_CLUSTER_LIGHT_LOOP"
-                    : "_FORWARD_PLUS";
-            }
-
             public void Dispose()
             {
-                Shader.DisableKeyword("_FORWARD_PLUS");
-                Shader.DisableKeyword("_CLUSTER_LIGHT_LOOP");
                 shaderStripping.Dispose();
                 GraphicsSettings.defaultRenderPipeline = previousDefaultPipeline;
                 QualitySettings.renderPipeline = previousQualityPipeline;

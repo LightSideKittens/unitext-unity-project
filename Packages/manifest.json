@@ -7,6 +7,7 @@
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.burst": "1.8.29",
     "com.unity.ide.rider": "3.0.39",
+    "com.unity.inputsystem": "1.19.0",
     "com.unity.localization": "1.5.12",
     "com.unity.memoryprofiler": "1.1.12",
     "com.unity.mobile.android-logcat": "1.4.7",

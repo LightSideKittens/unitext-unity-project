@@ -181,7 +181,6 @@ MonoBehaviour:
     rid: 2064119385389532098
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532099
   layers:
@@ -202,6 +201,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -255,6 +255,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -268,6 +269,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -318,6 +320,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -331,6 +334,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -378,6 +382,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -391,6 +396,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -440,6 +446,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -453,6 +460,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -534,7 +542,6 @@ MonoBehaviour:
     rid: 2064119385389532043
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532044
   layers:
@@ -554,6 +561,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -607,6 +615,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -620,6 +629,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -670,6 +680,7 @@ MonoBehaviour:
               radius: 0.2
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -683,6 +694,7 @@ MonoBehaviour:
               taper: 3.1
             cells: {x: 1, y: 1}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0.24
             drive: 3
@@ -754,6 +766,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -767,6 +780,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1002,7 +1016,6 @@ MonoBehaviour:
     rid: 2064119385389532093
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532094
   layers:
@@ -1022,6 +1035,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -1075,6 +1089,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1088,6 +1103,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1138,6 +1154,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1151,6 +1168,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1198,6 +1216,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1211,6 +1230,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1292,7 +1312,6 @@ MonoBehaviour:
     rid: 2064119385389532088
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532089
   layers:
@@ -1312,6 +1331,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -1365,6 +1385,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1378,6 +1399,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1428,6 +1450,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1441,6 +1464,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1488,6 +1512,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1501,6 +1526,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1650,7 +1676,6 @@ MonoBehaviour:
     rid: 2064119385389532108
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532109
   layers:
@@ -1670,6 +1695,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -1723,6 +1749,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1736,6 +1763,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1786,6 +1814,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1799,6 +1828,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1846,6 +1876,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -1859,6 +1890,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -1940,7 +1972,6 @@ MonoBehaviour:
     rid: 2064119385389532053
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532054
   layers:
@@ -1960,6 +1991,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -2013,6 +2045,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2026,6 +2059,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2076,6 +2110,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2089,6 +2124,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2136,6 +2172,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2149,6 +2186,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2230,7 +2268,6 @@ MonoBehaviour:
     rid: 2064119385389532118
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532119
   layers:
@@ -2250,6 +2287,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -2303,6 +2341,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2316,6 +2355,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2366,6 +2406,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2379,6 +2420,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2426,6 +2468,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2439,6 +2482,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2520,7 +2564,6 @@ MonoBehaviour:
     rid: 2064119385389532083
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532084
   layers:
@@ -2542,6 +2585,7 @@ MonoBehaviour:
         radius: 26
         cornerRadii: {x: 36.45, y: 27.1, z: 27.7, w: 32.19}
         smoothing: 0.35
+        fit: 0
         cornerStyle: 2
         cap: 0
         rounding: 0
@@ -2595,6 +2639,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2608,6 +2653,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2662,6 +2708,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2675,6 +2722,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2722,6 +2770,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2735,6 +2784,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2784,6 +2834,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2797,6 +2848,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2847,6 +2899,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -2860,6 +2913,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -2942,7 +2996,6 @@ MonoBehaviour:
     rid: 2064119385389532048
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532049
   layers:
@@ -3085,6 +3138,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -3098,6 +3152,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -3148,6 +3203,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -3161,6 +3217,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -3208,6 +3265,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -3221,6 +3279,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -3302,7 +3361,6 @@ MonoBehaviour:
     rid: 2064119385389532078
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532079
   layers:
@@ -3322,6 +3380,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -3375,6 +3434,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -3388,6 +3448,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -3438,6 +3499,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -3451,6 +3513,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -3498,6 +3561,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -3511,6 +3575,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -3668,108 +3733,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!1001 &1017792429
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1439981787}
-    m_Modifications:
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_Pivot.x
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -960
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -540
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6656417141984203358, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-      propertyPath: m_Name
-      value: GameObject
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
---- !u!224 &1017792430 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 1538790792092920720, guid: 4675a8ad375b24cb094759d57396913d, type: 3}
-  m_PrefabInstance: {fileID: 1017792429}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1176200147
 GameObject:
   m_ObjectHideFlags: 0
@@ -3831,7 +3794,6 @@ MonoBehaviour:
     rid: 2064119385389532058
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532059
   layers:
@@ -3851,6 +3813,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -3904,6 +3867,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -3917,6 +3881,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -3967,6 +3932,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -3980,6 +3946,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -4027,6 +3994,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -4040,6 +4008,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -4121,7 +4090,6 @@ MonoBehaviour:
     rid: 2064119385389532068
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532069
   layers:
@@ -4141,6 +4109,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -4194,6 +4163,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -4207,6 +4177,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -4257,6 +4228,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -4270,6 +4242,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -4317,6 +4290,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -4330,6 +4304,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -4514,7 +4489,6 @@ MonoBehaviour:
     rid: 3078575444530824146
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532099
   layers:
@@ -4568,6 +4542,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -4581,6 +4556,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -4631,6 +4607,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -4644,6 +4621,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -4691,6 +4669,7 @@ MonoBehaviour:
               radius: 0
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -4704,6 +4683,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 1.28, y: 0.04}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 1
@@ -4760,6 +4740,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -4779,6 +4760,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -4859,7 +4841,6 @@ MonoBehaviour:
     rid: 2064119385389532073
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532074
   layers:
@@ -4879,6 +4860,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -4932,6 +4914,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -4945,6 +4928,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -4995,6 +4979,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5008,6 +4993,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5055,6 +5041,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5068,6 +5055,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5205,7 +5193,6 @@ RectTransform:
   - {fileID: 1635344849}
   - {fileID: 1795745770}
   - {fileID: 1218684716}
-  - {fileID: 1017792430}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5274,7 +5261,6 @@ MonoBehaviour:
     rid: 2064119385389532063
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532064
   layers:
@@ -5294,6 +5280,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 10
@@ -5347,6 +5334,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5360,6 +5348,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5410,6 +5399,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5423,6 +5413,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5470,6 +5461,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5483,6 +5475,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5564,7 +5557,6 @@ MonoBehaviour:
     rid: 2064119385389532123
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532124
   layers:
@@ -5584,6 +5576,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -5637,6 +5630,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5650,6 +5644,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5700,6 +5695,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5713,6 +5709,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5760,6 +5757,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5773,6 +5771,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5854,7 +5853,6 @@ MonoBehaviour:
     rid: 2064119385389532128
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532129
   layers:
@@ -5874,6 +5872,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -5927,6 +5926,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -5940,6 +5940,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -5990,6 +5991,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6003,6 +6005,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6050,6 +6053,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6063,6 +6067,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6144,7 +6149,6 @@ MonoBehaviour:
     rid: 3078575444530823349
   rotation: 0
   offset: {x: 5.78, y: -0.85}
-  fit: 0
   paints:
     rid: 2064119385389532034
   layers:
@@ -6198,6 +6202,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6211,6 +6216,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6261,6 +6267,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6274,6 +6281,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6321,6 +6329,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6334,6 +6343,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6468,7 +6478,6 @@ MonoBehaviour:
     rid: 2064119385389532103
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532104
   layers:
@@ -6488,6 +6497,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -6541,6 +6551,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6554,6 +6565,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6604,6 +6616,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6617,6 +6630,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6664,6 +6678,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6677,6 +6692,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6758,7 +6774,6 @@ MonoBehaviour:
     rid: 2064119385389532133
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532134
   layers:
@@ -6834,6 +6849,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6847,6 +6863,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6897,6 +6914,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6910,6 +6928,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6957,6 +6976,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -6970,6 +6990,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -6990,6 +7011,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -7009,6 +7031,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -7089,7 +7112,6 @@ MonoBehaviour:
     rid: 2064119385389532113
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532114
   layers:
@@ -7109,6 +7131,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 0
@@ -7162,6 +7185,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -7175,6 +7199,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -7225,6 +7250,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -7238,6 +7264,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -7285,6 +7312,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -7298,6 +7326,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -7379,7 +7408,6 @@ MonoBehaviour:
     rid: 2064119385389532038
   rotation: 0
   offset: {x: 0, y: 0}
-  fit: 0
   paints:
     rid: 2064119385389532039
   layers:
@@ -7399,6 +7427,7 @@ MonoBehaviour:
         radius: 16
         cornerRadii: {x: 16, y: 16, z: 16, w: 16}
         smoothing: 0
+        fit: 0
         cornerStyle: 0
         cap: 0
         rounding: 8
@@ -7452,6 +7481,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -7465,6 +7495,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -7515,6 +7546,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -7528,6 +7560,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0
@@ -7575,6 +7608,7 @@ MonoBehaviour:
               radius: 16
               cornerRadii: {x: 16, y: 16, z: 16, w: 16}
               smoothing: 0
+              fit: 0
               cornerStyle: 0
               cap: 0
               rounding: 0
@@ -7588,6 +7622,7 @@ MonoBehaviour:
               taper: 20
             cells: {x: 8, y: 8}
             layout: 0
+            size: 0.6
             rotation: 0
             softness: 0
             drive: 0

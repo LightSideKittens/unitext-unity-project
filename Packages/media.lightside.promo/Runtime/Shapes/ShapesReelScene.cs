@@ -297,8 +297,13 @@ namespace LightSide.Promo
             {
                 Shape = new InlineShapeProvider { Kind = ShapeKind.Circle },
                 Operation = CompositeOp.Union,
-                Padding = Vector4.one * (heroSize * 0.5f),
-                Offset = BiteRest * heroSize
+                Rect = new RectPlacement
+                {
+                    anchorMax = Vector2.one,
+                    pivot = new Vector2(0.5f, 0.5f),
+                    sizeDelta = Vector2.one * -heroSize,
+                    anchoredPosition = BiteRest * heroSize,
+                },
             };
             boolean = new CompositeShapeProvider();
             boolean.Elements.Clear();

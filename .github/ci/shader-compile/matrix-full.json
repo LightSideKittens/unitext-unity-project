@@ -1,0 +1,67 @@
+{
+  "include": [
+    {
+      "name": "Built-in - Unity 2022.3",
+      "project": "builtin-2022",
+      "unity": "2022.3.62f2",
+      "pipeline": "builtin",
+      "colorSpaces": "Gamma,Linear",
+      "platforms": "all",
+      "scope": "full"
+    },
+    {
+      "name": "Built-in - Unity 6000.5",
+      "project": "builtin-6000",
+      "unity": "6000.5.8f1",
+      "pipeline": "builtin",
+      "colorSpaces": "Gamma,Linear",
+      "platforms": "all",
+      "scope": "full"
+    },
+    {
+      "name": "URP 14 - Unity 2022.3",
+      "project": "urp14",
+      "unity": "2022.3.62f2",
+      "pipeline": "urp",
+      "colorSpaces": "Gamma,Linear",
+      "platforms": "all",
+      "scope": "full"
+    },
+    {
+      "name": "URP 17.0 - Unity 6000.0",
+      "project": "urp17-6000",
+      "unity": "6000.0.23f1",
+      "pipeline": "urp",
+      "colorSpaces": "Gamma,Linear",
+      "platforms": "all",
+      "scope": "full"
+    },
+    {
+      "name": "URP 17.5 - Unity 6000.5",
+      "project": "urp17-latest",
+      "unity": "6000.5.8f1",
+      "pipeline": "urp",
+      "colorSpaces": "Gamma,Linear",
+      "platforms": "all",
+      "scope": "full"
+    },
+    {
+      "name": "HDRP 14 - Unity 2022.3",
+      "project": "hdrp14-2022",
+      "unity": "2022.3.62f2",
+      "pipeline": "hdrp",
+      "colorSpaces": "Linear",
+      "platforms": "all",
+      "scope": "full"
+    },
+    {
+      "name": "HDRP 17.5 - Unity 6000.5",
+      "project": "hdrp17-latest",
+      "unity": "6000.5.8f1",
+      "pipeline": "hdrp",
+      "colorSpaces": "Linear",
+      "platforms": "all",
+      "scope": "full"
+    }
+  ]
+}

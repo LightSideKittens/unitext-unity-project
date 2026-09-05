@@ -114,6 +114,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.inputsystem": {
+      "version": "1.19.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.uielements": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.localization": {
       "version": "1.5.12",
       "depth": 0,
@@ -384,7 +393,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "media.lightside.core": "3.5.4",
+        "media.lightside.core": "3.5.5",
         "com.unity.burst": "1.8.29",
         "com.unity.ugui": "1.0.0",
         "com.unity.modules.ui": "1.0.0"

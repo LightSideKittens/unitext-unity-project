@@ -33,19 +33,27 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _BlendOp: 0
+    - _BlendOpAlpha: 0
     - _Brightness: 1
     - _ColorMask: 15
     - _CullMode: 0
-    - _EdgeSoftness: 0.015
-    - _EdgeWidth: 0.06
+    - _DstBlend: 10
+    - _DstBlendAlpha: 10
+    - _EdgeSoftness: 0.1019
+    - _EdgeWidth: 0.182
     - _HueOffset: 0
     - _HueScale: 0.004
     - _HueSpeed: 0.15
+    - _LightSideInstUv2X: 1
+    - _LightSideInstUv2Y: 0
     - _MaskSoftnessX: 0
     - _MaskSoftnessY: 0
     - _NoiseScale: 0.5
     - _NoiseSpace: 0
     - _Saturation: 1
+    - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0

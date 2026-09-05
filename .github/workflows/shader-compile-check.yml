@@ -1,7 +1,18 @@
 name: Shader and State Contract Check
 
+# Two scopes, one workflow. Pushes and pull requests run the "fast" legs: one editor per pipeline
+# family, Linear only, D3D + Vulkan only — the trim is measured, not guessed (a full URP leg spends
+# ~87% of its wall clock on one 256-variant pass, and Gamma doubles everything). The nightly run and
+# a manual dispatch carry the full sweep: every editor, both color spaces, every compiler platform.
 on:
   workflow_dispatch:
+    inputs:
+      full:
+        description: "Run the full matrix (every editor, both color spaces, every compiler platform)"
+        type: boolean
+        default: true
+  schedule:
+    - cron: "0 2 * * *"
   push:
     branches: ["**"]
     paths:
@@ -25,46 +36,49 @@ permissions:
   checks: write
 
 concurrency:
-  group: shader-compile-${{ github.workflow }}-${{ github.ref }}
+  group: shader-compile-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
+  plan:
+    name: Select matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      - name: Check out the matrix definitions
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: .github/ci/shader-compile
+
+      - name: Select the matrix for this trigger
+        id: select
+        shell: bash
+        env:
+          FULL: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.full) }}
+        run: |
+          set -euo pipefail
+          if [ "$FULL" = "true" ]; then
+            SCOPE=full
+          else
+            SCOPE=fast
+          fi
+          echo "Matrix scope: $SCOPE"
+          {
+            echo "matrix<<MATRIX_JSON"
+            cat ".github/ci/shader-compile/matrix-$SCOPE.json"
+            echo "MATRIX_JSON"
+          } >> "$GITHUB_OUTPUT"
+
   compile:
     name: ${{ matrix.name }}
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Built-in - Unity 2022.3
-            project: builtin-2022
-            unity: 2022.3.62f2
-            pipeline: builtin
-          - name: Built-in - Unity 6000.5
-            project: builtin-6000
-            unity: 6000.5.8f1
-            pipeline: builtin
-          - name: URP 14 - Unity 2022.3
-            project: urp14
-            unity: 2022.3.62f2
-            pipeline: urp
-          - name: URP 17.0 - Unity 6000.0
-            project: urp17-6000
-            unity: 6000.0.23f1
-            pipeline: urp
-          - name: URP 17.5 - Unity 6000.5
-            project: urp17-latest
-            unity: 6000.5.8f1
-            pipeline: urp
-          - name: HDRP 14 - Unity 2022.3
-            project: hdrp14-2022
-            unity: 2022.3.62f2
-            pipeline: hdrp
-          - name: HDRP 17.5 - Unity 6000.5
-            project: hdrp17-latest
-            unity: 6000.5.8f1
-            pipeline: hdrp
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
 
     steps:
       - name: Checkout project and packages
@@ -86,13 +100,16 @@ jobs:
           test -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.dll
           test ! -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.deps.json
 
-      - name: Cache Unity Library
-        uses: actions/cache@v5
+      # The scope is part of the key: a fast run warms only the platforms it compiled, and must not
+      # claim the key the full run's cache belongs under.
+      - name: Restore Unity Library
+        id: unity-library
+        uses: actions/cache/restore@v5
         with:
           path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
-          key: shader-library-${{ matrix.project }}-${{ hashFiles('.github/ci/shader-compile/**', 'Packages/media.lightside.core/**', 'Packages/media.lightside.unitext/**', 'Packages/media.lightside.unishapes/**', 'Packages/media.lightside.unilottie/**') }}
+          key: shader-library-${{ matrix.project }}-${{ matrix.scope }}-${{ hashFiles('.github/ci/shader-compile/**', 'Packages/media.lightside.core/**', 'Packages/media.lightside.unitext/**', 'Packages/media.lightside.unishapes/**', 'Packages/media.lightside.unilottie/**') }}
           restore-keys: |
-            shader-library-${{ matrix.project }}-
+            shader-library-${{ matrix.project }}-${{ matrix.scope }}-
 
       - name: Run shader and serialized-state contract tests
         id: shader-tests
@@ -106,15 +123,24 @@ jobs:
           unityVersion: ${{ matrix.unity }}
           testMode: EditMode
           artifactsPath: artifacts/${{ matrix.project }}
-          customParameters: -expectedRenderPipeline ${{ matrix.pipeline }}
+          customParameters: -expectedRenderPipeline ${{ matrix.pipeline }} -shaderColorSpaces ${{ matrix.colorSpaces }} -shaderPlatforms ${{ matrix.platforms }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: Shader and State Contracts - ${{ matrix.name }}
+          checkName: Shader and State Contracts (${{ matrix.scope }}) - ${{ matrix.name }}
+
+      # The shader cache is the whole reason a warm run takes minutes instead of an hour, and a red
+      # run warms it just as well as a green one — actions/cache's own post step saves only on success.
+      - name: Save Unity Library
+        if: always() && steps.unity-library.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
+          key: shader-library-${{ matrix.project }}-${{ matrix.scope }}-${{ hashFiles('.github/ci/shader-compile/**', 'Packages/media.lightside.core/**', 'Packages/media.lightside.unitext/**', 'Packages/media.lightside.unishapes/**', 'Packages/media.lightside.unilottie/**') }}
 
       - name: Upload compiler diagnostics
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: ShaderDiagnostics-${{ matrix.project }}
+          name: ShaderDiagnostics-${{ matrix.project }}-${{ matrix.scope }}
           path: artifacts/${{ matrix.project }}
           if-no-files-found: warn
           retention-days: 14

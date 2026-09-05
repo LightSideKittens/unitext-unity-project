@@ -222,12 +222,17 @@ namespace LightSide.Promo
                 ? heroSize * Mathf.LerpUnclamped(BiteHuge, BiteSize, envelope)
                 : heroSize * BiteSize * envelope;
 
-            bite.Padding = Vector4.one * ((heroSize - diameter) * 0.5f);
+            var turn = (local - booleanAt) * DriftRate * Mathf.PI * 2f;
+            bite.Rect = new RectPlacement
+            {
+                anchorMax = Vector2.one,
+                pivot = new Vector2(0.5f, 0.5f),
+                sizeDelta = Vector2.one * (diameter - heroSize),
+                anchoredPosition =
+                    (BiteRest + new Vector2(DriftX * Mathf.Sin(turn), DriftY * Mathf.Cos(turn))) * heroSize,
+            };
             bite.Operation = op;
             bite.Blend = heroSize * (op == CompositeOp.Union ? FilletUnion : FilletCut) * Mathf.Clamp01(envelope);
-
-            var turn = (local - booleanAt) * DriftRate * Mathf.PI * 2f;
-            bite.Offset = (BiteRest + new Vector2(DriftX * Mathf.Sin(turn), DriftY * Mathf.Cos(turn))) * heroSize;
 
             opPick.SetText(OpNames[(int)op]);
         }
