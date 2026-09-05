@@ -286,6 +286,13 @@ namespace LightSide.CI
 
         private sealed class ShaderCompiler
         {
+            /// <summary>
+            /// The <c>mode</c> OpenCompiledShader takes, indexing ShaderInspectorPlatformsPopup's platform
+            /// modes: 0 current device, 1 current build platform, 2 all platforms, 3 custom. Only 3 reads
+            /// <c>customPlatformsMask</c> — under 2 the mask is ignored and every available platform compiles.
+            /// </summary>
+            private const int customPlatformsMode = 3;
+
             private const BindingFlags staticFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             private readonly MethodInfo compile;
             private readonly MethodInfo fetchMessages;
@@ -355,10 +362,16 @@ namespace LightSide.CI
                 try
                 {
                     ShaderUtil.ClearShaderMessages(shader);
-                    compile.Invoke(null, new object[] { shader, 2, platformMask, true, false, true });
+                    compile.Invoke(null, new object[] { shader, customPlatformsMode, platformMask, true, false, true });
                     fetchMessages.Invoke(null, new object[] { shader });
                     foreach (var message in ShaderUtil.GetShaderMessages(shader))
+                    {
+                        if ((platformMask & (1 << (int)message.platform)) == 0)
+                            diagnostics.Add("[Error] [" + configuration + "] The compiler platform restriction did "
+                                + "not take effect: " + message.platform + " compiled although it was not requested, "
+                                + "so the matrix logged above is narrower than the sweep that ran.");
                         diagnostics.Add(Format(shaderPath, configuration, message));
+                    }
                 }
                 catch (Exception exception)
                 {
