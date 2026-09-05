@@ -1,14 +1,15 @@
 name: Shader and State Contract Check
 
-# Two scopes, one workflow. Pushes and pull requests run the "fast" legs: one editor per pipeline
-# family, Linear only, D3D + Vulkan only — the trim is measured, not guessed (a full URP leg spends
-# ~87% of its wall clock on one 256-variant pass, and Gamma doubles everything). The nightly run and
-# a manual dispatch carry the full sweep: every editor, both color spaces, every compiler platform.
+# Every push runs the complete sweep — every editor, both color spaces, every compiler platform —
+# because a diagnostic skipped here is one a consumer's build finds instead: the Vulkan-only error in
+# entry 3 of Docs~/SHADER_DIAGNOSTICS.md appeared on no other platform. Two early-signal legs run
+# alongside it so a mistake still comes back in minutes rather than hours; they are extra coverage,
+# never a substitute. A dispatch with `full: false` runs those two alone, for iterating on the harness.
 on:
   workflow_dispatch:
     inputs:
       full:
-        description: "Run the full matrix (every editor, both color spaces, every compiler platform)"
+        description: "Run the complete sweep (uncheck for the two early-signal legs only)"
         type: boolean
         default: true
   schedule:
@@ -56,18 +57,21 @@ jobs:
         id: select
         shell: bash
         env:
-          FULL: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.full) }}
+          FAST_ONLY: ${{ github.event_name == 'workflow_dispatch' && !inputs.full }}
         run: |
           set -euo pipefail
-          if [ "$FULL" = "true" ]; then
-            SCOPE=full
+          cd .github/ci/shader-compile
+          if [ "$FAST_ONLY" = "true" ]; then
+            MATRIX=$(jq -c . matrix-fast.json)
+            echo "Matrix: the two early-signal legs only."
           else
-            SCOPE=fast
+            MATRIX=$(jq -c -s '{include: (.[0].include + .[1].include)}' matrix-fast.json matrix-full.json)
+            echo "Matrix: early-signal legs plus the complete sweep."
           fi
-          echo "Matrix scope: $SCOPE"
+          echo "$MATRIX" | jq -r '.include[] | "  \(.name) [\(.scope)] \(.colorSpaces) / \(.platforms)"'
           {
             echo "matrix<<MATRIX_JSON"
-            cat ".github/ci/shader-compile/matrix-$SCOPE.json"
+            echo "$MATRIX"
             echo "MATRIX_JSON"
           } >> "$GITHUB_OUTPUT"
 
@@ -104,17 +108,17 @@ jobs:
           test -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.dll
           test ! -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.deps.json
 
-      # Only the fast legs are cached. They are the ones latency matters for, and twelve nightly
-      # Libraries would evict them from the repository's 10 GB of cache within a single run.
+      # Keyed by project, not by leg: the color-space halves and the early-signal leg of one project
+      # share a Library, so whichever finishes first warms the rest. Seven projects fit the
+      # repository's 10 GB of cache; keying per leg would not.
       - name: Restore Unity Library
         id: unity-library
-        if: matrix.scope == 'fast'
         uses: actions/cache/restore@v5
         with:
           path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
-          key: shader-library-${{ matrix.project }}-${{ matrix.scope }}-${{ hashFiles('.github/ci/shader-compile/**', 'Packages/media.lightside.core/**', 'Packages/media.lightside.unitext/**', 'Packages/media.lightside.unishapes/**', 'Packages/media.lightside.unilottie/**') }}
+          key: shader-library-${{ matrix.project }}-${{ hashFiles('.github/ci/shader-compile/**', 'Packages/media.lightside.core/**', 'Packages/media.lightside.unitext/**', 'Packages/media.lightside.unishapes/**', 'Packages/media.lightside.unilottie/**') }}
           restore-keys: |
-            shader-library-${{ matrix.project }}-${{ matrix.scope }}-
+            shader-library-${{ matrix.project }}-
 
       - name: Run shader and serialized-state contract tests
         id: shader-tests
@@ -134,12 +138,15 @@ jobs:
 
       # The shader cache is the whole reason a warm run takes minutes instead of an hour, and a red
       # run warms it just as well as a green one — actions/cache's own post step saves only on success.
+      # continue-on-error: the legs of one project race for the same key, and the losers are expected
+      # to find it already taken.
       - name: Save Unity Library
-        if: always() && matrix.scope == 'fast' && steps.unity-library.outputs.cache-hit != 'true'
+        if: always() && steps.unity-library.outputs.cache-hit != 'true'
+        continue-on-error: true
         uses: actions/cache/save@v5
         with:
           path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
-          key: shader-library-${{ matrix.project }}-${{ matrix.scope }}-${{ hashFiles('.github/ci/shader-compile/**', 'Packages/media.lightside.core/**', 'Packages/media.lightside.unitext/**', 'Packages/media.lightside.unishapes/**', 'Packages/media.lightside.unilottie/**') }}
+          key: shader-library-${{ matrix.project }}-${{ hashFiles('.github/ci/shader-compile/**', 'Packages/media.lightside.core/**', 'Packages/media.lightside.unitext/**', 'Packages/media.lightside.unishapes/**', 'Packages/media.lightside.unilottie/**') }}
 
       - name: Upload compiler diagnostics
         if: always()
