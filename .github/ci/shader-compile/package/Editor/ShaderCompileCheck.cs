@@ -27,7 +27,13 @@ namespace LightSide.CI
             "Packages/media.lightside.unilottie"
         };
 
-        [Test, Timeout(3600000)]
+        /// <summary>
+        /// Compiles every LightSide shader across the requested color spaces and compiler platforms, failing
+        /// on any compiler warning or error. The timeout must stay under the CI job's own, so an overrun
+        /// surfaces as a test failure instead of a killed runner, and above the ~90 minutes a cold URP leg
+        /// spends compiling.
+        /// </summary>
+        [Test, Timeout(6600000)]
         public void AllShadersCompileWithoutWarningsOrErrors()
         {
             var expectedPipeline = RequireExpectedPipeline();
