@@ -7,7 +7,8 @@
       "pipeline": "builtin",
       "colorSpaces": "Linear",
       "platforms": "D3D,Vulkan",
-      "scope": "fast"
+      "scope": "fast",
+      "timeoutMinutes": 120
     },
     {
       "name": "URP 17.5 - Unity 6000.5",
@@ -16,7 +17,8 @@
       "pipeline": "urp",
       "colorSpaces": "Linear",
       "platforms": "D3D,Vulkan",
-      "scope": "fast"
+      "scope": "fast",
+      "timeoutMinutes": 120
     }
   ]
 }

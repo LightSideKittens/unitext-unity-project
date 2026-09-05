@@ -1,67 +1,124 @@
 {
   "include": [
     {
-      "name": "Built-in - Unity 2022.3",
+      "name": "Built-in - Unity 2022.3 (Gamma)",
       "project": "builtin-2022",
       "unity": "2022.3.62f2",
       "pipeline": "builtin",
-      "colorSpaces": "Gamma,Linear",
+      "colorSpaces": "Gamma",
       "platforms": "all",
-      "scope": "full"
+      "scope": "full",
+      "timeoutMinutes": 330
     },
     {
-      "name": "Built-in - Unity 6000.5",
+      "name": "Built-in - Unity 2022.3 (Linear)",
+      "project": "builtin-2022",
+      "unity": "2022.3.62f2",
+      "pipeline": "builtin",
+      "colorSpaces": "Linear",
+      "platforms": "all",
+      "scope": "full",
+      "timeoutMinutes": 330
+    },
+    {
+      "name": "Built-in - Unity 6000.5 (Gamma)",
       "project": "builtin-6000",
       "unity": "6000.5.8f1",
       "pipeline": "builtin",
-      "colorSpaces": "Gamma,Linear",
+      "colorSpaces": "Gamma",
       "platforms": "all",
-      "scope": "full"
+      "scope": "full",
+      "timeoutMinutes": 330
     },
     {
-      "name": "URP 14 - Unity 2022.3",
+      "name": "Built-in - Unity 6000.5 (Linear)",
+      "project": "builtin-6000",
+      "unity": "6000.5.8f1",
+      "pipeline": "builtin",
+      "colorSpaces": "Linear",
+      "platforms": "all",
+      "scope": "full",
+      "timeoutMinutes": 330
+    },
+    {
+      "name": "URP 14 - Unity 2022.3 (Gamma)",
       "project": "urp14",
       "unity": "2022.3.62f2",
       "pipeline": "urp",
-      "colorSpaces": "Gamma,Linear",
+      "colorSpaces": "Gamma",
       "platforms": "all",
-      "scope": "full"
+      "scope": "full",
+      "timeoutMinutes": 330
     },
     {
-      "name": "URP 17.0 - Unity 6000.0",
+      "name": "URP 14 - Unity 2022.3 (Linear)",
+      "project": "urp14",
+      "unity": "2022.3.62f2",
+      "pipeline": "urp",
+      "colorSpaces": "Linear",
+      "platforms": "all",
+      "scope": "full",
+      "timeoutMinutes": 330
+    },
+    {
+      "name": "URP 17.0 - Unity 6000.0 (Gamma)",
       "project": "urp17-6000",
       "unity": "6000.0.23f1",
       "pipeline": "urp",
-      "colorSpaces": "Gamma,Linear",
+      "colorSpaces": "Gamma",
       "platforms": "all",
-      "scope": "full"
+      "scope": "full",
+      "timeoutMinutes": 330
     },
     {
-      "name": "URP 17.5 - Unity 6000.5",
+      "name": "URP 17.0 - Unity 6000.0 (Linear)",
+      "project": "urp17-6000",
+      "unity": "6000.0.23f1",
+      "pipeline": "urp",
+      "colorSpaces": "Linear",
+      "platforms": "all",
+      "scope": "full",
+      "timeoutMinutes": 330
+    },
+    {
+      "name": "URP 17.5 - Unity 6000.5 (Gamma)",
       "project": "urp17-latest",
       "unity": "6000.5.8f1",
       "pipeline": "urp",
-      "colorSpaces": "Gamma,Linear",
+      "colorSpaces": "Gamma",
       "platforms": "all",
-      "scope": "full"
+      "scope": "full",
+      "timeoutMinutes": 330
     },
     {
-      "name": "HDRP 14 - Unity 2022.3",
+      "name": "URP 17.5 - Unity 6000.5 (Linear)",
+      "project": "urp17-latest",
+      "unity": "6000.5.8f1",
+      "pipeline": "urp",
+      "colorSpaces": "Linear",
+      "platforms": "all",
+      "scope": "full",
+      "timeoutMinutes": 330
+    },
+    {
+      "name": "HDRP 14 - Unity 2022.3 (Linear)",
       "project": "hdrp14-2022",
       "unity": "2022.3.62f2",
       "pipeline": "hdrp",
       "colorSpaces": "Linear",
       "platforms": "all",
-      "scope": "full"
+      "scope": "full",
+      "timeoutMinutes": 330
     },
     {
-      "name": "HDRP 17.5 - Unity 6000.5",
+      "name": "HDRP 17.5 - Unity 6000.5 (Linear)",
       "project": "hdrp17-latest",
       "unity": "6000.5.8f1",
       "pipeline": "hdrp",
       "colorSpaces": "Linear",
       "platforms": "all",
-      "scope": "full"
+      "scope": "full",
+      "timeoutMinutes": 330
     }
   ]
 }

@@ -75,9 +75,11 @@ jobs:
     name: ${{ matrix.name }}
     needs: plan
     runs-on: ubuntu-latest
-    # A cold URP leg spends ~75 min compiling, almost all of it in one 256-variant forward pass;
-    # the ceiling is a backstop against a hang, not a target.
-    timeout-minutes: 120
+    # The only timeout in the system: the compile test carries none, because how long a sweep may take
+    # is a property of the platforms and color spaces it was handed. A cold fast leg spends ~90 min in
+    # one 256-variant forward pass, and a full leg is one color space precisely so it stays under
+    # GitHub's own 6-hour job ceiling.
+    timeout-minutes: ${{ matrix.timeoutMinutes }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
@@ -102,10 +104,11 @@ jobs:
           test -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.dll
           test ! -f Packages/media.lightside.core/Analyzers/LightSide.StateCodeGen.deps.json
 
-      # The scope is part of the key: a fast run warms only the platforms it compiled, and must not
-      # claim the key the full run's cache belongs under.
+      # Only the fast legs are cached. They are the ones latency matters for, and twelve nightly
+      # Libraries would evict them from the repository's 10 GB of cache within a single run.
       - name: Restore Unity Library
         id: unity-library
+        if: matrix.scope == 'fast'
         uses: actions/cache/restore@v5
         with:
           path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
@@ -132,7 +135,7 @@ jobs:
       # The shader cache is the whole reason a warm run takes minutes instead of an hour, and a red
       # run warms it just as well as a green one — actions/cache's own post step saves only on success.
       - name: Save Unity Library
-        if: always() && steps.unity-library.outputs.cache-hit != 'true'
+        if: always() && matrix.scope == 'fast' && steps.unity-library.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: .github/ci/shader-compile/projects/${{ matrix.project }}/Library
@@ -142,7 +145,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: ShaderDiagnostics-${{ matrix.project }}-${{ matrix.scope }}
+          name: ShaderDiagnostics-${{ matrix.project }}-${{ matrix.scope }}-${{ matrix.colorSpaces }}
           path: artifacts/${{ matrix.project }}
           if-no-files-found: warn
           retention-days: 14

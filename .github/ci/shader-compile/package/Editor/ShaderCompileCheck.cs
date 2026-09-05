@@ -29,11 +29,11 @@ namespace LightSide.CI
 
         /// <summary>
         /// Compiles every LightSide shader across the requested color spaces and compiler platforms, failing
-        /// on any compiler warning or error. The timeout must stay under the CI job's own, so an overrun
-        /// surfaces as a test failure instead of a killed runner, and above the ~90 minutes a cold URP leg
-        /// spends compiling.
+        /// on any compiler warning or error. Carries no NUnit timeout on purpose: how long a sweep may take
+        /// depends on the platforms and color spaces it was given, so the CI job's own timeout is the single
+        /// authority — a second, compile-time limit could only truncate it.
         /// </summary>
-        [Test, Timeout(6600000)]
+        [Test]
         public void AllShadersCompileWithoutWarningsOrErrors()
         {
             var expectedPipeline = RequireExpectedPipeline();
