@@ -75,7 +75,9 @@ jobs:
     name: ${{ matrix.name }}
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # A cold URP leg spends ~75 min compiling, almost all of it in one 256-variant forward pass;
+    # the ceiling is a backstop against a hang, not a target.
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
