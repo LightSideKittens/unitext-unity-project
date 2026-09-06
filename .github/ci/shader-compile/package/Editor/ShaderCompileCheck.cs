@@ -29,11 +29,12 @@ namespace LightSide.CI
 
         /// <summary>
         /// Compiles every LightSide shader across the requested color spaces and compiler platforms, failing
-        /// on any compiler warning or error. Carries no NUnit timeout on purpose: how long a sweep may take
-        /// depends on the platforms and color spaces it was given, so the CI job's own timeout is the single
-        /// authority — a second, compile-time limit could only truncate it.
+        /// on any compiler warning or error. The timeout is GitHub's hard six-hour job ceiling, so the CI
+        /// job's own timeout always fires first and stays the single authority. Removing the attribute does
+        /// not lift the limit: test-framework 1.7.0, which Unity 6 resolves to whatever the manifest pins,
+        /// then applies its own 180-second default and fails a sweep three minutes in.
         /// </summary>
-        [Test]
+        [Test, Timeout(21600000)]
         public void AllShadersCompileWithoutWarningsOrErrors()
         {
             var expectedPipeline = RequireExpectedPipeline();
@@ -52,7 +53,9 @@ namespace LightSide.CI
                     + ", pipeline: " + expectedPipeline
                     + ", color spaces: " + string.Join(", ", colorSpaces)
                     + ", compiler platforms: " + string.Join(", ", compiler.Platforms)
-                    + ", shaders: " + shaderPaths.Length + ".");
+                    + ", shaders: " + shaderPaths.Length
+                    + " (every variant, except .shadergraph assets — those compile the variant set the"
+                    + " active pipeline asks for; see ShaderCompiler.Compile).");
 
                 foreach (var colorSpace in colorSpaces)
                 {
@@ -356,6 +359,14 @@ namespace LightSide.CI
 
             internal string[] Platforms { get; private set; }
 
+            /// <summary>
+            /// Compiles one shader and collects every message it produced. Hand-written shaders compile
+            /// every variant, because their keyword space is this package's own and a bug can hide in one
+            /// combination. A Shader Graph does not: its variant space belongs to the render pipeline that
+            /// generated the passes — HDRP alone puts 24,576 variants in MotionVectors, per platform, none
+            /// of which exercise our code past the first one — so a graph compiles the set the active
+            /// pipeline asks for, which still surfaces any error in the functions we inject.
+            /// </summary>
             internal void Compile(string shaderPath, string configuration, ISet<string> diagnostics)
             {
                 var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
@@ -365,10 +376,12 @@ namespace LightSide.CI
                     return;
                 }
 
+                var allVariants = !shaderPath.EndsWith(".shadergraph", StringComparison.OrdinalIgnoreCase);
+
                 try
                 {
                     ShaderUtil.ClearShaderMessages(shader);
-                    compile.Invoke(null, new object[] { shader, customPlatformsMode, platformMask, true, false, true });
+                    compile.Invoke(null, new object[] { shader, customPlatformsMode, platformMask, allVariants, false, true });
                     fetchMessages.Invoke(null, new object[] { shader });
                     foreach (var message in ShaderUtil.GetShaderMessages(shader))
                     {

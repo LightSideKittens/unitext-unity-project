@@ -1,10 +1,9 @@
 name: Shader and State Contract Check
 
-# Every push runs the complete sweep — every editor, both color spaces, every compiler platform —
-# because a diagnostic skipped here is one a consumer's build finds instead: the Vulkan-only error in
-# entry 3 of Docs~/SHADER_DIAGNOSTICS.md appeared on no other platform. Two early-signal legs run
-# alongside it so a mistake still comes back in minutes rather than hours; they are extra coverage,
-# never a substitute. A dispatch with `full: false` runs those two alone, for iterating on the harness.
+# Pushes and pull requests run two early-signal legs; the nightly run and a manual dispatch carry the
+# complete sweep — every editor, both color spaces, every compiler platform. The complete sweep is not
+# on the push path because it does not fit there: measured on 2026-09-06 it took 5.5 hours and ~40
+# runner-hours and still had not finished. A dispatch with `full: false` runs the two early legs alone.
 on:
   workflow_dispatch:
     inputs:
@@ -57,16 +56,16 @@ jobs:
         id: select
         shell: bash
         env:
-          FAST_ONLY: ${{ github.event_name == 'workflow_dispatch' && !inputs.full }}
+          FULL: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.full) }}
         run: |
           set -euo pipefail
           cd .github/ci/shader-compile
-          if [ "$FAST_ONLY" = "true" ]; then
-            MATRIX=$(jq -c . matrix-fast.json)
-            echo "Matrix: the two early-signal legs only."
+          if [ "$FULL" = "true" ]; then
+            MATRIX=$(jq -c . matrix-full.json)
+            echo "Matrix: the complete sweep."
           else
-            MATRIX=$(jq -c -s '{include: (.[0].include + .[1].include)}' matrix-fast.json matrix-full.json)
-            echo "Matrix: early-signal legs plus the complete sweep."
+            MATRIX=$(jq -c . matrix-fast.json)
+            echo "Matrix: the two early-signal legs."
           fi
           echo "$MATRIX" | jq -r '.include[] | "  \(.name) [\(.scope)] \(.colorSpaces) / \(.platforms)"'
           {

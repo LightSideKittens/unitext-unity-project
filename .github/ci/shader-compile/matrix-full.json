@@ -8,7 +8,7 @@
       "colorSpaces": "Gamma",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "Built-in - Unity 2022.3 (Linear)",
@@ -18,7 +18,7 @@
       "colorSpaces": "Linear",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "Built-in - Unity 6000.5 (Gamma)",
@@ -28,7 +28,7 @@
       "colorSpaces": "Gamma",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "Built-in - Unity 6000.5 (Linear)",
@@ -38,7 +38,7 @@
       "colorSpaces": "Linear",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "URP 14 - Unity 2022.3 (Gamma)",
@@ -48,7 +48,7 @@
       "colorSpaces": "Gamma",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "URP 14 - Unity 2022.3 (Linear)",
@@ -58,7 +58,7 @@
       "colorSpaces": "Linear",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "URP 17.0 - Unity 6000.0 (Gamma)",
@@ -68,7 +68,7 @@
       "colorSpaces": "Gamma",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "URP 17.0 - Unity 6000.0 (Linear)",
@@ -78,7 +78,7 @@
       "colorSpaces": "Linear",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "URP 17.5 - Unity 6000.5 (Gamma)",
@@ -88,7 +88,7 @@
       "colorSpaces": "Gamma",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "URP 17.5 - Unity 6000.5 (Linear)",
@@ -98,7 +98,7 @@
       "colorSpaces": "Linear",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "HDRP 14 - Unity 2022.3 (Linear)",
@@ -108,7 +108,7 @@
       "colorSpaces": "Linear",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     },
     {
       "name": "HDRP 17.5 - Unity 6000.5 (Linear)",
@@ -118,7 +118,7 @@
       "colorSpaces": "Linear",
       "platforms": "all",
       "scope": "full",
-      "timeoutMinutes": 330
+      "timeoutMinutes": 350
     }
   ]
 }
